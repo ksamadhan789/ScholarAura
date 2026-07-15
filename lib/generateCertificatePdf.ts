@@ -1,0 +1,96 @@
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import QRCode from "qrcode";
+
+export async function generateCertificatePdf({
+  recipientName,
+  title,
+  subtitle,
+  certificateNumber,
+  issuedAt,
+  verifyUrl,
+}: {
+  recipientName: string;
+  title: string;
+  subtitle: string;
+  certificateNumber: string;
+  issuedAt: Date;
+  verifyUrl: string;
+}): Promise<Uint8Array> {
+  const doc = await PDFDocument.create();
+  const page = doc.addPage([842, 595]);
+  const { width, height } = page.getSize();
+
+  const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+
+  const centerText = (
+    text: string,
+    y: number,
+    size: number,
+    useFont = font,
+    color = rgb(0.1, 0.1, 0.1)
+  ) => {
+    const textWidth = useFont.widthOfTextAtSize(text, size);
+    page.drawText(text, { x: (width - textWidth) / 2, y, size, font: useFont, color });
+  };
+
+  page.drawRectangle({
+    x: 24,
+    y: 24,
+    width: width - 48,
+    height: height - 48,
+    borderColor: rgb(0.15, 0.15, 0.15),
+    borderWidth: 2,
+  });
+  page.drawRectangle({
+    x: 34,
+    y: 34,
+    width: width - 68,
+    height: height - 68,
+    borderColor: rgb(0.7, 0.7, 0.7),
+    borderWidth: 1,
+  });
+
+  centerText("Certificate of Completion", height - 130, 30, fontBold);
+  centerText("This is to certify that", height - 190, 14, font, rgb(0.35, 0.35, 0.35));
+  centerText(recipientName, height - 230, 26, fontBold);
+  centerText(subtitle, height - 270, 14, font, rgb(0.35, 0.35, 0.35));
+  centerText(title, height - 300, 20, fontBold);
+  centerText(
+    `Issued on ${issuedAt.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}`,
+    height - 340,
+    12,
+    font,
+    rgb(0.4, 0.4, 0.4)
+  );
+
+  page.drawText(`Certificate No: ${certificateNumber}`, {
+    x: 60,
+    y: 55,
+    size: 10,
+    font,
+    color: rgb(0.4, 0.4, 0.4),
+  });
+
+  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 200 });
+  const qrImageBytes = Buffer.from(qrDataUrl.split(",")[1], "base64");
+  const qrImage = await doc.embedPng(qrImageBytes);
+  const qrSize = 90;
+  page.drawImage(qrImage, {
+    x: width - 60 - qrSize,
+    y: 45,
+    width: qrSize,
+    height: qrSize,
+  });
+  const qrLabel = "Scan to verify";
+  const qrLabelWidth = font.widthOfTextAtSize(qrLabel, 9);
+  page.drawText(qrLabel, {
+    x: width - 60 - qrSize / 2 - qrLabelWidth / 2,
+    y: 35,
+    size: 9,
+    font,
+    color: rgb(0.4, 0.4, 0.4),
+  });
+
+  return doc.save();
+}

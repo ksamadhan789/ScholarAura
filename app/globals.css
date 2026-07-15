@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+a {
+  color: inherit;
+}
+
+/* Google Translate widget: hide the default top banner iframe and reset the
+   body offset it injects, so it behaves like a normal inline control. */
+body {
+  top: 0 !important;
+}
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+.translate-widget .goog-te-gadget {
+  font-size: 0;
+}
+.translate-widget .goog-te-gadget-simple {
+  border: none;
+  background: transparent;
+}
+.translate-widget select.goog-te-combo {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.25rem;
+  border: 1px solid #cbd5e1;
+  background: transparent;
+}

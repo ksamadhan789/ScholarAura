@@ -1,0 +1,1 @@
+export const DEFAULT_REFERRAL_RATE_PERCENT = 10;

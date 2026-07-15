@@ -1,0 +1,167 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { getRazorpayClient } from "@/lib/razorpay";
+import { computeCreditApplication, settleReferralCredit } from "@/lib/referral";
+import { getExchangeRate, convertFromInr } from "@/lib/currency";
+
+export async function POST(
+  request: Request,
+  { params }: { params: { slug: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "You must be logged in" }, { status: 401 });
+  }
+
+  const event = await prisma.event.findUnique({ where: { slug: params.slug } });
+  if (!event || !event.isPublished) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+  if (Number(event.fee) <= 0) {
+    return NextResponse.json(
+      { error: "This event is free — use the register endpoint instead" },
+      { status: 400 }
+    );
+  }
+
+  const existing = await prisma.eventRegistration.findUnique({
+    where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
+  });
+  if (existing?.status === "CONFIRMED") {
+    return NextResponse.json({ error: "Already registered" }, { status: 409 });
+  }
+  if (event.seatsFilled >= event.seatsTotal) {
+    return NextResponse.json({ error: "This event is full" }, { status: 409 });
+  }
+
+  const body = await request.json().catch(() => ({}));
+  const requestedCurrency = (body?.currency ?? "INR").toUpperCase();
+
+  let payCurrency = "INR";
+  let chargedAmount: number | null = null;
+  const fee = Number(event.fee);
+
+  if (requestedCurrency !== "INR") {
+    const rate = await getExchangeRate(requestedCurrency);
+    if (!rate) {
+      return NextResponse.json({ error: "Unsupported currency" }, { status: 400 });
+    }
+    payCurrency = requestedCurrency;
+    chargedAmount = convertFromInr(fee, Number(rate.rateFromInr));
+  }
+
+  const { creditApplied, amountDue } =
+    payCurrency === "INR"
+      ? await computeCreditApplication(session.user.id, fee)
+      : { creditApplied: 0, amountDue: fee };
+
+  try {
+    if (payCurrency === "INR" && amountDue <= 0) {
+      try {
+        const registration = await prisma.$transaction(async (tx) => {
+          const claimed = await tx.event.updateMany({
+            where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
+            data: { seatsFilled: { increment: 1 } },
+          });
+          if (claimed.count === 0) {
+            throw new Error("EVENT_FULL");
+          }
+
+          const result = await tx.eventRegistration.upsert({
+            where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
+            update: {
+              status: "CONFIRMED",
+              amount: fee,
+              creditApplied,
+              currency: "INR",
+              chargedAmount: null,
+              razorpayOrderId: null,
+            },
+            create: {
+              userId: session.user.id,
+              eventId: event.id,
+              amount: fee,
+              creditApplied,
+              currency: "INR",
+              status: "CONFIRMED",
+            },
+          });
+
+          await settleReferralCredit(tx, {
+            buyerId: session.user.id,
+            originalAmount: fee,
+            creditApplied,
+            description: `Event: ${event.title}`,
+          });
+
+          return result;
+        });
+
+        return NextResponse.json({ paidWithCredit: true, eventName: event.title, registration });
+      } catch (err) {
+        if (err instanceof Error && err.message === "EVENT_FULL") {
+          return NextResponse.json({ error: "This event is full" }, { status: 409 });
+        }
+        throw err;
+      }
+    }
+
+    const razorpay = getRazorpayClient();
+    const chargeInThisCurrency = payCurrency === "INR" ? amountDue : chargedAmount!;
+    const amountSubunits = Math.round(chargeInThisCurrency * 100);
+
+    const order = await razorpay.orders.create({
+      amount: amountSubunits,
+      currency: payCurrency,
+      receipt: `event_${event.id}_${session.user.id}`.slice(0, 40),
+    });
+
+    const registration = await prisma.eventRegistration.upsert({
+      where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
+      update: {
+        razorpayOrderId: order.id,
+        amount: fee,
+        creditApplied,
+        currency: payCurrency,
+        chargedAmount: payCurrency === "INR" ? null : chargedAmount,
+        status: "PENDING",
+      },
+      create: {
+        userId: session.user.id,
+        eventId: event.id,
+        razorpayOrderId: order.id,
+        amount: fee,
+        creditApplied,
+        currency: payCurrency,
+        chargedAmount: payCurrency === "INR" ? null : chargedAmount,
+        status: "PENDING",
+      },
+    });
+
+    return NextResponse.json({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      keyId: process.env.RAZORPAY_KEY_ID,
+      eventName: event.title,
+      registrationId: registration.id,
+      creditApplied,
+    });
+  } catch (err) {
+    console.error("Event checkout failed:", err);
+    if (payCurrency !== "INR") {
+      return NextResponse.json(
+        {
+          error: `Payments in ${payCurrency} aren't enabled on our account yet. Please pay in INR instead.`,
+        },
+        { status: 400 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Couldn't start checkout. Please try again." },
+      { status: 500 }
+    );
+  }
+}
