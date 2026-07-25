@@ -1,5 +1,6 @@
 export const metadata = {
-  title: "Terms of Service | ScholarAura",
+  title: "Terms of Service",
+  description: "The terms and conditions that govern your use of ScholarAura.",
 };
 
 export default function TermsPage() {

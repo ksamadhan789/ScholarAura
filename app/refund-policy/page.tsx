@@ -1,5 +1,6 @@
 export const metadata = {
-  title: "Refund Policy | ScholarAura",
+  title: "Refund Policy",
+  description: "ScholarAura's refund policy for courses and events.",
 };
 
 export default function RefundPolicyPage() {

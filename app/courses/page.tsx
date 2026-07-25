@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { CoursesExplorer } from "@/components/CoursesExplorer";
 import { Badge } from "@/components/Badge";
+
+export const metadata: Metadata = {
+  title: "Browse Courses",
+  description:
+    "Explore prerecorded courses from ScholarAura's instructors, covering a wide range of subjects for professionals and academics.",
+};
 
 export default async function CoursesPage() {
   const [courses, courseCount, enrollmentCount, certificateCount, externalCourses] =
