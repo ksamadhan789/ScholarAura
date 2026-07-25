@@ -15,6 +15,15 @@ export function Footer() {
           <Link href="/verify" className="hover:text-brand-600 dark:hover:text-brand-400">
             Verify a certificate
           </Link>
+          <Link href="/terms" className="hover:text-brand-600 dark:hover:text-brand-400">
+            Terms
+          </Link>
+          <Link href="/privacy" className="hover:text-brand-600 dark:hover:text-brand-400">
+            Privacy
+          </Link>
+          <Link href="/refund-policy" className="hover:text-brand-600 dark:hover:text-brand-400">
+            Refunds
+          </Link>
           <Link href="/admin/login" className="hover:text-brand-600 dark:hover:text-brand-400">
             Admin login
           </Link>
