@@ -1,7 +1,24 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS, EVENT_TYPE_TABS, formatDateRange } from "@/lib/eventLabels";
 import { Badge } from "@/components/Badge";
+
+export function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { type?: string };
+}): Metadata {
+  const activeLabel = searchParams.type
+    ? EVENT_TYPE_TABS.find((t) => t.type === searchParams.type)?.label
+    : null;
+
+  return {
+    title: activeLabel ?? "Upcoming & Ongoing Events",
+    description:
+      "Conferences, faculty development programs, and hands-on trainings hosted on ScholarAura.",
+  };
+}
 
 function EventCard({
   event,

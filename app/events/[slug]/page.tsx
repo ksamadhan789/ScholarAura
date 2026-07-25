@@ -1,9 +1,33 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS, formatDateRange } from "@/lib/eventLabels";
 import { RegisterButton } from "./RegisterButton";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const event = await prisma.event.findUnique({
+    where: { slug: params.slug, isPublished: true },
+    select: { title: true, description: true },
+  });
+
+  if (!event) return {};
+
+  return {
+    title: event.title,
+    description: event.description,
+    openGraph: {
+      title: event.title,
+      description: event.description,
+      type: "website",
+    },
+  };
+}
 
 export default async function EventDetailPage({
   params,

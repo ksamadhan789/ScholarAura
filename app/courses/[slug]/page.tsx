@@ -1,9 +1,33 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EnrollButton } from "./EnrollButton";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const course = await prisma.course.findUnique({
+    where: { slug: params.slug, isPublished: true },
+    select: { title: true, description: true, category: true },
+  });
+
+  if (!course) return {};
+
+  return {
+    title: course.title,
+    description: course.description,
+    openGraph: {
+      title: course.title,
+      description: course.description,
+      type: "website",
+    },
+  };
+}
 
 export default async function CourseDetailPage({
   params,

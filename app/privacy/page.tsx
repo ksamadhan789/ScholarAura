@@ -1,5 +1,6 @@
 export const metadata = {
-  title: "Privacy Policy | ScholarAura",
+  title: "Privacy Policy",
+  description: "How ScholarAura collects, uses, and protects your information.",
 };
 
 export default function PrivacyPage() {

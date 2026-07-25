@@ -6,12 +6,31 @@ import { Providers } from "./providers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { TranslateWidget } from "@/components/TranslateWidget";
+import { SITE_URL } from "@/lib/siteUrl";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
+const description = "Courses, international & national conferences, faculty development programs, and hands-on trainings for professionals and academics.";
+
 export const metadata: Metadata = {
-  title: "ScholarAura",
-  description: "Courses, conferences, and trainings for professionals and academics",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "ScholarAura",
+    template: "%s | ScholarAura",
+  },
+  description,
+  openGraph: {
+    title: "ScholarAura",
+    description,
+    url: SITE_URL,
+    siteName: "ScholarAura",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "ScholarAura",
+    description,
+  },
 };
 
 const themeInitScript = `
