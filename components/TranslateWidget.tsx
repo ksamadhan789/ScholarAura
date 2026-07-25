@@ -40,5 +40,12 @@ export function TranslateWidget() {
     document.body.appendChild(script);
   }, []);
 
-  return <div id="google_translate_element" className="translate-widget" />;
+  return (
+    <div className="translate-fab fixed bottom-4 left-4 z-50 flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+      <span aria-hidden className="text-base">
+        🌐
+      </span>
+      <div id="google_translate_element" className="translate-widget" />
+    </div>
+  );
 }

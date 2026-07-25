@@ -14,17 +14,52 @@ body {
 .goog-te-banner-frame.skiptranslate {
   display: none !important;
 }
+.translate-fab {
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.translate-fab:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
 .translate-widget .goog-te-gadget {
   font-size: 0;
 }
 .translate-widget .goog-te-gadget-simple {
   border: none;
   background: transparent;
+  padding: 0;
+}
+/* Strip Google's flag icon, "Select Language" text, and spacer/separator
+   images — keep only the dropdown arrow so it reads as a plain icon button
+   next to our own globe emoji. */
+.translate-widget .goog-te-gadget-icon {
+  display: none !important;
+}
+.translate-widget .goog-te-gadget-simple a {
+  text-decoration: none !important;
+}
+.translate-widget .goog-te-gadget-simple a > span:first-child {
+  display: none;
+}
+.translate-widget .goog-te-gadget-simple a > img {
+  display: none !important;
+}
+.translate-widget .goog-te-gadget-simple a span[style*="border-left"] {
+  display: none !important;
+}
+.translate-widget .goog-te-gadget-simple a span[aria-hidden="true"] {
+  font-size: 0.75rem;
+  color: inherit !important;
 }
 .translate-widget select.goog-te-combo {
-  font-size: 0.875rem;
-  padding: 0.25rem 0.4rem;
-  border-radius: 0.25rem;
-  border: 1px solid #cbd5e1;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  padding: 0.1rem 1.25rem 0.1rem 0;
+  border: none;
   background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.translate-widget select.goog-te-combo option {
+  color: #0f172a;
 }

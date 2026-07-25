@@ -30,6 +30,7 @@ enum EventType {
   NATIONAL_CONFERENCE
   FDP
   HANDS_ON_TRAINING
+  WEBINAR
 }
 
 enum PaymentStatus {
@@ -250,4 +251,24 @@ model ExchangeRate {
   updatedAt    DateTime @updatedAt
 
   @@map("exchange_rates")
+}
+
+// ----------------------
+// EXTERNAL / RECOMMENDED COURSES (Phase 7)
+// Curated links to third-party courses (Google, Coursera, edX, etc.) —
+// we do NOT host their content or issue their certificates, just link out.
+// ----------------------
+
+model ExternalCourse {
+  id          String   @id @default(uuid())
+  title       String
+  provider    String // e.g. "Google", "Coursera", "edX"
+  description String
+  url         String // external link — opens in a new tab
+  category    String
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("external_courses")
 }

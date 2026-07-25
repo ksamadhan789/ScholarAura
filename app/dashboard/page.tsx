@@ -93,6 +93,14 @@ export default async function DashboardPage() {
             Currency rates (admin)
           </Link>
         )}
+        {isAdmin && (
+          <Link
+            href="/dashboard/external-courses"
+            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          >
+            Recommended courses (admin)
+          </Link>
+        )}
       </div>
     </main>
   );

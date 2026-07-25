@@ -10,6 +10,7 @@ const eventTypes = [
   "NATIONAL_CONFERENCE",
   "FDP",
   "HANDS_ON_TRAINING",
+  "WEBINAR",
 ] as const;
 
 const createEventSchema = z

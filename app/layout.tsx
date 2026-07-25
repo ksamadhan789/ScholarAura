@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { TranslateWidget } from "@/components/TranslateWidget";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
           <div className="flex flex-1 flex-col">{children}</div>
           <Footer />
+          <TranslateWidget />
         </Providers>
       </body>
     </html>
