@@ -9,6 +9,12 @@ export const metadata: Metadata = {
     "Explore prerecorded courses from ScholarAura's instructors, covering a wide range of subjects for professionals and academics.",
 };
 
+// Course listings and counts change as courses are published/enrolled, and
+// this page has no dynamic APIs (cookies/searchParams) to opt it out of
+// static prerendering on its own — force it so builds don't depend on DB
+// access at build time.
+export const dynamic = "force-dynamic";
+
 export default async function CoursesPage() {
   const [courses, courseCount, enrollmentCount, certificateCount, externalCourses] =
     await Promise.all([

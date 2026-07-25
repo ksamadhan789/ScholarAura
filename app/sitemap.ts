@@ -2,6 +2,12 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { SITE_URL } from "@/lib/siteUrl";
 
+// Course/event listings change as they're published, and Next.js would
+// otherwise try to query the database while statically prerendering this
+// route at build time — failing the build whenever the DB is unreachable
+// from the build environment. Rendering at request time avoids that.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [courses, events] = await Promise.all([
     prisma.course.findMany({
