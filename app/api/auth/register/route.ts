@@ -3,12 +3,14 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { generateReferralCode } from "@/lib/referral";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   ref: z.string().optional(),
+  turnstileToken: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -23,7 +25,24 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, email, password, ref } = parsed.data;
+    const { name, email, password, ref, turnstileToken } = parsed.data;
+
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      if (!turnstileToken) {
+        return NextResponse.json(
+          { error: "Please complete the verification challenge" },
+          { status: 400 }
+        );
+      }
+      const remoteIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+      const verified = await verifyTurnstileToken(turnstileToken, remoteIp);
+      if (!verified) {
+        return NextResponse.json(
+          { error: "Verification failed. Please try again." },
+          { status: 400 }
+        );
+      }
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
