@@ -2,6 +2,11 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
 
+// No dynamic API (cookies/searchParams/getServerSession) here to naturally
+// opt this out of caching, so without this a certificate code checked before
+// it's issued could get cached as "Not found" indefinitely.
+export const dynamic = "force-dynamic";
+
 export default async function VerifyCertificatePage({
   params,
 }: {

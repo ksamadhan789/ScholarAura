@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -43,20 +44,46 @@ export async function POST(
 
     const { title, videoProviderId, durationMinutes, isPreview } = parsed.data;
 
-    const videoCount = await prisma.courseVideo.count({
-      where: { courseId: course.id },
-    });
+    // Serializable + retry so two near-simultaneous "add lecture" submissions
+    // for the same course can't both read the same count and land on the
+    // same orderIndex — Postgres aborts the losing transaction (P2034) and
+    // we retry it against the now-updated count.
+    let video = null;
+    for (let attempt = 0; attempt < 5 && !video; attempt++) {
+      try {
+        video = await prisma.$transaction(
+          async (tx) => {
+            const videoCount = await tx.courseVideo.count({
+              where: { courseId: course.id },
+            });
 
-    const video = await prisma.courseVideo.create({
-      data: {
-        courseId: course.id,
-        title,
-        videoProviderId,
-        durationSeconds: Math.round(durationMinutes * 60),
-        orderIndex: videoCount,
-        isPreview,
-      },
-    });
+            return tx.courseVideo.create({
+              data: {
+                courseId: course.id,
+                title,
+                videoProviderId,
+                durationSeconds: Math.round(durationMinutes * 60),
+                orderIndex: videoCount,
+                isPreview,
+              },
+            });
+          },
+          { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+        );
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2034") {
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    if (!video) {
+      return NextResponse.json(
+        { error: "Something went wrong. Please try again." },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(video, { status: 201 });
   } catch (err) {
