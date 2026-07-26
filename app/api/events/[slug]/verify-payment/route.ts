@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
-import { settleReferralCredit } from "@/lib/referral";
+import { settleEventRegistration, EventFullError } from "@/lib/paymentSettlement";
 
 const verifySchema = z.object({
   razorpay_order_id: z.string(),
@@ -50,39 +50,13 @@ export async function POST(
   }
 
   try {
-    const updated = await prisma.$transaction(async (tx) => {
-      // Guarded on status so a replayed/duplicate verification (the
-      // Razorpay signature doesn't expire and can be resubmitted) can't
-      // claim a second seat or re-settle referral credit for one registration.
-      const claimedRegistration = await tx.eventRegistration.updateMany({
-        where: { id: registration.id, status: { not: "CONFIRMED" } },
-        data: { status: "CONFIRMED", razorpayPaymentId: razorpay_payment_id },
-      });
-
-      if (claimedRegistration.count > 0) {
-        const claimedSeat = await tx.event.updateMany({
-          where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
-          data: { seatsFilled: { increment: 1 } },
-        });
-
-        if (claimedSeat.count === 0) {
-          throw new Error("EVENT_FULL");
-        }
-
-        await settleReferralCredit(tx, {
-          buyerId: session.user.id,
-          originalAmount: Number(registration.amount),
-          creditApplied: Number(registration.creditApplied),
-          description: `Event: ${event.title}`,
-        });
-      }
-
-      return tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
-    });
-
+    // Idempotent — also called by the Razorpay webhook, so a replayed/duplicate
+    // verification (the signature doesn't expire) can't claim a second seat or
+    // re-settle referral credit for one registration.
+    const updated = await settleEventRegistration(registration.id, razorpay_payment_id);
     return NextResponse.json(updated);
   } catch (err) {
-    if (err instanceof Error && err.message === "EVENT_FULL") {
+    if (err instanceof EventFullError) {
       // Payment succeeded but the seat is gone — flagged for manual refund.
       return NextResponse.json(
         { error: "Your payment succeeded but the event filled up. Contact support for a refund." },
