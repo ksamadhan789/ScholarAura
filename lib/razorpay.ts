@@ -33,3 +33,22 @@ export function verifyRazorpaySignature({
 
   return expected === signature;
 }
+
+/**
+ * Verifies the X-Razorpay-Signature header on incoming webhook requests.
+ * Different from verifyRazorpaySignature above: this checks the raw webhook
+ * body against RAZORPAY_WEBHOOK_SECRET, not the client-side order+payment
+ * confirmation against the account's key secret.
+ */
+export function verifyRazorpayWebhookSignature(rawBody: string, signature: string | null): boolean {
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  if (!secret || !signature) return false;
+
+  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+
+  const expectedBuffer = Buffer.from(expected);
+  const actualBuffer = Buffer.from(signature);
+  if (expectedBuffer.length !== actualBuffer.length) return false;
+
+  return crypto.timingSafeEqual(expectedBuffer, actualBuffer);
+}

@@ -1,0 +1,81 @@
+import { prisma } from "@/lib/prisma";
+import { settleReferralCredit } from "@/lib/referral";
+
+export class EventFullError extends Error {
+  constructor() {
+    super("EVENT_FULL");
+  }
+}
+
+/**
+ * Marks a course purchase SUCCESS and settles referral credit, guarded so
+ * this can be called more than once for the same purchase (browser
+ * confirmation and the Razorpay webhook both call this) without double
+ * paying a referrer.
+ */
+export async function settleCoursePurchase(purchaseId: string, paymentId: string) {
+  const purchase = await prisma.coursePurchase.findUnique({ where: { id: purchaseId } });
+  if (!purchase) return null;
+
+  const course = await prisma.course.findUnique({ where: { id: purchase.courseId } });
+  if (!course) return null;
+
+  return prisma.$transaction(async (tx) => {
+    const claimed = await tx.coursePurchase.updateMany({
+      where: { id: purchase.id, status: { not: "SUCCESS" } },
+      data: { status: "SUCCESS", razorpayPaymentId: paymentId },
+    });
+
+    if (claimed.count > 0) {
+      await settleReferralCredit(tx, {
+        buyerId: purchase.userId,
+        originalAmount: Number(purchase.amount),
+        creditApplied: Number(purchase.creditApplied),
+        description: `Course: ${course.title}`,
+      });
+    }
+
+    return tx.coursePurchase.findUniqueOrThrow({ where: { id: purchase.id } });
+  });
+}
+
+/**
+ * Marks an event registration CONFIRMED, claims a seat, and settles referral
+ * credit — guarded the same way as settleCoursePurchase. Throws EventFullError
+ * if the event filled up between checkout and payment capture (the payment
+ * already succeeded at that point, so this needs a human to sort out).
+ */
+export async function settleEventRegistration(registrationId: string, paymentId: string) {
+  const registration = await prisma.eventRegistration.findUnique({ where: { id: registrationId } });
+  if (!registration) return null;
+
+  const event = await prisma.event.findUnique({ where: { id: registration.eventId } });
+  if (!event) return null;
+
+  return prisma.$transaction(async (tx) => {
+    const claimedRegistration = await tx.eventRegistration.updateMany({
+      where: { id: registration.id, status: { not: "CONFIRMED" } },
+      data: { status: "CONFIRMED", razorpayPaymentId: paymentId },
+    });
+
+    if (claimedRegistration.count > 0) {
+      const claimedSeat = await tx.event.updateMany({
+        where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
+        data: { seatsFilled: { increment: 1 } },
+      });
+
+      if (claimedSeat.count === 0) {
+        throw new EventFullError();
+      }
+
+      await settleReferralCredit(tx, {
+        buyerId: registration.userId,
+        originalAmount: Number(registration.amount),
+        creditApplied: Number(registration.creditApplied),
+        description: `Event: ${event.title}`,
+      });
+    }
+
+    return tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
+  });
+}

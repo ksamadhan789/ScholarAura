@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
-import { settleReferralCredit } from "@/lib/referral";
+import { settleCoursePurchase } from "@/lib/paymentSettlement";
 
 const verifySchema = z.object({
   razorpay_order_id: z.string(),
@@ -49,26 +49,9 @@ export async function POST(
     return NextResponse.json({ error: "No matching order found" }, { status: 404 });
   }
 
-  const updated = await prisma.$transaction(async (tx) => {
-    // Guarded on status so a replayed/duplicate verification (the Razorpay
-    // signature doesn't expire and can be resubmitted) can't re-settle
-    // referral credit a second time for the same purchase.
-    const claimed = await tx.coursePurchase.updateMany({
-      where: { id: purchase.id, status: { not: "SUCCESS" } },
-      data: { status: "SUCCESS", razorpayPaymentId: razorpay_payment_id },
-    });
-
-    if (claimed.count > 0) {
-      await settleReferralCredit(tx, {
-        buyerId: session.user.id,
-        originalAmount: Number(purchase.amount),
-        creditApplied: Number(purchase.creditApplied),
-        description: `Course: ${course.title}`,
-      });
-    }
-
-    return tx.coursePurchase.findUniqueOrThrow({ where: { id: purchase.id } });
-  });
-
+  // Idempotent — also called by the Razorpay webhook, so a replayed/duplicate
+  // verification (the signature doesn't expire) can't re-settle referral
+  // credit a second time for the same purchase.
+  const updated = await settleCoursePurchase(purchase.id, razorpay_payment_id);
   return NextResponse.json(updated);
 }
