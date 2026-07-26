@@ -4,6 +4,9 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { Turnstile } from "@/components/Turnstile";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export default function RegisterPage() {
   return (
@@ -22,6 +25,7 @@ function RegisterForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,7 +36,13 @@ function RegisterForm() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, ref: ref ?? undefined }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          ref: ref ?? undefined,
+          turnstileToken: turnstileToken ?? undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -102,11 +112,15 @@ function RegisterForm() {
           />
         </div>
 
+        {TURNSTILE_SITE_KEY && (
+          <Turnstile siteKey={TURNSTILE_SITE_KEY} onVerify={setTurnstileToken} />
+        )}
+
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
           className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
         >
           {loading ? "Creating account…" : "Sign up"}
