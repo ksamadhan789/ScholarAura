@@ -19,11 +19,17 @@ export default async function MyEventsPage() {
   });
 
   // Concluded events auto-issue a certificate the next time the student visits this page.
-  await Promise.all(
+  // allSettled so one certificate-issuance failure can't take down the whole page.
+  const issuanceResults = await Promise.allSettled(
     registrations
       .filter((r) => r.event.endDate < new Date())
       .map((r) => issueEventCertificateIfEligible(session.user.id, r.eventId))
   );
+  for (const result of issuanceResults) {
+    if (result.status === "rejected") {
+      console.error("Certificate issuance failed:", result.reason);
+    }
+  }
 
   const certificates = await prisma.certificate.findMany({
     where: {

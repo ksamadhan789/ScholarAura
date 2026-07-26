@@ -69,7 +69,11 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as { role?: string }).role;
       }
-      if (!token.role && token.email) {
+      // Re-read on every call (not just when token.role is unset) so a role
+      // change (e.g. an admin demoted after abuse) takes effect on the
+      // user's next request instead of staying cached in the JWT for up to
+      // the session's 30-day lifetime.
+      if (token.email) {
         const dbUser = await prisma.user.findUnique({ where: { email: token.email } });
         if (dbUser) {
           token.role = dbUser.role;

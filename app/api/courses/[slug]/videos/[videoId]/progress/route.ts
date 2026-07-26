@@ -48,7 +48,13 @@ export async function POST(
   });
 
   if (isEnrolled) {
-    await issueCourseCertificateIfEligible(session.user.id, video.courseId);
+    try {
+      await issueCourseCertificateIfEligible(session.user.id, video.courseId);
+    } catch (err) {
+      // Don't fail progress tracking over a certificate-issuance hiccup —
+      // it'll be retried the next time this student completes a video.
+      console.error("Certificate issuance failed:", err);
+    }
   }
 
   return NextResponse.json(progress);
