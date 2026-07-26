@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateCertificatePdf } from "@/lib/generateCertificatePdf";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export async function GET(
   _request: Request,
@@ -20,14 +21,13 @@ export async function GET(
     ? "for successfully completing the course"
     : "for participating in";
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
   const pdfBytes = await generateCertificatePdf({
     recipientName: certificate.user.name,
     title,
     subtitle,
     certificateNumber: certificate.certificateNumber,
     issuedAt: certificate.issuedAt,
-    verifyUrl: `${baseUrl}/verify/${certificate.certificateNumber}`,
+    verifyUrl: `${SITE_URL}/verify/${certificate.certificateNumber}`,
   });
 
   return new NextResponse(Buffer.from(pdfBytes), {

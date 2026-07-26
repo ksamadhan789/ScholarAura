@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getReferralRatePercent } from "@/lib/referral";
+import { SITE_URL } from "@/lib/siteUrl";
 import { CopyLinkButton } from "./CopyLinkButton";
 
 export default async function ReferralsPage() {
@@ -29,8 +30,7 @@ export default async function ReferralsPage() {
     }),
   ]);
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-  const referralLink = `${baseUrl}/register?ref=${user.referralCode}`;
+  const referralLink = `${SITE_URL}/register?ref=${user.referralCode}`;
   const ratePercent = getReferralRatePercent(user);
 
   return (
