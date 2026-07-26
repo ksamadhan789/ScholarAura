@@ -51,28 +51,33 @@ export async function POST(
 
   try {
     const updated = await prisma.$transaction(async (tx) => {
-      const claimed = await tx.event.updateMany({
-        where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
-        data: { seatsFilled: { increment: 1 } },
-      });
-
-      if (claimed.count === 0) {
-        throw new Error("EVENT_FULL");
-      }
-
-      const result = await tx.eventRegistration.update({
-        where: { id: registration.id },
+      // Guarded on status so a replayed/duplicate verification (the
+      // Razorpay signature doesn't expire and can be resubmitted) can't
+      // claim a second seat or re-settle referral credit for one registration.
+      const claimedRegistration = await tx.eventRegistration.updateMany({
+        where: { id: registration.id, status: { not: "CONFIRMED" } },
         data: { status: "CONFIRMED", razorpayPaymentId: razorpay_payment_id },
       });
 
-      await settleReferralCredit(tx, {
-        buyerId: session.user.id,
-        originalAmount: Number(registration.amount),
-        creditApplied: Number(registration.creditApplied),
-        description: `Event: ${event.title}`,
-      });
+      if (claimedRegistration.count > 0) {
+        const claimedSeat = await tx.event.updateMany({
+          where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
+          data: { seatsFilled: { increment: 1 } },
+        });
 
-      return result;
+        if (claimedSeat.count === 0) {
+          throw new Error("EVENT_FULL");
+        }
+
+        await settleReferralCredit(tx, {
+          buyerId: session.user.id,
+          originalAmount: Number(registration.amount),
+          creditApplied: Number(registration.creditApplied),
+          description: `Event: ${event.title}`,
+        });
+      }
+
+      return tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
     });
 
     return NextResponse.json(updated);

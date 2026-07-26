@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getRazorpayClient } from "@/lib/razorpay";
@@ -59,19 +60,13 @@ export async function POST(
 
   try {
     if (payCurrency === "INR" && amountDue <= 0) {
+      // Guarded so concurrent duplicate requests (double-click, retry) can't
+      // each claim a seat and pay the referrer a second time for one registration.
       try {
         const registration = await prisma.$transaction(async (tx) => {
-          const claimed = await tx.event.updateMany({
-            where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
-            data: { seatsFilled: { increment: 1 } },
-          });
-          if (claimed.count === 0) {
-            throw new Error("EVENT_FULL");
-          }
-
-          const result = await tx.eventRegistration.upsert({
-            where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
-            update: {
+          const claimedExisting = await tx.eventRegistration.updateMany({
+            where: { userId: session.user.id, eventId: event.id, status: { not: "CONFIRMED" } },
+            data: {
               status: "CONFIRMED",
               amount: fee,
               creditApplied,
@@ -79,24 +74,53 @@ export async function POST(
               chargedAmount: null,
               razorpayOrderId: null,
             },
-            create: {
-              userId: session.user.id,
-              eventId: event.id,
-              amount: fee,
+          });
+
+          let isFreshSettlement = claimedExisting.count > 0;
+
+          if (claimedExisting.count === 0) {
+            try {
+              await tx.eventRegistration.create({
+                data: {
+                  userId: session.user.id,
+                  eventId: event.id,
+                  amount: fee,
+                  creditApplied,
+                  currency: "INR",
+                  status: "CONFIRMED",
+                },
+              });
+              isFreshSettlement = true;
+            } catch (err) {
+              if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+                // A concurrent request already created/settled this registration.
+                isFreshSettlement = false;
+              } else {
+                throw err;
+              }
+            }
+          }
+
+          if (isFreshSettlement) {
+            const claimedSeat = await tx.event.updateMany({
+              where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
+              data: { seatsFilled: { increment: 1 } },
+            });
+            if (claimedSeat.count === 0) {
+              throw new Error("EVENT_FULL");
+            }
+
+            await settleReferralCredit(tx, {
+              buyerId: session.user.id,
+              originalAmount: fee,
               creditApplied,
-              currency: "INR",
-              status: "CONFIRMED",
-            },
-          });
+              description: `Event: ${event.title}`,
+            });
+          }
 
-          await settleReferralCredit(tx, {
-            buyerId: session.user.id,
-            originalAmount: fee,
-            creditApplied,
-            description: `Event: ${event.title}`,
+          return tx.eventRegistration.findUniqueOrThrow({
+            where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
           });
-
-          return result;
         });
 
         return NextResponse.json({ paidWithCredit: true, eventName: event.title, registration });
