@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getRazorpayClient } from "@/lib/razorpay";
@@ -58,10 +59,12 @@ export async function POST(
   try {
     if (payCurrency === "INR" && amountDue <= 0) {
       // Credit fully covers the price — settle immediately, no Razorpay needed.
+      // Guarded so concurrent duplicate requests (double-click, retry) can't
+      // each deduct credit and pay the referrer a second time for one purchase.
       await prisma.$transaction(async (tx) => {
-        await tx.coursePurchase.upsert({
-          where: { userId_courseId: { userId: session.user.id, courseId: course.id } },
-          update: {
+        const claimedExisting = await tx.coursePurchase.updateMany({
+          where: { userId: session.user.id, courseId: course.id, status: { not: "SUCCESS" } },
+          data: {
             status: "SUCCESS",
             amount: price,
             creditApplied,
@@ -69,22 +72,41 @@ export async function POST(
             chargedAmount: null,
             razorpayOrderId: null,
           },
-          create: {
-            userId: session.user.id,
-            courseId: course.id,
-            amount: price,
-            creditApplied,
-            currency: "INR",
-            status: "SUCCESS",
-          },
         });
 
-        await settleReferralCredit(tx, {
-          buyerId: session.user.id,
-          originalAmount: price,
-          creditApplied,
-          description: `Course: ${course.title}`,
-        });
+        let isFreshSettlement = claimedExisting.count > 0;
+
+        if (claimedExisting.count === 0) {
+          try {
+            await tx.coursePurchase.create({
+              data: {
+                userId: session.user.id,
+                courseId: course.id,
+                amount: price,
+                creditApplied,
+                currency: "INR",
+                status: "SUCCESS",
+              },
+            });
+            isFreshSettlement = true;
+          } catch (err) {
+            if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+              // A concurrent request already created/settled this purchase.
+              isFreshSettlement = false;
+            } else {
+              throw err;
+            }
+          }
+        }
+
+        if (isFreshSettlement) {
+          await settleReferralCredit(tx, {
+            buyerId: session.user.id,
+            originalAmount: price,
+            creditApplied,
+            description: `Course: ${course.title}`,
+          });
+        }
       });
 
       return NextResponse.json({ paidWithCredit: true, courseName: course.title });

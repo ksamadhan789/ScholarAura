@@ -50,19 +50,24 @@ export async function POST(
   }
 
   const updated = await prisma.$transaction(async (tx) => {
-    const result = await tx.coursePurchase.update({
-      where: { id: purchase.id },
+    // Guarded on status so a replayed/duplicate verification (the Razorpay
+    // signature doesn't expire and can be resubmitted) can't re-settle
+    // referral credit a second time for the same purchase.
+    const claimed = await tx.coursePurchase.updateMany({
+      where: { id: purchase.id, status: { not: "SUCCESS" } },
       data: { status: "SUCCESS", razorpayPaymentId: razorpay_payment_id },
     });
 
-    await settleReferralCredit(tx, {
-      buyerId: session.user.id,
-      originalAmount: Number(purchase.amount),
-      creditApplied: Number(purchase.creditApplied),
-      description: `Course: ${course.title}`,
-    });
+    if (claimed.count > 0) {
+      await settleReferralCredit(tx, {
+        buyerId: session.user.id,
+        originalAmount: Number(purchase.amount),
+        creditApplied: Number(purchase.creditApplied),
+        description: `Course: ${course.title}`,
+      });
+    }
 
-    return result;
+    return tx.coursePurchase.findUniqueOrThrow({ where: { id: purchase.id } });
   });
 
   return NextResponse.json(updated);
