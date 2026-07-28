@@ -5,10 +5,16 @@ import { useEffect } from "react";
 declare global {
   interface Window {
     google?: {
-      translate: {
+      translate?: {
         TranslateElement: {
           new (options: Record<string, unknown>, elementId: string): unknown;
           InlineLayout: { SIMPLE: unknown };
+        };
+      };
+      accounts?: {
+        id: {
+          initialize: (config: Record<string, unknown>) => void;
+          prompt: () => void;
         };
       };
     };
@@ -21,11 +27,12 @@ export function TranslateWidget() {
     if (document.getElementById("google-translate-script")) return;
 
     window.googleTranslateElementInit = () => {
-      if (!window.google) return;
-      new window.google.translate.TranslateElement(
+      const translate = window.google?.translate;
+      if (!translate) return;
+      new translate.TranslateElement(
         {
           pageLanguage: "en",
-          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+          layout: translate.TranslateElement.InlineLayout.SIMPLE,
           autoDisplay: false,
         },
         "google_translate_element"

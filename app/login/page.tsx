@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { GoogleOneTap } from "@/components/GoogleOneTap";
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,6 +42,7 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4">
+      {GOOGLE_CLIENT_ID && <GoogleOneTap clientId={GOOGLE_CLIENT_ID} />}
       <h1 className="mb-6 text-2xl font-semibold">Log in</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">

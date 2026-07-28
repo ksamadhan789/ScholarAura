@@ -2,8 +2,9 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 import { prisma } from "@/lib/prisma";
-import { generateReferralCode } from "@/lib/referral";
+import { findOrCreateGoogleUser } from "@/lib/googleAccount";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -40,28 +41,51 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+    CredentialsProvider({
+      id: "google-one-tap",
+      name: "Google One Tap",
+      credentials: {
+        credential: { label: "Credential", type: "text" },
+      },
+      async authorize(credentials) {
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        if (!credentials?.credential || !clientId) return null;
+
+        // Verifies the ID token's signature, expiry, issuer, and audience
+        // against Google's public keys — never trust a client-sent
+        // credential without this.
+        const client = new OAuth2Client(clientId);
+        let payload;
+        try {
+          const ticket = await client.verifyIdToken({
+            idToken: credentials.credential,
+            audience: clientId,
+          });
+          payload = ticket.getPayload();
+        } catch {
+          return null;
+        }
+
+        if (!payload?.email || !payload.email_verified || !payload.sub) return null;
+
+        const user = await findOrCreateGoogleUser({
+          email: payload.email,
+          name: payload.name ?? payload.email,
+          googleId: payload.sub,
+        });
+
+        return { id: user.id, name: user.name, email: user.email, role: user.role };
+      },
+    }),
   ],
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google" && user.email) {
-        const existing = await prisma.user.findUnique({ where: { email: user.email } });
-        if (!existing) {
-          const referralCode = await generateReferralCode();
-          await prisma.user.create({
-            data: {
-              email: user.email,
-              name: user.name ?? user.email,
-              googleId: account.providerAccountId,
-              emailVerified: true,
-              referralCode,
-            },
-          });
-        } else if (!existing.googleId) {
-          await prisma.user.update({
-            where: { email: user.email },
-            data: { googleId: account.providerAccountId },
-          });
-        }
+        await findOrCreateGoogleUser({
+          email: user.email,
+          name: user.name ?? user.email,
+          googleId: account.providerAccountId,
+        });
       }
       return true;
     },
