@@ -79,6 +79,14 @@ export default async function DashboardPage() {
         </Link>
         {isAdmin && (
           <Link
+            href="/dashboard/students"
+            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          >
+            Students (admin)
+          </Link>
+        )}
+        {isAdmin && (
+          <Link
             href="/dashboard/affiliates"
             className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
           >
