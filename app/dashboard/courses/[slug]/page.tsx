@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
@@ -31,10 +32,20 @@ export default async function ManageCoursePage({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="text-2xl font-semibold">{course.title}</h1>
-      <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-        {course.isPublished ? "Published" : "Draft"} · Manage lectures
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">{course.title}</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+            {course.isPublished ? "Published" : "Draft"} · Manage lectures
+          </p>
+        </div>
+        <Link
+          href={`/dashboard/courses/${course.slug}/students`}
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          Students
+        </Link>
+      </div>
 
       <div className="mt-8 flex flex-col gap-3">
         {course.videos.length === 0 ? (

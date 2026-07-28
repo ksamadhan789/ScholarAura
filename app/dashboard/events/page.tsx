@@ -57,7 +57,15 @@ export default async function ManageEventsPage() {
                   </span>
                 </div>
               </div>
-              <EventPublishToggle slug={event.slug} isPublished={event.isPublished} />
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/dashboard/events/${event.slug}/students`}
+                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                >
+                  Registrations
+                </Link>
+                <EventPublishToggle slug={event.slug} isPublished={event.isPublished} />
+              </div>
             </div>
           ))}
         </div>
