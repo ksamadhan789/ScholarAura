@@ -19,6 +19,7 @@
     "@next/third-parties": "^14.2.35",
     "@prisma/client": "5.17.0",
     "bcryptjs": "2.4.3",
+    "google-auth-library": "^10.9.1",
     "next": "^14.2.35",
     "next-auth": "4.24.7",
     "nodemailer": "^6.10.1",
