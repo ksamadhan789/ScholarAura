@@ -24,9 +24,6 @@ export function Footer() {
           <Link href="/refund-policy" className="hover:text-brand-600 dark:hover:text-brand-400">
             Refunds
           </Link>
-          <Link href="/admin/login" className="hover:text-brand-600 dark:hover:text-brand-400">
-            Admin login
-          </Link>
         </div>
       </div>
     </footer>
