@@ -1,0 +1,108 @@
+import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { redirect, notFound } from "next/navigation";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { Badge } from "@/components/Badge";
+import { RankInput } from "./RankInput";
+
+const STATUS_VARIANT = {
+  SUCCESS: "success",
+  PENDING: "warning",
+  FAILED: "neutral",
+  REFUNDED: "neutral",
+} as const;
+
+export default async function CompetitionEntriesPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    redirect("/login");
+  }
+  if (session.user.role !== "ADMIN") {
+    redirect("/dashboard");
+  }
+
+  const competition = await prisma.competition.findUnique({ where: { slug: params.slug } });
+  if (!competition) {
+    notFound();
+  }
+
+  const entries = await prisma.competitionEntry.findMany({
+    where: { competitionId: competition.id },
+    include: { user: { select: { name: true, email: true } } },
+    orderBy: [{ rank: "asc" }, { registeredAt: "desc" }],
+  });
+
+  return (
+    <main className="mx-auto max-w-5xl px-4 py-16">
+      <Link
+        href="/dashboard/competitions"
+        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
+      >
+        ← Manage competitions
+      </Link>
+      <h1 className="mt-2 mb-6 text-2xl font-semibold">{competition.title} — Entries</h1>
+
+      {entries.length === 0 ? (
+        <p className="text-sm text-gray-500 dark:text-slate-400">
+          No one has entered this competition yet.
+        </p>
+      ) : (
+        <div className="overflow-x-auto rounded border border-gray-200 dark:border-slate-700">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-gray-50 dark:bg-slate-800">
+              <tr>
+                <th className="px-4 py-2.5 font-medium">Name</th>
+                <th className="px-4 py-2.5 font-medium">Email</th>
+                <th className="px-4 py-2.5 font-medium">Team</th>
+                <th className="px-4 py-2.5 font-medium">Payment</th>
+                <th className="px-4 py-2.5 font-medium">Submission</th>
+                <th className="px-4 py-2.5 font-medium">Rank</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map((entry) => (
+                <tr key={entry.id} className="border-t border-gray-200 dark:border-slate-700">
+                  <td className="px-4 py-2.5">{entry.user.name}</td>
+                  <td className="px-4 py-2.5">
+                    <a href={`mailto:${entry.user.email}`} className="underline">
+                      {entry.user.email}
+                    </a>
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    {entry.teamName ?? "—"}
+                    {entry.teammates && <p className="mt-1 text-xs">{entry.teammates}</p>}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <Badge variant={STATUS_VARIANT[entry.status]}>{entry.status}</Badge>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {entry.submissionUrl ? (
+                      <a
+                        href={entry.submissionUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline"
+                      >
+                        View
+                      </a>
+                    ) : (
+                      <span className="text-gray-500 dark:text-slate-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <RankInput entryId={entry.id} initialRank={entry.rank} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </main>
+  );
+}

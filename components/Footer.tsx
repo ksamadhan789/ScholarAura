@@ -9,6 +9,9 @@ export function Footer() {
           <Link href="/courses" className="hover:text-brand-600 dark:hover:text-brand-400">
             Courses
           </Link>
+          <Link href="/competitions" className="hover:text-brand-600 dark:hover:text-brand-400">
+            Competitions
+          </Link>
           <Link href="/events" className="hover:text-brand-600 dark:hover:text-brand-400">
             Events
           </Link>

@@ -84,6 +84,7 @@ model User {
   certificates      Certificate[]
   creditTransactions CreditTransaction[]
   passwordResetTokens PasswordResetToken[]
+  competitionEntries CompetitionEntry[]
 
   @@map("users")
 }
@@ -229,6 +230,55 @@ model EventRegistration {
 
   @@unique([userId, eventId])
   @@map("event_registrations")
+}
+
+// ----------------------
+// COMPETITIONS (Phase 7)
+// ----------------------
+
+model Competition {
+  id                 String   @id @default(uuid())
+  title              String
+  slug               String   @unique
+  description        String
+  startDate          DateTime
+  endDate            DateTime
+  submissionDeadline DateTime
+  fee                Decimal  @db.Decimal(10, 2) @default(0)
+  prizeDescription   String?
+  maxTeamSize        Int      @default(1)
+  isPublished        Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  entries            CompetitionEntry[]
+
+  @@map("competitions")
+}
+
+model CompetitionEntry {
+  id                String        @id @default(uuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  competitionId     String
+  competition       Competition   @relation(fields: [competitionId], references: [id])
+  teamName          String?
+  teammates         String?
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  amount            Decimal       @default(0) @db.Decimal(10, 2)
+  creditApplied     Decimal       @default(0) @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  chargedAmount     Decimal?      @db.Decimal(10, 2)
+  status            PaymentStatus @default(PENDING)
+  submissionUrl     String?
+  submissionNotes   String?
+  submittedAt       DateTime?
+  rank              Int?
+  registeredAt      DateTime      @default(now())
+
+  @@unique([userId, competitionId])
+  @@map("competition_entries")
 }
 
 // ----------------------

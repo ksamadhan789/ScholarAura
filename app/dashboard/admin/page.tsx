@@ -23,20 +23,32 @@ export default async function AdminHomePage() {
     redirect("/dashboard");
   }
 
-  const [studentCount, publishedCourseCount, publishedEventCount, courseRevenue, eventRevenue] =
-    await Promise.all([
-      prisma.user.count({ where: { role: "STUDENT" } }),
-      prisma.course.count({ where: { isPublished: true } }),
-      prisma.event.count({ where: { isPublished: true } }),
-      prisma.coursePurchase.aggregate({
-        where: { status: "SUCCESS" },
-        _sum: { amount: true, creditApplied: true },
-      }),
-      prisma.eventRegistration.aggregate({
-        where: { status: "CONFIRMED" },
-        _sum: { amount: true, creditApplied: true },
-      }),
-    ]);
+  const [
+    studentCount,
+    publishedCourseCount,
+    publishedEventCount,
+    publishedCompetitionCount,
+    courseRevenue,
+    eventRevenue,
+    competitionRevenue,
+  ] = await Promise.all([
+    prisma.user.count({ where: { role: "STUDENT" } }),
+    prisma.course.count({ where: { isPublished: true } }),
+    prisma.event.count({ where: { isPublished: true } }),
+    prisma.competition.count({ where: { isPublished: true } }),
+    prisma.coursePurchase.aggregate({
+      where: { status: "SUCCESS" },
+      _sum: { amount: true, creditApplied: true },
+    }),
+    prisma.eventRegistration.aggregate({
+      where: { status: "CONFIRMED" },
+      _sum: { amount: true, creditApplied: true },
+    }),
+    prisma.competitionEntry.aggregate({
+      where: { status: "SUCCESS" },
+      _sum: { amount: true, creditApplied: true },
+    }),
+  ]);
 
   // Actual money collected — gross price minus any credit applied. Doesn't
   // include chargedAmount for non-INR payments since that's just the same
@@ -45,7 +57,9 @@ export default async function AdminHomePage() {
     Number(courseRevenue._sum.amount ?? 0) -
     Number(courseRevenue._sum.creditApplied ?? 0) +
     Number(eventRevenue._sum.amount ?? 0) -
-    Number(eventRevenue._sum.creditApplied ?? 0);
+    Number(eventRevenue._sum.creditApplied ?? 0) +
+    Number(competitionRevenue._sum.amount ?? 0) -
+    Number(competitionRevenue._sum.creditApplied ?? 0);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -54,11 +68,12 @@ export default async function AdminHomePage() {
         Signed in as <strong>{session.user?.email}</strong>
       </p>
 
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatTile label="Students" value={studentCount.toLocaleString("en-IN")} />
         <StatTile label="Total revenue" value={`₹${totalRevenue.toLocaleString("en-IN")}`} />
         <StatTile label="Published courses" value={publishedCourseCount.toLocaleString("en-IN")} />
         <StatTile label="Published events" value={publishedEventCount.toLocaleString("en-IN")} />
+        <StatTile label="Published competitions" value={publishedCompetitionCount.toLocaleString("en-IN")} />
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
@@ -67,6 +82,12 @@ export default async function AdminHomePage() {
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
           Manage events
+        </Link>
+        <Link
+          href="/dashboard/competitions"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          Manage competitions
         </Link>
         <Link
           href="/dashboard/students"

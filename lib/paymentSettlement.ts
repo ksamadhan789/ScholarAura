@@ -79,3 +79,33 @@ export async function settleEventRegistration(registrationId: string, paymentId:
     return tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
   });
 }
+
+/**
+ * Marks a competition entry SUCCESS and settles referral credit, guarded
+ * the same way as settleCoursePurchase/settleEventRegistration.
+ */
+export async function settleCompetitionEntry(entryId: string, paymentId: string) {
+  const entry = await prisma.competitionEntry.findUnique({ where: { id: entryId } });
+  if (!entry) return null;
+
+  const competition = await prisma.competition.findUnique({ where: { id: entry.competitionId } });
+  if (!competition) return null;
+
+  return prisma.$transaction(async (tx) => {
+    const claimed = await tx.competitionEntry.updateMany({
+      where: { id: entry.id, status: { not: "SUCCESS" } },
+      data: { status: "SUCCESS", razorpayPaymentId: paymentId },
+    });
+
+    if (claimed.count > 0) {
+      await settleReferralCredit(tx, {
+        buyerId: entry.userId,
+        originalAmount: Number(entry.amount),
+        creditApplied: Number(entry.creditApplied),
+        description: `Competition: ${competition.title}`,
+      });
+    }
+
+    return tx.competitionEntry.findUniqueOrThrow({ where: { id: entry.id } });
+  });
+}
