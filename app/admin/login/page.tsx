@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/dashboard/admin");
       router.refresh();
     } catch {
       setError("Couldn't reach the server. Please try again.");
