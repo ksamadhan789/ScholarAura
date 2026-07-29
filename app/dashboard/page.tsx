@@ -9,10 +9,11 @@ export default async function DashboardPage() {
   if (!session) {
     redirect("/login");
   }
+  if (session.user.role === "ADMIN") {
+    redirect("/dashboard/admin");
+  }
 
-  const isInstructor =
-    session.user.role === "INSTRUCTOR" || session.user.role === "ADMIN";
-  const isAdmin = session.user.role === "ADMIN";
+  const isInstructor = session.user.role === "INSTRUCTOR";
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -57,14 +58,6 @@ export default async function DashboardPage() {
         >
           My events
         </Link>
-        {isAdmin && (
-          <Link
-            href="/dashboard/events"
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
-            Manage events (admin)
-          </Link>
-        )}
         <Link
           href="/dashboard/certificates"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
@@ -77,38 +70,6 @@ export default async function DashboardPage() {
         >
           Refer & earn
         </Link>
-        {isAdmin && (
-          <Link
-            href="/dashboard/students"
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
-            Students (admin)
-          </Link>
-        )}
-        {isAdmin && (
-          <Link
-            href="/dashboard/affiliates"
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
-            Manage affiliates (admin)
-          </Link>
-        )}
-        {isAdmin && (
-          <Link
-            href="/dashboard/currencies"
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
-            Currency rates (admin)
-          </Link>
-        )}
-        {isAdmin && (
-          <Link
-            href="/dashboard/external-courses"
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
-            Recommended courses (admin)
-          </Link>
-        )}
       </div>
     </main>
   );
