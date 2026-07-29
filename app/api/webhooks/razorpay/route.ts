@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpayWebhookSignature } from "@/lib/razorpay";
-import { settleCoursePurchase, settleEventRegistration, EventFullError } from "@/lib/paymentSettlement";
+import {
+  settleCoursePurchase,
+  settleEventRegistration,
+  settleCompetitionEntry,
+  EventFullError,
+} from "@/lib/paymentSettlement";
 
 // Server-to-server safety net for payment confirmation: the checkout flow
 // normally relies on the buyer's browser calling verify-payment after
@@ -69,9 +74,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true });
     }
 
-    // No purchase/registration references this order — acknowledge anyway
-    // so Razorpay doesn't retry a delivery we can't ever act on.
-    console.warn(`Razorpay webhook: no purchase/registration found for order ${orderId}`);
+    const competitionEntry = await prisma.competitionEntry.findFirst({
+      where: { razorpayOrderId: orderId },
+    });
+    if (competitionEntry) {
+      await settleCompetitionEntry(competitionEntry.id, paymentId);
+      return NextResponse.json({ received: true });
+    }
+
+    // No purchase/registration/entry references this order — acknowledge
+    // anyway so Razorpay doesn't retry a delivery we can't ever act on.
+    console.warn(`Razorpay webhook: no purchase/registration/entry found for order ${orderId}`);
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error("Razorpay webhook settlement failed:", err);

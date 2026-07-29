@@ -41,6 +41,10 @@ export function Header() {
             Courses
           </Link>
 
+          <Link href="/competitions" className="hover:text-brand-600 dark:hover:text-brand-400">
+            Competitions
+          </Link>
+
           <div
             className="relative"
             onMouseEnter={openEventsMenu}
