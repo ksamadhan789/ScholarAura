@@ -74,6 +74,12 @@ export default async function ManageCompetitionsPage() {
                 >
                   Entries
                 </Link>
+                <Link
+                  href={`/dashboard/competitions/${c.slug}/winners`}
+                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                >
+                  🏆 Winners
+                </Link>
                 <CompetitionPublishToggle slug={c.slug} isPublished={c.isPublished} />
               </div>
             </div>

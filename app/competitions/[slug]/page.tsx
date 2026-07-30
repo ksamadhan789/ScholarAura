@@ -45,15 +45,36 @@ export default async function CompetitionDetailPage({
     notFound();
   }
 
-  const [entry, currentUser, rates] = session
+  const [entry, currentUser, rates, winners] = session
     ? await Promise.all([
         prisma.competitionEntry.findUnique({
           where: { userId_competitionId: { userId: session.user.id, competitionId: competition.id } },
         }),
         prisma.user.findUnique({ where: { id: session.user.id } }),
         prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } }),
+        prisma.competitionEntry.findMany({
+          where: { competitionId: competition.id, status: "SUCCESS", rank: { in: [1, 2, 3] } },
+          include: { user: { select: { name: true } } },
+          orderBy: { rank: "asc" },
+        }),
       ])
-    : [null, null, await prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } })];
+    : [
+        null,
+        null,
+        await prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } }),
+        await prisma.competitionEntry.findMany({
+          where: { competitionId: competition.id, status: "SUCCESS", rank: { in: [1, 2, 3] } },
+          include: { user: { select: { name: true } } },
+          orderBy: { rank: "asc" },
+        }),
+      ];
+
+  const medalByRank: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
+  const prizeByRank: Record<number, string | null> = {
+    1: competition.prizeFirst,
+    2: competition.prizeSecond,
+    3: competition.prizeThird,
+  };
 
   const serializedRates = rates.map((r) => ({
     currencyCode: r.currencyCode,
@@ -116,6 +137,27 @@ export default async function CompetitionDetailPage({
             {competition.prizeSecond && <p>🥈 2nd Prize: {competition.prizeSecond}</p>}
             {competition.prizeThird && <p>🥉 3rd Prize: {competition.prizeThird}</p>}
             {competition.prizeDescription && <p>{competition.prizeDescription}</p>}
+          </div>
+        </div>
+      )}
+
+      {winners.length > 0 && (
+        <div className="mt-4 rounded border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4 text-sm">
+          <p className="font-medium text-amber-900 dark:text-amber-200">🏆 Winners</p>
+          <div className="mt-2 flex flex-col gap-2">
+            {winners.map((winner) => (
+              <div key={winner.id} className="flex items-center justify-between">
+                <span>
+                  {medalByRank[winner.rank as number] ?? "🏅"}{" "}
+                  {winner.teamName ?? winner.user.name}
+                </span>
+                {winner.rank && prizeByRank[winner.rank] && (
+                  <span className="text-gray-600 dark:text-slate-400">
+                    {prizeByRank[winner.rank]}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
