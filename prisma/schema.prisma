@@ -204,6 +204,7 @@ model Event {
   venueOrLink   String
   isOnline      Boolean   @default(false)
   isPublished   Boolean   @default(false)
+  brochureUrl   String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

@@ -77,6 +77,17 @@ export default async function EventDetailPage({
       </p>
       <p className="mt-4 text-gray-700">{event.description}</p>
 
+      {event.brochureUrl && (
+        <a
+          href={event.brochureUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-block text-sm font-medium text-brand-600 underline hover:text-brand-700 dark:text-brand-400"
+        >
+          📄 Download brochure
+        </a>
+      )}
+
       <div className="mt-4 flex flex-col gap-1 text-sm text-gray-600 dark:text-slate-400">
         <p>{event.isOnline ? "Online" : "In person"}</p>
         <p>
