@@ -29,6 +29,9 @@ const updateEventSchema = z
     registrationDeadline: optionalDate.nullable(),
     resultDate: optionalDate.nullable(),
     prizeDescription: z.string().trim().nullable().optional(),
+    prizeFirst: z.string().trim().nullable().optional(),
+    prizeSecond: z.string().trim().nullable().optional(),
+    prizeThird: z.string().trim().nullable().optional(),
     people: eventPeopleSchema.nullable(),
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined), {
@@ -91,6 +94,9 @@ export async function PATCH(
       ...(d.registrationDeadline !== undefined && { registrationDeadline: d.registrationDeadline }),
       ...(d.resultDate !== undefined && { resultDate: d.resultDate }),
       ...(d.prizeDescription !== undefined && { prizeDescription: d.prizeDescription || null }),
+      ...(d.prizeFirst !== undefined && { prizeFirst: d.prizeFirst || null }),
+      ...(d.prizeSecond !== undefined && { prizeSecond: d.prizeSecond || null }),
+      ...(d.prizeThird !== undefined && { prizeThird: d.prizeThird || null }),
       ...(d.people !== undefined && {
         people: d.people && d.people.length > 0 ? d.people : Prisma.JsonNull,
       }),

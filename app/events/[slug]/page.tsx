@@ -115,10 +115,15 @@ export default async function EventDetailPage({
         </p>
       )}
 
-      {event.prizeDescription && (
+      {(event.prizeFirst || event.prizeSecond || event.prizeThird || event.prizeDescription) && (
         <div className="mt-4 rounded border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4 text-sm text-amber-900 dark:text-amber-200">
           <p className="font-medium">🏆 Prizes</p>
-          <p className="mt-1">{event.prizeDescription}</p>
+          <div className="mt-1 flex flex-col gap-1">
+            {event.prizeFirst && <p>🥇 1st Prize: {event.prizeFirst}</p>}
+            {event.prizeSecond && <p>🥈 2nd Prize: {event.prizeSecond}</p>}
+            {event.prizeThird && <p>🥉 3rd Prize: {event.prizeThird}</p>}
+            {event.prizeDescription && <p>{event.prizeDescription}</p>}
+          </div>
         </div>
       )}
 

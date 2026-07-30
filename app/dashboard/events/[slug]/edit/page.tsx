@@ -40,6 +40,9 @@ export default async function EditEventPage({ params }: { params: { slug: string
         registrationDeadline: toLocalInput(event.registrationDeadline),
         resultDate: toLocalInput(event.resultDate),
         prizeDescription: event.prizeDescription ?? "",
+        prizeFirst: event.prizeFirst ?? "",
+        prizeSecond: event.prizeSecond ?? "",
+        prizeThird: event.prizeThird ?? "",
         people: (event.people as unknown as EventPerson[] | null) ?? [],
       }}
     />

@@ -37,6 +37,9 @@ const createEventSchema = z
     registrationDeadline: optionalDate,
     resultDate: optionalDate,
     prizeDescription: z.string().trim().optional().or(z.literal("")),
+    prizeFirst: z.string().trim().optional().or(z.literal("")),
+    prizeSecond: z.string().trim().optional().or(z.literal("")),
+    prizeThird: z.string().trim().optional().or(z.literal("")),
     people: eventPeopleSchema,
   })
   .refine((data) => data.endDate >= data.startDate, {
@@ -93,6 +96,9 @@ export async function POST(request: Request) {
       registrationDeadline,
       resultDate,
       prizeDescription,
+      prizeFirst,
+      prizeSecond,
+      prizeThird,
       people,
     } = parsed.data;
 
@@ -122,6 +128,9 @@ export async function POST(request: Request) {
         registrationDeadline: registrationDeadline ?? null,
         resultDate: resultDate ?? null,
         prizeDescription: prizeDescription || null,
+        prizeFirst: prizeFirst || null,
+        prizeSecond: prizeSecond || null,
+        prizeThird: prizeThird || null,
         people: people && people.length > 0 ? people : undefined,
         slug,
       },
