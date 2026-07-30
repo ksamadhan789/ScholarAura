@@ -24,11 +24,16 @@ export function RegisterButton({
 }) {
   const router = useRouter();
   const [currency, setCurrency] = useState("INR");
+  const [certificateName, setCertificateName] = useState(userName ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleFreeRegister() {
-    const res = await fetch(`/api/events/${slug}/register`, { method: "POST" });
+    const res = await fetch(`/api/events/${slug}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ certificateName }),
+    });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
       setError(data?.error ?? "Couldn't register. Please try again.");
@@ -42,7 +47,7 @@ export function RegisterButton({
     const checkoutRes = await fetch(`/api/events/${slug}/checkout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currency }),
+      body: JSON.stringify({ currency, certificateName }),
     });
     if (!checkoutRes.ok) {
       const data = await checkoutRes.json().catch(() => null);
@@ -113,6 +118,16 @@ export function RegisterButton({
 
   return (
     <div>
+      <label className="mb-1 block text-sm text-gray-600 dark:text-slate-400">
+        Name to print on certificate
+      </label>
+      <input
+        type="text"
+        value={certificateName}
+        onChange={(e) => setCertificateName(e.target.value)}
+        placeholder="Full name"
+        className="mb-3 w-full rounded border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+      />
       {isPaid && (
         <CurrencySelector
           priceInInr={price}

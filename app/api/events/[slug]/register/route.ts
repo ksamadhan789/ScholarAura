@@ -4,13 +4,19 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: { slug: string } }
 ) {
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "You must be logged in" }, { status: 401 });
   }
+
+  const body = await request.json().catch(() => ({}));
+  const certificateName =
+    typeof body?.certificateName === "string" && body.certificateName.trim()
+      ? body.certificateName.trim()
+      : null;
 
   const event = await prisma.event.findUnique({ where: { slug: params.slug } });
   if (!event || !event.isPublished) {
@@ -43,12 +49,13 @@ export async function POST(
 
       return tx.eventRegistration.upsert({
         where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
-        update: { status: "CONFIRMED", amount: event.fee },
+        update: { status: "CONFIRMED", amount: event.fee, certificateName },
         create: {
           userId: session.user.id,
           eventId: event.id,
           amount: event.fee,
           status: "CONFIRMED",
+          certificateName,
         },
       });
     });
