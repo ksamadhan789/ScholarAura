@@ -7,12 +7,16 @@ export default function NewCompetitionPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [shortDescription, setShortDescription] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [submissionDeadline, setSubmissionDeadline] = useState("");
   const [fee, setFee] = useState("0");
   const [prizeDescription, setPrizeDescription] = useState("");
   const [maxTeamSize, setMaxTeamSize] = useState("1");
+  const [eligibility, setEligibility] = useState("");
+  const [registrationStartDate, setRegistrationStartDate] = useState("");
+  const [resultDate, setResultDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,12 +32,16 @@ export default function NewCompetitionPage() {
         body: JSON.stringify({
           title,
           description,
+          shortDescription: shortDescription || undefined,
           startDate,
           endDate,
           submissionDeadline,
           fee,
           prizeDescription: prizeDescription || undefined,
           maxTeamSize,
+          eligibility: eligibility || undefined,
+          registrationStartDate: registrationStartDate || undefined,
+          resultDate: resultDate || undefined,
         }),
       });
 
@@ -64,6 +72,16 @@ export default function NewCompetitionPage() {
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Short description (optional)</label>
+          <input
+            type="text"
+            placeholder="One-line tagline shown at the top of the competition page"
+            value={shortDescription}
+            onChange={(e) => setShortDescription(e.target.value)}
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
@@ -133,6 +151,36 @@ export default function NewCompetitionPage() {
               className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">1 = individual entries only</p>
+          </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Who can participate (optional)</label>
+          <input
+            type="text"
+            placeholder="e.g. Bonafide D.Pharmacy students"
+            value={eligibility}
+            onChange={(e) => setEligibility(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-sm font-medium">Registration opens (optional)</label>
+            <input
+              type="datetime-local"
+              value={registrationStartDate}
+              onChange={(e) => setRegistrationStartDate(e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Result date (optional)</label>
+            <input
+              type="datetime-local"
+              value={resultDate}
+              onChange={(e) => setResultDate(e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
           </div>
         </div>
         <div>

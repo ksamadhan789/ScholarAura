@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PeopleEditor } from "@/components/PeopleEditor";
-import type { EventPerson } from "@/lib/eventPeople";
 
 type FormState = {
   title: string;
@@ -18,7 +16,6 @@ type FormState = {
   eligibility: string;
   registrationStartDate: string;
   resultDate: string;
-  people: EventPerson[];
 };
 
 export function EditCompetitionForm({ slug, initial }: { slug: string; initial: FormState }) {
@@ -190,8 +187,6 @@ export function EditCompetitionForm({ slug, initial }: { slug: string; initial: 
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
-
-        <PeopleEditor people={form.people} onChange={(people) => set("people", people)} />
 
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
