@@ -24,6 +24,7 @@ const createEventSchema = z
     seatsTotal: z.coerce.number().int().min(1, "Must allow at least 1 seat"),
     venueOrLink: z.string().min(1, "Venue or link is required"),
     isOnline: z.boolean().optional().default(false),
+    brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
   })
   .refine((data) => data.endDate >= data.startDate, {
     message: "End date must be after the start date",
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { title, description, type, startDate, endDate, fee, seatsTotal, venueOrLink, isOnline } =
+    const { title, description, type, startDate, endDate, fee, seatsTotal, venueOrLink, isOnline, brochureUrl } =
       parsed.data;
 
     const baseSlug = slugify(title);
@@ -84,6 +85,7 @@ export async function POST(request: Request) {
         seatsTotal,
         venueOrLink,
         isOnline,
+        brochureUrl: brochureUrl || null,
         slug,
       },
     });

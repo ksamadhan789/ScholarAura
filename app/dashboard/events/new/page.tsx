@@ -15,6 +15,7 @@ export default function NewEventPage() {
   const [seatsTotal, setSeatsTotal] = useState("50");
   const [isOnline, setIsOnline] = useState(true);
   const [venueOrLink, setVenueOrLink] = useState("");
+  const [brochureUrl, setBrochureUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -37,6 +38,7 @@ export default function NewEventPage() {
           seatsTotal,
           isOnline,
           venueOrLink,
+          brochureUrl,
         }),
       });
 
@@ -163,6 +165,19 @@ export default function NewEventPage() {
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
             Only shown to attendees after they register.
+          </p>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Brochure URL (optional)</label>
+          <input
+            type="url"
+            placeholder="https://..."
+            value={brochureUrl}
+            onChange={(e) => setBrochureUrl(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+          />
+          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+            Link to a PDF or page with the full event brochure. Shown publicly on the event page.
           </p>
         </div>
 

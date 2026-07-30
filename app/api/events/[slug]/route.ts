@@ -4,9 +4,14 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const updateEventSchema = z.object({
-  isPublished: z.boolean(),
-});
+const updateEventSchema = z
+  .object({
+    isPublished: z.boolean().optional(),
+    brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
+  })
+  .refine((data) => data.isPublished !== undefined || data.brochureUrl !== undefined, {
+    message: "Nothing to update",
+  });
 
 export async function GET(
   _request: Request,
@@ -46,7 +51,10 @@ export async function PATCH(
 
   const updated = await prisma.event.update({
     where: { slug: params.slug },
-    data: { isPublished: parsed.data.isPublished },
+    data: {
+      ...(parsed.data.isPublished !== undefined && { isPublished: parsed.data.isPublished }),
+      ...(parsed.data.brochureUrl !== undefined && { brochureUrl: parsed.data.brochureUrl || null }),
+    },
   });
 
   return NextResponse.json(updated);
