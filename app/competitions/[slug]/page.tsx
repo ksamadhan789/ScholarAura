@@ -105,10 +105,19 @@ export default async function CompetitionDetailPage({
         </p>
       )}
 
-      {competition.prizeDescription && (
-        <p className="mt-4 rounded bg-brand-50 dark:bg-slate-800 px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
-          🏆 {competition.prizeDescription}
-        </p>
+      {(competition.prizeFirst ||
+        competition.prizeSecond ||
+        competition.prizeThird ||
+        competition.prizeDescription) && (
+        <div className="mt-4 rounded bg-brand-50 dark:bg-slate-800 px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+          <p className="font-medium">🏆 Prizes</p>
+          <div className="mt-1 flex flex-col gap-1">
+            {competition.prizeFirst && <p>🥇 1st Prize: {competition.prizeFirst}</p>}
+            {competition.prizeSecond && <p>🥈 2nd Prize: {competition.prizeSecond}</p>}
+            {competition.prizeThird && <p>🥉 3rd Prize: {competition.prizeThird}</p>}
+            {competition.prizeDescription && <p>{competition.prizeDescription}</p>}
+          </div>
+        </div>
       )}
 
       {competition.maxTeamSize > 1 && (

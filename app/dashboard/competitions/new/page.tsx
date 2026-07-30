@@ -13,6 +13,9 @@ export default function NewCompetitionPage() {
   const [submissionDeadline, setSubmissionDeadline] = useState("");
   const [fee, setFee] = useState("0");
   const [prizeDescription, setPrizeDescription] = useState("");
+  const [prizeFirst, setPrizeFirst] = useState("");
+  const [prizeSecond, setPrizeSecond] = useState("");
+  const [prizeThird, setPrizeThird] = useState("");
   const [maxTeamSize, setMaxTeamSize] = useState("1");
   const [eligibility, setEligibility] = useState("");
   const [registrationStartDate, setRegistrationStartDate] = useState("");
@@ -38,6 +41,9 @@ export default function NewCompetitionPage() {
           submissionDeadline,
           fee,
           prizeDescription: prizeDescription || undefined,
+          prizeFirst: prizeFirst || undefined,
+          prizeSecond: prizeSecond || undefined,
+          prizeThird: prizeThird || undefined,
           maxTeamSize,
           eligibility: eligibility || undefined,
           registrationStartDate: registrationStartDate || undefined,
@@ -185,12 +191,35 @@ export default function NewCompetitionPage() {
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Prizes (optional)</label>
+          <div className="grid grid-cols-3 gap-2">
+            <input
+              type="text"
+              placeholder="🥇 1st prize"
+              value={prizeFirst}
+              onChange={(e) => setPrizeFirst(e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+            <input
+              type="text"
+              placeholder="🥈 2nd prize"
+              value={prizeSecond}
+              onChange={(e) => setPrizeSecond(e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+            <input
+              type="text"
+              placeholder="🥉 3rd prize"
+              value={prizeThird}
+              onChange={(e) => setPrizeThird(e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
           <textarea
             rows={2}
-            placeholder="e.g. 1st: ₹50,000, 2nd: ₹25,000, 3rd: ₹10,000"
+            placeholder="Additional prize notes (optional)"
             value={prizeDescription}
             onChange={(e) => setPrizeDescription(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="mt-2 w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
 

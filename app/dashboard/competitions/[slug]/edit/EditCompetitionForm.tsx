@@ -12,6 +12,9 @@ type FormState = {
   submissionDeadline: string;
   fee: string;
   prizeDescription: string;
+  prizeFirst: string;
+  prizeSecond: string;
+  prizeThird: string;
   maxTeamSize: string;
   eligibility: string;
   registrationStartDate: string;
@@ -179,12 +182,35 @@ export function EditCompetitionForm({ slug, initial }: { slug: string; initial: 
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Prizes (optional)</label>
+          <div className="grid grid-cols-3 gap-2">
+            <input
+              type="text"
+              placeholder="🥇 1st prize"
+              value={form.prizeFirst}
+              onChange={(e) => set("prizeFirst", e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+            <input
+              type="text"
+              placeholder="🥈 2nd prize"
+              value={form.prizeSecond}
+              onChange={(e) => set("prizeSecond", e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+            <input
+              type="text"
+              placeholder="🥉 3rd prize"
+              value={form.prizeThird}
+              onChange={(e) => set("prizeThird", e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
           <textarea
             rows={2}
-            placeholder="e.g. 1st: ₹50,000, 2nd: ₹25,000, 3rd: ₹10,000"
+            placeholder="Additional prize notes (optional)"
             value={form.prizeDescription}
             onChange={(e) => set("prizeDescription", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="mt-2 w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
 
