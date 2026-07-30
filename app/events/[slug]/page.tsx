@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { EVENT_TYPE_LABELS, formatDateRange } from "@/lib/eventLabels";
+import { EVENT_TYPE_LABELS, formatDateRange, formatDateTime } from "@/lib/eventLabels";
 import { RegisterButton } from "./RegisterButton";
+import { PeopleList } from "@/components/PeopleList";
+import type { EventPerson } from "@/lib/eventPeople";
 
 export async function generateMetadata({
   params,
@@ -72,6 +74,9 @@ export default async function EventDetailPage({
       )}
       <p className="text-sm text-gray-500 dark:text-slate-400">{EVENT_TYPE_LABELS[event.type]}</p>
       <h1 className="mt-1 text-2xl font-semibold">{event.title}</h1>
+      {event.shortDescription && (
+        <p className="mt-1 text-base text-gray-600 dark:text-slate-400">{event.shortDescription}</p>
+      )}
       <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
         {formatDateRange(event.startDate, event.endDate)}
       </p>
@@ -87,6 +92,37 @@ export default async function EventDetailPage({
           📄 Download brochure
         </a>
       )}
+
+      {(event.registrationStartDate || event.registrationDeadline || event.resultDate) && (
+        <div className="mt-4 rounded border border-gray-200 dark:border-slate-700 p-4 text-sm">
+          <p className="font-medium">Important dates</p>
+          <div className="mt-2 flex flex-col gap-1 text-gray-600 dark:text-slate-400">
+            {event.registrationStartDate && (
+              <p>Registration opens: {formatDateTime(event.registrationStartDate)}</p>
+            )}
+            {event.registrationDeadline && (
+              <p>Registration deadline: {formatDateTime(event.registrationDeadline)}</p>
+            )}
+            {event.resultDate && <p>Result declaration: {formatDateTime(event.resultDate)}</p>}
+          </div>
+        </div>
+      )}
+
+      {event.eligibility && (
+        <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">
+          <span className="font-medium text-gray-900 dark:text-white">Who can participate: </span>
+          {event.eligibility}
+        </p>
+      )}
+
+      {event.prizeDescription && (
+        <div className="mt-4 rounded border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4 text-sm text-amber-900 dark:text-amber-200">
+          <p className="font-medium">🏆 Prizes</p>
+          <p className="mt-1">{event.prizeDescription}</p>
+        </div>
+      )}
+
+      <PeopleList people={(event.people as unknown as EventPerson[] | null) ?? []} />
 
       <div className="mt-4 flex flex-col gap-1 text-sm text-gray-600 dark:text-slate-400">
         <p>{event.isOnline ? "Online" : "In person"}</p>

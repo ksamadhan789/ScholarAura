@@ -205,6 +205,13 @@ model Event {
   isOnline      Boolean   @default(false)
   isPublished   Boolean   @default(false)
   brochureUrl   String?
+  shortDescription      String?
+  eligibility            String?
+  registrationStartDate  DateTime?
+  registrationDeadline   DateTime?
+  resultDate             DateTime?
+  prizeDescription       String?
+  people                 Json?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -250,6 +257,11 @@ model Competition {
   prizeDescription   String?
   maxTeamSize        Int      @default(1)
   isPublished        Boolean  @default(false)
+  shortDescription       String?
+  eligibility             String?
+  registrationStartDate   DateTime?
+  resultDate              DateTime?
+  people                  Json?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
