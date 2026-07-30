@@ -21,8 +21,19 @@ export async function GET(
     ? "for successfully completing the course"
     : "for participating in";
 
+  let recipientName = certificate.user.name;
+  if (certificate.eventId) {
+    const registration = await prisma.eventRegistration.findUnique({
+      where: { userId_eventId: { userId: certificate.userId, eventId: certificate.eventId } },
+      select: { certificateName: true },
+    });
+    if (registration?.certificateName) {
+      recipientName = registration.certificateName;
+    }
+  }
+
   const pdfBytes = await generateCertificatePdf({
-    recipientName: certificate.user.name,
+    recipientName,
     title,
     subtitle,
     certificateNumber: certificate.certificateNumber,

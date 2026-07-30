@@ -226,6 +226,7 @@ model EventRegistration {
   currency          String              @default("INR")
   chargedAmount     Decimal?            @db.Decimal(10, 2)
   status            RegistrationStatus  @default(PENDING)
+  certificateName   String?
   registeredAt      DateTime            @default(now())
 
   @@unique([userId, eventId])

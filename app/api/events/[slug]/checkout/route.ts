@@ -39,6 +39,10 @@ export async function POST(
 
   const body = await request.json().catch(() => ({}));
   const requestedCurrency = (body?.currency ?? "INR").toUpperCase();
+  const certificateName =
+    typeof body?.certificateName === "string" && body.certificateName.trim()
+      ? body.certificateName.trim()
+      : null;
 
   let payCurrency = "INR";
   let chargedAmount: number | null = null;
@@ -73,6 +77,7 @@ export async function POST(
               currency: "INR",
               chargedAmount: null,
               razorpayOrderId: null,
+              certificateName,
             },
           });
 
@@ -88,6 +93,7 @@ export async function POST(
                   creditApplied,
                   currency: "INR",
                   status: "CONFIRMED",
+                  certificateName,
                 },
               });
               isFreshSettlement = true;
@@ -151,6 +157,7 @@ export async function POST(
         currency: payCurrency,
         chargedAmount: payCurrency === "INR" ? null : chargedAmount,
         status: "PENDING",
+        certificateName,
       },
       create: {
         userId: session.user.id,
@@ -161,6 +168,7 @@ export async function POST(
         currency: payCurrency,
         chargedAmount: payCurrency === "INR" ? null : chargedAmount,
         status: "PENDING",
+        certificateName,
       },
     });
 
