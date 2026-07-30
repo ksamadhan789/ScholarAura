@@ -51,16 +51,18 @@ export default async function CompetitionsPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">Competitions</h1>
+      <h1 className="mb-6 text-2xl font-semibold">🏆 Competitions</h1>
 
       {competitions.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">No competitions published yet.</p>
+        <p className="text-gray-500 dark:text-slate-400">
+          👀 No competitions published yet — check back soon!
+        </p>
       ) : (
         <div className="flex flex-col gap-10">
           {open.length > 0 && (
             <section>
               <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
-                Open for entries
+                🟢 Open for entries
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {open.map((c) => (
@@ -72,7 +74,7 @@ export default async function CompetitionsPage() {
 
           {closed.length > 0 && (
             <section>
-              <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">Closed</h2>
+              <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">🔒 Closed</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {closed.map((c) => (
                   <CompetitionCard key={c.id} competition={c} />

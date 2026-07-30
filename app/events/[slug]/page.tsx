@@ -152,7 +152,7 @@ export default async function EventDetailPage({
           </a>
         ) : isRegistered ? (
           <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
-            You&apos;re registered for this event
+            🎉 You&apos;re registered for this event!
           </p>
         ) : seatsLeft <= 0 ? (
           <p className="rounded bg-gray-100 dark:bg-slate-700 px-4 py-2.5 text-sm text-gray-600 dark:text-slate-400">

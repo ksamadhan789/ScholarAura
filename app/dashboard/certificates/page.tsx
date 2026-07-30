@@ -18,11 +18,11 @@ export default async function MyCertificatesPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="mb-8 text-2xl font-semibold">My certificates</h1>
+      <h1 className="mb-8 text-2xl font-semibold">📜 My certificates</h1>
 
       {certificates.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
-          No certificates yet — finish a course or attend an event to earn one.
+          🎯 No certificates yet — finish a course or attend an event to earn one.
         </p>
       ) : (
         <div className="flex flex-col gap-3">

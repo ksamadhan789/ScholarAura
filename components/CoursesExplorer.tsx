@@ -99,10 +99,10 @@ export function CoursesExplorer({ courses }: { courses: CourseItem[] }) {
       {filtered.length === 0 ? (
         <p className="text-center text-gray-500 dark:text-slate-400">
           {courses.length === 0
-            ? "No courses published yet."
+            ? "👀 No courses published yet — check back soon!"
             : query.trim().length > 0
-              ? "No courses match your search."
-              : `No courses in ${category ?? "this category"} yet.`}
+              ? "🔍 No courses match your search."
+              : `👀 No courses in ${category ?? "this category"} yet.`}
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">

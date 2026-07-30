@@ -41,13 +41,13 @@ export default async function MyEventsPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="mb-8 text-2xl font-semibold">My events</h1>
+      <h1 className="mb-8 text-2xl font-semibold">🗓️ My events</h1>
 
       {registrations.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
-          You haven&apos;t registered for any events yet.{" "}
+          You haven&apos;t registered for any events yet — plenty to explore!{" "}
           <Link href="/events" className="underline">
-            Browse events
+            Browse events 📅
           </Link>
         </p>
       ) : (

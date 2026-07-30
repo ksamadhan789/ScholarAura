@@ -34,7 +34,7 @@ export default async function CoursesPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="mb-8 text-center text-2xl font-semibold">Browse courses</h1>
+      <h1 className="mb-8 text-center text-2xl font-semibold">📚 Browse courses</h1>
 
       <CoursesExplorer courses={courses} />
 
@@ -62,7 +62,7 @@ export default async function CoursesPage() {
       {externalCourses.length > 0 && (
         <div className="mt-16">
           <h2 className="mb-1 text-xl font-semibold text-slate-900 dark:text-white">
-            Recommended courses from other providers
+            🔗 Recommended courses from other providers
           </h2>
           <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">
             These courses are hosted and taught by their own providers — clicking

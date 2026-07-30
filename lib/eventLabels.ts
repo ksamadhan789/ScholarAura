@@ -1,18 +1,18 @@
 export const EVENT_TYPE_LABELS: Record<string, string> = {
-  INTERNATIONAL_CONFERENCE: "International Conference",
-  NATIONAL_CONFERENCE: "National Conference",
-  FDP: "Faculty Development Program",
-  HANDS_ON_TRAINING: "VR Hands-on Training",
-  WEBINAR: "Webinar",
+  INTERNATIONAL_CONFERENCE: "🌍 International Conference",
+  NATIONAL_CONFERENCE: "🏛️ National Conference",
+  FDP: "🎓 Faculty Development Program",
+  HANDS_ON_TRAINING: "🧪 VR Hands-on Training",
+  WEBINAR: "💻 Webinar",
 };
 
 // Plural labels + stable order, used for nav/tab lists.
 export const EVENT_TYPE_TABS: { type: string; label: string }[] = [
-  { type: "INTERNATIONAL_CONFERENCE", label: "International Conferences" },
-  { type: "NATIONAL_CONFERENCE", label: "National Conferences" },
-  { type: "WEBINAR", label: "Webinars" },
-  { type: "FDP", label: "Faculty Development Programs" },
-  { type: "HANDS_ON_TRAINING", label: "VR Hands-on Trainings" },
+  { type: "INTERNATIONAL_CONFERENCE", label: "🌍 International Conferences" },
+  { type: "NATIONAL_CONFERENCE", label: "🏛️ National Conferences" },
+  { type: "WEBINAR", label: "💻 Webinars" },
+  { type: "FDP", label: "🎓 Faculty Development Programs" },
+  { type: "HANDS_ON_TRAINING", label: "🧪 VR Hands-on Trainings" },
 ];
 
 export function formatDateRange(start: Date, end: Date): string {

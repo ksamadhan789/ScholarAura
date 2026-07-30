@@ -35,10 +35,10 @@ export default async function ReferralsPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="mb-8 text-2xl font-semibold">Refer & earn</h1>
+      <h1 className="mb-8 text-2xl font-semibold">🎁 Refer & earn</h1>
 
       <div className="rounded border border-gray-200 dark:border-slate-700 p-5">
-        <p className="text-sm text-gray-500 dark:text-slate-400">Your referral link</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">🔗 Your referral link</p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <code className="rounded bg-gray-100 dark:bg-slate-700 px-3 py-2 text-sm">{referralLink}</code>
           <CopyLinkButton link={referralLink} />

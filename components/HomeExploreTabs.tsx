@@ -77,7 +77,7 @@ export function HomeExploreTabs({
               : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
           }`}
         >
-          Courses
+          📚 Courses
         </button>
         {EVENT_TYPE_TABS.map(({ type, label }) => (
           <button
@@ -122,7 +122,7 @@ export function HomeExploreTabs({
       {tab === "courses" ? (
         courses.length === 0 ? (
           <p className="text-center text-gray-500 dark:text-slate-400">
-            No courses published yet.
+            👀 No courses published yet — check back soon!
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -148,7 +148,7 @@ export function HomeExploreTabs({
         )
       ) : visibleEvents.length === 0 ? (
         <p className="text-center text-gray-500 dark:text-slate-400">
-          No {subTab} {activeEventLabel?.toLowerCase()} right now.
+          👀 No {subTab} {activeEventLabel?.toLowerCase()} right now — stay tuned!
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
