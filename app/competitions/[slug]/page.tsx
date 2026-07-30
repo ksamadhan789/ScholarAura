@@ -5,8 +5,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EntryButton } from "./EntryButton";
 import { SubmissionForm } from "./SubmissionForm";
-import { PeopleList } from "@/components/PeopleList";
-import type { EventPerson } from "@/lib/eventPeople";
 
 export async function generateMetadata({
   params,
@@ -118,8 +116,6 @@ export default async function CompetitionDetailPage({
           Teams of up to {competition.maxTeamSize} allowed.
         </p>
       )}
-
-      <PeopleList people={(competition.people as unknown as EventPerson[] | null) ?? []} />
 
       <p className="mt-4 text-lg font-semibold">
         {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
