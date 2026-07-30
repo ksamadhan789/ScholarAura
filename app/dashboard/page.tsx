@@ -18,7 +18,7 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
       <h1 className="text-2xl font-semibold">
-        Welcome, {session.user?.name ?? session.user?.email}
+        👋 Welcome, {session.user?.name ?? session.user?.email}
       </h1>
       <p className="mt-2 text-gray-600 dark:text-slate-400">
         Signed in as <strong>{session.user?.email}</strong> · Role:{" "}
@@ -30,45 +30,45 @@ export default async function DashboardPage() {
           href="/courses"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
-          Browse courses
+          📚 Browse courses
         </Link>
         <Link
           href="/dashboard/learning"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
-          My learning
+          🎓 My learning
         </Link>
         {isInstructor && (
           <Link
             href="/dashboard/courses"
             className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
           >
-            My courses (instructor)
+            🧑‍🏫 My courses (instructor)
           </Link>
         )}
         <Link
           href="/events"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
-          Browse events
+          📅 Browse events
         </Link>
         <Link
           href="/dashboard/registrations"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
-          My events
+          🗓️ My events
         </Link>
         <Link
           href="/dashboard/certificates"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
-          My certificates
+          📜 My certificates
         </Link>
         <Link
           href="/dashboard/referrals"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
-          Refer & earn
+          🎁 Refer & earn
         </Link>
       </div>
     </main>

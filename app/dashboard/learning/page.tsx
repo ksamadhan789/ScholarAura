@@ -18,13 +18,13 @@ export default async function MyLearningPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="mb-8 text-2xl font-semibold">My learning</h1>
+      <h1 className="mb-8 text-2xl font-semibold">🎓 My learning</h1>
 
       {purchases.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
-          You haven&apos;t enrolled in any courses yet.{" "}
+          You haven&apos;t enrolled in any courses yet — let&apos;s fix that!{" "}
           <Link href="/courses" className="underline">
-            Browse courses
+            Browse courses 🚀
           </Link>
         </p>
       ) : (

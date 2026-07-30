@@ -26,7 +26,7 @@ export default async function HomePage() {
     <main className="flex flex-1 flex-col">
       {!session && (
         <div className="border-b border-brand-100 bg-brand-50 px-4 py-2 text-center text-sm text-brand-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-          Sign in to ScholarAura using your Google or email account. Don&apos;t have one?{" "}
+          👋 Sign in to ScholarAura using your Google or email account. Don&apos;t have one?{" "}
           <Link href="/register" className="font-medium underline">
             Sign up now
           </Link>
@@ -45,7 +45,7 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-5xl gap-10 px-4 py-16 lg:grid-cols-2 lg:items-center lg:py-24">
           <div className="text-center lg:text-left">
             <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-brand-100">
-              For professionals, academics & students worldwide
+              🌟 For professionals, academics & students worldwide
             </span>
             <h1 className="mt-5 text-4xl font-bold text-white sm:text-5xl">
               ScholarAura
@@ -70,10 +70,10 @@ export default async function HomePage() {
             {session ? (
               <div className="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-xl dark:bg-slate-800">
                 <p className="text-lg font-semibold text-slate-900 dark:text-white">
-                  Welcome back{session.user?.name ? `, ${session.user.name}` : ""}
+                  Welcome back{session.user?.name ? `, ${session.user.name}` : ""} 👋
                 </p>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Pick up where you left off.
+                  Pick up right where you left off ✨
                 </p>
                 <Link
                   href="/dashboard"

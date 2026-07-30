@@ -7,16 +7,16 @@ export function Footer() {
         <p>© {new Date().getFullYear()} ScholarAura</p>
         <div className="flex flex-wrap items-center gap-4">
           <Link href="/courses" className="hover:text-brand-600 dark:hover:text-brand-400">
-            Courses
+            📚 Courses
           </Link>
           <Link href="/competitions" className="hover:text-brand-600 dark:hover:text-brand-400">
-            Competitions
+            🏆 Competitions
           </Link>
           <Link href="/events" className="hover:text-brand-600 dark:hover:text-brand-400">
-            Events
+            📅 Events
           </Link>
           <Link href="/verify" className="hover:text-brand-600 dark:hover:text-brand-400">
-            Verify a certificate
+            ✅ Verify a certificate
           </Link>
           <Link href="/terms" className="hover:text-brand-600 dark:hover:text-brand-400">
             Terms

@@ -75,7 +75,7 @@ function RegisterForm() {
   return (
     <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4">
       {GOOGLE_CLIENT_ID && <GoogleOneTap clientId={GOOGLE_CLIENT_ID} />}
-      <h1 className="mb-2 text-2xl font-semibold">Create your account</h1>
+      <h1 className="mb-2 text-2xl font-semibold">✨ Create your account</h1>
       {ref && (
         <p className="mb-4 rounded bg-green-50 dark:bg-green-900/40 px-3 py-2 text-sm text-green-800 dark:text-green-300">
           🎉 You were invited by a friend

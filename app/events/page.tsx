@@ -84,7 +84,7 @@ export default async function EventsPage({
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
       <h1 className="mb-6 text-2xl font-semibold">
-        {activeLabel ?? "Upcoming & ongoing events"}
+        {activeLabel ?? "📅 Upcoming & ongoing events"}
       </h1>
 
       <div className="mb-8 flex flex-wrap gap-2">
@@ -96,7 +96,7 @@ export default async function EventsPage({
               : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
           }`}
         >
-          All
+          ✨ All
         </Link>
         {EVENT_TYPE_TABS.map(({ type, label }) => (
           <Link
@@ -115,7 +115,8 @@ export default async function EventsPage({
 
       {events.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
-          No {activeLabel ? activeLabel.toLowerCase() : "events"} published yet.
+          👀 No {activeLabel ? activeLabel.toLowerCase() : "events"} published yet — check back
+          soon!
         </p>
       ) : (
         <div className="flex flex-col gap-10">

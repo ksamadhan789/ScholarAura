@@ -38,11 +38,11 @@ export function Header() {
 
         <nav className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-300">
           <Link href="/courses" className="hover:text-brand-600 dark:hover:text-brand-400">
-            Courses
+            📚 Courses
           </Link>
 
           <Link href="/competitions" className="hover:text-brand-600 dark:hover:text-brand-400">
-            Competitions
+            🏆 Competitions
           </Link>
 
           <div
@@ -56,7 +56,7 @@ export function Header() {
               className="flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400"
               aria-expanded={eventsOpen}
             >
-              Events
+              📅 Events
               <span aria-hidden className="text-[10px]">▾</span>
             </button>
 
@@ -71,7 +71,7 @@ export function Header() {
                   onClick={() => setEventsOpen(false)}
                   className="block px-4 py-2 font-medium hover:bg-brand-50 dark:hover:bg-slate-700"
                 >
-                  All Events
+                  ✨ All Events
                 </Link>
                 <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
                 {EVENT_TYPE_TABS.map(({ type, label }) => (

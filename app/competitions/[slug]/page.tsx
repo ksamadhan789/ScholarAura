@@ -183,7 +183,7 @@ export default async function CompetitionDetailPage({
         ) : isEntered ? (
           <div className="flex flex-col gap-4">
             <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
-              You&apos;re entered in this competition
+              🎉 You&apos;re entered in this competition!
               {entry?.rank ? ` — Result: #${entry.rank}` : ""}
             </p>
             <SubmissionForm
