@@ -29,3 +29,13 @@ export function formatDateRange(start: Date, end: Date): string {
   }
   return `${start.toLocaleDateString(undefined, dateOpts)} – ${end.toLocaleDateString(undefined, dateOpts)}`;
 }
+
+export function formatDateTime(date: Date): string {
+  return date.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}

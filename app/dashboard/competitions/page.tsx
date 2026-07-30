@@ -63,6 +63,12 @@ export default async function ManageCompetitionsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Link
+                  href={`/dashboard/competitions/${c.slug}/edit`}
+                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                >
+                  Edit
+                </Link>
+                <Link
                   href={`/dashboard/competitions/${c.slug}/entries`}
                   className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
                 >

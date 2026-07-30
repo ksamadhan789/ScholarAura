@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
+import { eventPeopleSchema } from "@/lib/eventPeople";
 
 const eventTypes = [
   "INTERNATIONAL_CONFERENCE",
@@ -12,6 +13,11 @@ const eventTypes = [
   "HANDS_ON_TRAINING",
   "WEBINAR",
 ] as const;
+
+const optionalDate = z.preprocess(
+  (val) => (val === "" || val == null ? undefined : val),
+  z.coerce.date().optional()
+);
 
 const createEventSchema = z
   .object({
@@ -25,6 +31,13 @@ const createEventSchema = z
     venueOrLink: z.string().min(1, "Venue or link is required"),
     isOnline: z.boolean().optional().default(false),
     brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
+    shortDescription: z.string().trim().optional().or(z.literal("")),
+    eligibility: z.string().trim().optional().or(z.literal("")),
+    registrationStartDate: optionalDate,
+    registrationDeadline: optionalDate,
+    resultDate: optionalDate,
+    prizeDescription: z.string().trim().optional().or(z.literal("")),
+    people: eventPeopleSchema,
   })
   .refine((data) => data.endDate >= data.startDate, {
     message: "End date must be after the start date",
@@ -63,8 +76,25 @@ export async function POST(request: Request) {
       );
     }
 
-    const { title, description, type, startDate, endDate, fee, seatsTotal, venueOrLink, isOnline, brochureUrl } =
-      parsed.data;
+    const {
+      title,
+      description,
+      type,
+      startDate,
+      endDate,
+      fee,
+      seatsTotal,
+      venueOrLink,
+      isOnline,
+      brochureUrl,
+      shortDescription,
+      eligibility,
+      registrationStartDate,
+      registrationDeadline,
+      resultDate,
+      prizeDescription,
+      people,
+    } = parsed.data;
 
     const baseSlug = slugify(title);
     let slug = baseSlug;
@@ -86,6 +116,13 @@ export async function POST(request: Request) {
         venueOrLink,
         isOnline,
         brochureUrl: brochureUrl || null,
+        shortDescription: shortDescription || null,
+        eligibility: eligibility || null,
+        registrationStartDate: registrationStartDate ?? null,
+        registrationDeadline: registrationDeadline ?? null,
+        resultDate: resultDate ?? null,
+        prizeDescription: prizeDescription || null,
+        people: people && people.length > 0 ? people : undefined,
         slug,
       },
     });

@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS, formatDateRange } from "@/lib/eventLabels";
 import { EventPublishToggle } from "./EventPublishToggle";
-import { BrochureUrlEditor } from "./BrochureUrlEditor";
 import { Badge } from "@/components/Badge";
 
 export default async function ManageEventsPage() {
@@ -57,9 +56,14 @@ export default async function ManageEventsPage() {
                     {event.seatsFilled}/{event.seatsTotal} registered
                   </span>
                 </div>
-                <BrochureUrlEditor slug={event.slug} brochureUrl={event.brochureUrl} />
               </div>
               <div className="flex items-center gap-2">
+                <Link
+                  href={`/dashboard/events/${event.slug}/edit`}
+                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                >
+                  Edit
+                </Link>
                 <Link
                   href={`/dashboard/events/${event.slug}/students`}
                   className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"

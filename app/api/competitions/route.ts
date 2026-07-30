@@ -4,6 +4,12 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
+import { eventPeopleSchema } from "@/lib/eventPeople";
+
+const optionalDate = z.preprocess(
+  (val) => (val === "" || val == null ? undefined : val),
+  z.coerce.date().optional()
+);
 
 const createCompetitionSchema = z
   .object({
@@ -15,6 +21,11 @@ const createCompetitionSchema = z
     fee: z.coerce.number().min(0, "Fee can't be negative"),
     prizeDescription: z.string().optional(),
     maxTeamSize: z.coerce.number().int().min(1, "Team size must be at least 1"),
+    shortDescription: z.string().trim().optional().or(z.literal("")),
+    eligibility: z.string().trim().optional().or(z.literal("")),
+    registrationStartDate: optionalDate,
+    resultDate: optionalDate,
+    people: eventPeopleSchema,
   })
   .refine((data) => data.endDate >= data.startDate, {
     message: "End date must be after the start date",
@@ -66,6 +77,11 @@ export async function POST(request: Request) {
       fee,
       prizeDescription,
       maxTeamSize,
+      shortDescription,
+      eligibility,
+      registrationStartDate,
+      resultDate,
+      people,
     } = parsed.data;
 
     const baseSlug = slugify(title);
@@ -86,6 +102,11 @@ export async function POST(request: Request) {
         fee,
         prizeDescription: prizeDescription || null,
         maxTeamSize,
+        shortDescription: shortDescription || null,
+        eligibility: eligibility || null,
+        registrationStartDate: registrationStartDate ?? null,
+        resultDate: resultDate ?? null,
+        people: people && people.length > 0 ? people : undefined,
         slug,
       },
     });

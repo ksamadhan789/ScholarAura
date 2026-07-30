@@ -1,15 +1,37 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { eventPeopleSchema } from "@/lib/eventPeople";
+
+const optionalDate = z.preprocess(
+  (val) => (val === "" || val == null ? undefined : val),
+  z.coerce.date().optional()
+);
 
 const updateEventSchema = z
   .object({
     isPublished: z.boolean().optional(),
     brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
+    title: z.string().min(3).optional(),
+    description: z.string().min(10).optional(),
+    startDate: z.coerce.date().optional(),
+    endDate: z.coerce.date().optional(),
+    fee: z.coerce.number().min(0).optional(),
+    seatsTotal: z.coerce.number().int().min(1).optional(),
+    venueOrLink: z.string().min(1).optional(),
+    isOnline: z.boolean().optional(),
+    shortDescription: z.string().trim().nullable().optional(),
+    eligibility: z.string().trim().nullable().optional(),
+    registrationStartDate: optionalDate.nullable(),
+    registrationDeadline: optionalDate.nullable(),
+    resultDate: optionalDate.nullable(),
+    prizeDescription: z.string().trim().nullable().optional(),
+    people: eventPeopleSchema.nullable(),
   })
-  .refine((data) => data.isPublished !== undefined || data.brochureUrl !== undefined, {
+  .refine((data) => Object.values(data).some((v) => v !== undefined), {
     message: "Nothing to update",
   });
 
@@ -49,11 +71,29 @@ export async function PATCH(
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
 
+  const d = parsed.data;
   const updated = await prisma.event.update({
     where: { slug: params.slug },
     data: {
-      ...(parsed.data.isPublished !== undefined && { isPublished: parsed.data.isPublished }),
-      ...(parsed.data.brochureUrl !== undefined && { brochureUrl: parsed.data.brochureUrl || null }),
+      ...(d.isPublished !== undefined && { isPublished: d.isPublished }),
+      ...(d.brochureUrl !== undefined && { brochureUrl: d.brochureUrl || null }),
+      ...(d.title !== undefined && { title: d.title }),
+      ...(d.description !== undefined && { description: d.description }),
+      ...(d.startDate !== undefined && { startDate: d.startDate }),
+      ...(d.endDate !== undefined && { endDate: d.endDate }),
+      ...(d.fee !== undefined && { fee: d.fee }),
+      ...(d.seatsTotal !== undefined && { seatsTotal: d.seatsTotal }),
+      ...(d.venueOrLink !== undefined && { venueOrLink: d.venueOrLink }),
+      ...(d.isOnline !== undefined && { isOnline: d.isOnline }),
+      ...(d.shortDescription !== undefined && { shortDescription: d.shortDescription || null }),
+      ...(d.eligibility !== undefined && { eligibility: d.eligibility || null }),
+      ...(d.registrationStartDate !== undefined && { registrationStartDate: d.registrationStartDate }),
+      ...(d.registrationDeadline !== undefined && { registrationDeadline: d.registrationDeadline }),
+      ...(d.resultDate !== undefined && { resultDate: d.resultDate }),
+      ...(d.prizeDescription !== undefined && { prizeDescription: d.prizeDescription || null }),
+      ...(d.people !== undefined && {
+        people: d.people && d.people.length > 0 ? d.people : Prisma.JsonNull,
+      }),
     },
   });
 
