@@ -43,6 +43,7 @@ export default async function EditEventPage({ params }: { params: { slug: string
         prizeFirst: event.prizeFirst ?? "",
         prizeSecond: event.prizeSecond ?? "",
         prizeThird: event.prizeThird ?? "",
+        certificateLogoUrl: event.certificateLogoUrl ?? "",
         people: (event.people as unknown as EventPerson[] | null) ?? [],
       }}
     />

@@ -4,9 +4,17 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const updateCourseSchema = z.object({
-  isPublished: z.boolean(),
-});
+const updateCourseSchema = z
+  .object({
+    isPublished: z.boolean().optional(),
+    certificateLogoUrl: z
+      .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
+      .nullable()
+      .optional(),
+  })
+  .refine((data) => data.isPublished !== undefined || data.certificateLogoUrl !== undefined, {
+    message: "Nothing to update",
+  });
 
 export async function GET(
   _request: Request,
@@ -53,9 +61,15 @@ export async function PATCH(
     );
   }
 
+  const d = parsed.data;
   const updated = await prisma.course.update({
     where: { slug: params.slug },
-    data: { isPublished: parsed.data.isPublished },
+    data: {
+      ...(d.isPublished !== undefined && { isPublished: d.isPublished }),
+      ...(d.certificateLogoUrl !== undefined && {
+        certificateLogoUrl: d.certificateLogoUrl || null,
+      }),
+    },
   });
 
   return NextResponse.json(updated);

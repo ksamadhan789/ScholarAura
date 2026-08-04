@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 import { prisma } from "@/lib/prisma";
 import { generateCertificatePdf } from "@/lib/generateCertificatePdf";
 import { SITE_URL } from "@/lib/siteUrl";
+
+async function fetchImageBytes(url: string): Promise<Uint8Array | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return new Uint8Array(await res.arrayBuffer());
+  } catch {
+    return null;
+  }
+}
 
 export async function GET(
   _request: Request,
@@ -32,6 +44,11 @@ export async function GET(
     }
   }
 
+  const orgLogoBytes = fs.readFileSync(path.join(process.cwd(), "public", "logo.png"));
+
+  const partnerLogoUrl = certificate.course?.certificateLogoUrl ?? certificate.event?.certificateLogoUrl;
+  const partnerLogoBytes = partnerLogoUrl ? await fetchImageBytes(partnerLogoUrl) : null;
+
   const pdfBytes = await generateCertificatePdf({
     recipientName,
     title,
@@ -39,6 +56,8 @@ export async function GET(
     certificateNumber: certificate.certificateNumber,
     issuedAt: certificate.issuedAt,
     verifyUrl: `${SITE_URL}/verify/${certificate.certificateNumber}`,
+    orgLogoBytes,
+    partnerLogoBytes,
   });
 
   return new NextResponse(Buffer.from(pdfBytes), {
