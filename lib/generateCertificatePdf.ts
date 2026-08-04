@@ -1,5 +1,18 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFImage } from "pdf-lib";
 import QRCode from "qrcode";
+
+async function embedLogo(doc: PDFDocument, bytes: Uint8Array): Promise<PDFImage | null> {
+  try {
+    return await doc.embedPng(bytes);
+  } catch {
+    // Fall through to JPEG.
+  }
+  try {
+    return await doc.embedJpg(bytes);
+  } catch {
+    return null;
+  }
+}
 
 export async function generateCertificatePdf({
   recipientName,
@@ -8,6 +21,8 @@ export async function generateCertificatePdf({
   certificateNumber,
   issuedAt,
   verifyUrl,
+  orgLogoBytes,
+  partnerLogoBytes,
 }: {
   recipientName: string;
   title: string;
@@ -15,6 +30,8 @@ export async function generateCertificatePdf({
   certificateNumber: string;
   issuedAt: Date;
   verifyUrl: string;
+  orgLogoBytes?: Uint8Array | null;
+  partnerLogoBytes?: Uint8Array | null;
 }): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   const page = doc.addPage([842, 595]);
@@ -50,6 +67,30 @@ export async function generateCertificatePdf({
     borderColor: rgb(0.7, 0.7, 0.7),
     borderWidth: 1,
   });
+
+  const logoBoxSize = 56;
+  const logoY = height - 70;
+
+  const drawLogo = (image: PDFImage, x: number) => {
+    const scale = Math.min(logoBoxSize / image.width, logoBoxSize / image.height);
+    const w = image.width * scale;
+    const h = image.height * scale;
+    page.drawImage(image, {
+      x: x + (logoBoxSize - w) / 2,
+      y: logoY - h,
+      width: w,
+      height: h,
+    });
+  };
+
+  if (orgLogoBytes) {
+    const orgLogo = await embedLogo(doc, orgLogoBytes);
+    if (orgLogo) drawLogo(orgLogo, 60);
+  }
+  if (partnerLogoBytes) {
+    const partnerLogo = await embedLogo(doc, partnerLogoBytes);
+    if (partnerLogo) drawLogo(partnerLogo, width - 60 - logoBoxSize);
+  }
 
   centerText("Certificate of Completion", height - 130, 30, fontBold);
   centerText("This is to certify that", height - 190, 14, font, rgb(0.35, 0.35, 0.35));

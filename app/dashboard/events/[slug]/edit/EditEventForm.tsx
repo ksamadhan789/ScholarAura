@@ -26,6 +26,7 @@ type FormState = {
   prizeFirst: string;
   prizeSecond: string;
   prizeThird: string;
+  certificateLogoUrl: string;
   people: EventPerson[];
 };
 
@@ -262,6 +263,22 @@ export function EditEventForm({ slug, initial }: { slug: string; initial: FormSt
             onChange={(e) => set("prizeDescription", e.target.value)}
             className="mt-2 w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            Collaborating institute logo URL (optional)
+          </label>
+          <input
+            type="url"
+            placeholder="https://..."
+            value={form.certificateLogoUrl}
+            onChange={(e) => set("certificateLogoUrl", e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+            Shown alongside the ScholarAura logo on certificates issued for this event.
+          </p>
         </div>
 
         <PeopleEditor people={form.people} onChange={(people) => set("people", people)} />

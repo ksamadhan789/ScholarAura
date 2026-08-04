@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AddVideoForm } from "./AddVideoForm";
+import { CertificateLogoEditor } from "./CertificateLogoEditor";
 
 export default async function ManageCoursePage({
   params,
@@ -73,6 +74,8 @@ export default async function ManageCoursePage({
       <div className="mt-8">
         <AddVideoForm slug={course.slug} />
       </div>
+
+      <CertificateLogoEditor slug={course.slug} certificateLogoUrl={course.certificateLogoUrl} />
     </main>
   );
 }

@@ -32,6 +32,10 @@ const updateEventSchema = z
     prizeFirst: z.string().trim().nullable().optional(),
     prizeSecond: z.string().trim().nullable().optional(),
     prizeThird: z.string().trim().nullable().optional(),
+    certificateLogoUrl: z
+      .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
+      .nullable()
+      .optional(),
     people: eventPeopleSchema.nullable(),
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined), {
@@ -97,6 +101,9 @@ export async function PATCH(
       ...(d.prizeFirst !== undefined && { prizeFirst: d.prizeFirst || null }),
       ...(d.prizeSecond !== undefined && { prizeSecond: d.prizeSecond || null }),
       ...(d.prizeThird !== undefined && { prizeThird: d.prizeThird || null }),
+      ...(d.certificateLogoUrl !== undefined && {
+        certificateLogoUrl: d.certificateLogoUrl || null,
+      }),
       ...(d.people !== undefined && {
         people: d.people && d.people.length > 0 ? d.people : Prisma.JsonNull,
       }),
