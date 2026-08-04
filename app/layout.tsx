@@ -43,11 +43,30 @@ const themeInitScript = `
   })();
 `;
 
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  name: "ScholarAura",
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo.png`,
+  description,
+  email: "scholaraura@gmail.com",
+  contactPoint: {
+    "@type": "ContactPoint",
+    email: "scholaraura@gmail.com",
+    contactType: "customer support",
+  },
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
       </head>
       <body className="flex min-h-screen flex-col bg-white font-sans text-slate-900 dark:bg-slate-900 dark:text-slate-100">
         <Providers>
