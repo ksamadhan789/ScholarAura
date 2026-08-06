@@ -78,6 +78,12 @@ export default async function AdminHomePage() {
 
       <div className="mt-8 flex flex-wrap gap-3">
         <Link
+          href="/dashboard/courses"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          Manage courses
+        </Link>
+        <Link
           href="/dashboard/events"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
