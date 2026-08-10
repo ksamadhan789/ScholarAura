@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EditCompetitionForm } from "./EditCompetitionForm";
+import type { EventPerson } from "@/lib/eventPeople";
 
 function toLocalInput(date: Date | null): string {
   if (!date) return "";
@@ -35,9 +36,13 @@ export default async function EditCompetitionPage({ params }: { params: { slug: 
         prizeSecond: competition.prizeSecond ?? "",
         prizeThird: competition.prizeThird ?? "",
         maxTeamSize: competition.maxTeamSize.toString(),
+        brochureUrl: competition.brochureUrl ?? "",
+        certificateLogoUrl: competition.certificateLogoUrl ?? "",
         eligibility: competition.eligibility ?? "",
         registrationStartDate: toLocalInput(competition.registrationStartDate),
+        registrationDeadline: toLocalInput(competition.registrationDeadline),
         resultDate: toLocalInput(competition.resultDate),
+        people: (competition.people as unknown as EventPerson[] | null) ?? [],
       }}
     />
   );

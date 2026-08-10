@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PeopleEditor } from "@/components/PeopleEditor";
+import type { EventPerson } from "@/lib/eventPeople";
 
 type FormState = {
   title: string;
@@ -16,9 +18,13 @@ type FormState = {
   prizeSecond: string;
   prizeThird: string;
   maxTeamSize: string;
+  brochureUrl: string;
+  certificateLogoUrl: string;
   eligibility: string;
   registrationStartDate: string;
+  registrationDeadline: string;
   resultDate: string;
+  people: EventPerson[];
 };
 
 export function EditCompetitionForm({ slug, initial }: { slug: string; initial: FormState }) {
@@ -151,6 +157,15 @@ export function EditCompetitionForm({ slug, initial }: { slug: string; initial: 
           </div>
         </div>
         <div>
+          <label className="mb-1 block text-sm font-medium">Brochure URL (optional)</label>
+          <input
+            type="url"
+            value={form.brochureUrl}
+            onChange={(e) => set("brochureUrl", e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <div>
           <label className="mb-1 block text-sm font-medium">Who can participate (optional)</label>
           <input
             type="text"
@@ -160,13 +175,22 @@ export function EditCompetitionForm({ slug, initial }: { slug: string; initial: 
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <label className="mb-1 block text-sm font-medium">Registration opens (optional)</label>
             <input
               type="datetime-local"
               value={form.registrationStartDate}
               onChange={(e) => set("registrationStartDate", e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Registration deadline (optional)</label>
+            <input
+              type="datetime-local"
+              value={form.registrationDeadline}
+              onChange={(e) => set("registrationDeadline", e.target.value)}
               className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
             />
           </div>
@@ -213,6 +237,21 @@ export function EditCompetitionForm({ slug, initial }: { slug: string; initial: 
             className="mt-2 w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            Collaborating institute logo URL (optional)
+          </label>
+          <input
+            type="url"
+            placeholder="https://..."
+            value={form.certificateLogoUrl}
+            onChange={(e) => set("certificateLogoUrl", e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+
+        <PeopleEditor people={form.people} onChange={(people) => set("people", people)} />
 
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 

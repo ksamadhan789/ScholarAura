@@ -265,9 +265,12 @@ model Competition {
   prizeThird         String?
   maxTeamSize        Int      @default(1)
   isPublished        Boolean  @default(false)
+  brochureUrl             String?
+  certificateLogoUrl      String?
   shortDescription       String?
   eligibility             String?
   registrationStartDate   DateTime?
+  registrationDeadline    DateTime?
   resultDate              DateTime?
   people                  Json?
   createdAt          DateTime @default(now())
