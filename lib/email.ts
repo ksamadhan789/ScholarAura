@@ -23,17 +23,22 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
     return false;
   }
 
-  await transport.sendMail({
-    from: process.env.EMAIL_FROM ?? "noreply@scholaraura.com",
-    to,
-    subject: "Reset your ScholarAura password",
-    text: `Someone requested a password reset for your ScholarAura account.\n\nReset your password: ${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can safely ignore this email.`,
-    html: `
-      <p>Someone requested a password reset for your ScholarAura account.</p>
-      <p><a href="${resetUrl}">Reset your password</a></p>
-      <p>This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
-    `,
-  });
+  try {
+    await transport.sendMail({
+      from: process.env.EMAIL_FROM ?? "noreply@scholaraura.com",
+      to,
+      subject: "Reset your ScholarAura password",
+      text: `Someone requested a password reset for your ScholarAura account.\n\nReset your password: ${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can safely ignore this email.`,
+      html: `
+        <p>Someone requested a password reset for your ScholarAura account.</p>
+        <p><a href="${resetUrl}">Reset your password</a></p>
+        <p>This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
+      `,
+    });
+  } catch (err) {
+    console.error("Failed to send password reset email:", err);
+    return false;
+  }
 
   return true;
 }
