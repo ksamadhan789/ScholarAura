@@ -1,31 +1,21 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-function getTransport() {
-  const host = process.env.EMAIL_SERVER_HOST;
-  const port = process.env.EMAIL_SERVER_PORT;
-  const user = process.env.EMAIL_SERVER_USER;
-  const pass = process.env.EMAIL_SERVER_PASSWORD;
-
-  if (!host || !port || !user || !pass) return null;
-
-  return nodemailer.createTransport({
-    host,
-    port: Number(port),
-    secure: Number(port) === 465,
-    auth: { user, pass },
-  });
+function getClient(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  return new Resend(apiKey);
 }
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<boolean> {
-  const transport = getTransport();
-  if (!transport) {
-    console.error("EMAIL_SERVER_* env vars are not set — cannot send password reset email");
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send password reset email");
     return false;
   }
 
   try {
-    await transport.sendMail({
-      from: process.env.EMAIL_FROM ?? "noreply@scholaraura.com",
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
       to,
       subject: "Reset your ScholarAura password",
       text: `Someone requested a password reset for your ScholarAura account.\n\nReset your password: ${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, you can safely ignore this email.`,
@@ -35,6 +25,11 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
         <p>This link expires in 1 hour. If you didn't request this, you can safely ignore this email.</p>
       `,
     });
+
+    if (error) {
+      console.error("Failed to send password reset email:", error);
+      return false;
+    }
   } catch (err) {
     console.error("Failed to send password reset email:", err);
     return false;
