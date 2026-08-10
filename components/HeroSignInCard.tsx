@@ -12,6 +12,7 @@ export function HeroSignInCard() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,6 +28,7 @@ export function HeroSignInCard() {
 
       if (result?.error) {
         setError("Incorrect email or password");
+        setFailedAttempts((n) => n + 1);
         return;
       }
 
@@ -111,6 +113,14 @@ export function HeroSignInCard() {
         </div>
 
         {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+        {failedAttempts >= 2 && (
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Trouble signing in?{" "}
+            <Link href="/forgot-password" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
+              Reset your password
+            </Link>
+          </p>
+        )}
 
         <button
           type="submit"
