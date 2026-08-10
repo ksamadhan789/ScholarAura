@@ -5,6 +5,9 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EntryButton } from "./EntryButton";
 import { SubmissionForm } from "./SubmissionForm";
+import { PeopleList } from "@/components/PeopleList";
+import { formatDateTime } from "@/lib/eventLabels";
+import type { EventPerson } from "@/lib/eventPeople";
 
 export async function generateMetadata({
   params,
@@ -104,16 +107,32 @@ export default async function CompetitionDetailPage({
       </p>
       <p className="mt-4 text-gray-700">{competition.description}</p>
 
-      {(competition.registrationStartDate || competition.resultDate) && (
+      {competition.brochureUrl && (
+        <a
+          href={competition.brochureUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-block text-sm font-medium text-brand-600 underline hover:text-brand-700 dark:text-brand-400"
+        >
+          📄 Download brochure
+        </a>
+      )}
+
+      {(competition.registrationStartDate ||
+        competition.registrationDeadline ||
+        competition.resultDate) && (
         <div className="mt-4 rounded border border-gray-200 dark:border-slate-700 p-4 text-sm">
           <p className="font-medium">Important dates</p>
           <div className="mt-2 flex flex-col gap-1 text-gray-600 dark:text-slate-400">
             {competition.registrationStartDate && (
-              <p>Registration opens: {formatDate(competition.registrationStartDate)}</p>
+              <p>Registration opens: {formatDateTime(competition.registrationStartDate)}</p>
+            )}
+            {competition.registrationDeadline && (
+              <p>Registration deadline: {formatDateTime(competition.registrationDeadline)}</p>
             )}
             <p>Submission deadline: {formatDate(competition.submissionDeadline)}</p>
             {competition.resultDate && (
-              <p>Result declaration: {formatDate(competition.resultDate)}</p>
+              <p>Result declaration: {formatDateTime(competition.resultDate)}</p>
             )}
           </div>
         </div>
@@ -161,6 +180,8 @@ export default async function CompetitionDetailPage({
           </div>
         </div>
       )}
+
+      <PeopleList people={(competition.people as unknown as EventPerson[] | null) ?? []} />
 
       {competition.maxTeamSize > 1 && (
         <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">

@@ -25,9 +25,15 @@ const updateCompetitionSchema = z
     prizeSecond: z.string().trim().nullable().optional(),
     prizeThird: z.string().trim().nullable().optional(),
     maxTeamSize: z.coerce.number().int().min(1).optional(),
+    brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
+    certificateLogoUrl: z
+      .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
+      .nullable()
+      .optional(),
     shortDescription: z.string().trim().nullable().optional(),
     eligibility: z.string().trim().nullable().optional(),
     registrationStartDate: optionalDate.nullable(),
+    registrationDeadline: optionalDate.nullable(),
     resultDate: optionalDate.nullable(),
     people: eventPeopleSchema.nullable(),
   })
@@ -87,9 +93,14 @@ export async function PATCH(
       ...(d.prizeSecond !== undefined && { prizeSecond: d.prizeSecond || null }),
       ...(d.prizeThird !== undefined && { prizeThird: d.prizeThird || null }),
       ...(d.maxTeamSize !== undefined && { maxTeamSize: d.maxTeamSize }),
+      ...(d.brochureUrl !== undefined && { brochureUrl: d.brochureUrl || null }),
+      ...(d.certificateLogoUrl !== undefined && {
+        certificateLogoUrl: d.certificateLogoUrl || null,
+      }),
       ...(d.shortDescription !== undefined && { shortDescription: d.shortDescription || null }),
       ...(d.eligibility !== undefined && { eligibility: d.eligibility || null }),
       ...(d.registrationStartDate !== undefined && { registrationStartDate: d.registrationStartDate }),
+      ...(d.registrationDeadline !== undefined && { registrationDeadline: d.registrationDeadline }),
       ...(d.resultDate !== undefined && { resultDate: d.resultDate }),
       ...(d.people !== undefined && {
         people: d.people && d.people.length > 0 ? d.people : Prisma.JsonNull,

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PeopleEditor } from "@/components/PeopleEditor";
+import type { EventPerson } from "@/lib/eventPeople";
 
 export default function NewCompetitionPage() {
   const router = useRouter();
@@ -17,9 +19,13 @@ export default function NewCompetitionPage() {
   const [prizeSecond, setPrizeSecond] = useState("");
   const [prizeThird, setPrizeThird] = useState("");
   const [maxTeamSize, setMaxTeamSize] = useState("1");
+  const [brochureUrl, setBrochureUrl] = useState("");
+  const [certificateLogoUrl, setCertificateLogoUrl] = useState("");
   const [eligibility, setEligibility] = useState("");
   const [registrationStartDate, setRegistrationStartDate] = useState("");
+  const [registrationDeadline, setRegistrationDeadline] = useState("");
   const [resultDate, setResultDate] = useState("");
+  const [people, setPeople] = useState<EventPerson[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -45,9 +51,13 @@ export default function NewCompetitionPage() {
           prizeSecond: prizeSecond || undefined,
           prizeThird: prizeThird || undefined,
           maxTeamSize,
+          brochureUrl: brochureUrl || undefined,
+          certificateLogoUrl: certificateLogoUrl || undefined,
           eligibility: eligibility || undefined,
           registrationStartDate: registrationStartDate || undefined,
+          registrationDeadline: registrationDeadline || undefined,
           resultDate: resultDate || undefined,
+          people,
         }),
       });
 
@@ -160,6 +170,15 @@ export default function NewCompetitionPage() {
           </div>
         </div>
         <div>
+          <label className="mb-1 block text-sm font-medium">Brochure URL (optional)</label>
+          <input
+            type="url"
+            value={brochureUrl}
+            onChange={(e) => setBrochureUrl(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <div>
           <label className="mb-1 block text-sm font-medium">Who can participate (optional)</label>
           <input
             type="text"
@@ -169,13 +188,22 @@ export default function NewCompetitionPage() {
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <label className="mb-1 block text-sm font-medium">Registration opens (optional)</label>
             <input
               type="datetime-local"
               value={registrationStartDate}
               onChange={(e) => setRegistrationStartDate(e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium">Registration deadline (optional)</label>
+            <input
+              type="datetime-local"
+              value={registrationDeadline}
+              onChange={(e) => setRegistrationDeadline(e.target.value)}
               className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
             />
           </div>
@@ -222,6 +250,21 @@ export default function NewCompetitionPage() {
             className="mt-2 w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            Collaborating institute logo URL (optional)
+          </label>
+          <input
+            type="url"
+            placeholder="https://..."
+            value={certificateLogoUrl}
+            onChange={(e) => setCertificateLogoUrl(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+
+        <PeopleEditor people={people} onChange={setPeople} />
 
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
