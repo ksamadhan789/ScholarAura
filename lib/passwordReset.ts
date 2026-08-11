@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-export const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+export const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 export function generateResetToken(): { rawToken: string; tokenHash: string } {
   const rawToken = crypto.randomBytes(32).toString("hex");

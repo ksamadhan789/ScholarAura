@@ -17,20 +17,24 @@ export async function sendPasswordResetEmail(
     return false;
   }
 
-  const firstName = name.trim().split(" ")[0] || "there";
+  const displayName = name.trim() || "there";
 
   try {
     const { error } = await resend.emails.send({
       from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
       to,
-      subject: "🔑 Reset your ScholarAura password",
-      text: `Hi ${firstName},\n\nSomeone requested a password reset for your ScholarAura account. If that was you, use the link below to set a new password:\n\n${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, no action is needed — your password stays the same.\n\n— The ScholarAura team`,
+      subject: "Reset your ScholarAura password",
+      text: `Hi ${displayName},\n\nWe received a request to reset your ScholarAura account password.\n\nIf this was you, use the link below to set a new password:\n\n${resetUrl}\n\nThis link will expire in 30 minutes for your security.\n\nIf you didn't request this, please ignore this email; your password will remain unchanged.\n\nStay safe,\nTeam ScholarAura`,
       html: `
-        <p>Hi ${firstName},</p>
-        <p>Someone requested a password reset for your ScholarAura account. If that was you, click below to set a new password:</p>
-        <p><a href="${resetUrl}">Reset your password</a></p>
-        <p>This link expires in 1 hour. If you didn't request this, no action is needed — your password stays the same.</p>
-        <p>— The ScholarAura team</p>
+        <p>Hi ${displayName},</p>
+        <p>We received a request to reset your ScholarAura account password.</p>
+        <p>If this was you, click the button below to set a new password:</p>
+        <p>
+          <a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Reset Password</a>
+        </p>
+        <p>This link will expire in 30 minutes for your security.</p>
+        <p>If you didn't request this, please ignore this email; your password will remain unchanged.</p>
+        <p>Stay safe,<br>Team ScholarAura</p>
       `,
     });
 
