@@ -36,6 +36,7 @@ export default async function EditCompetitionPage({ params }: { params: { slug: 
         prizeSecond: competition.prizeSecond ?? "",
         prizeThird: competition.prizeThird ?? "",
         maxTeamSize: competition.maxTeamSize.toString(),
+        thumbnailUrl: competition.thumbnailUrl ?? "",
         brochureUrl: competition.brochureUrl ?? "",
         certificateLogoUrl: competition.certificateLogoUrl ?? "",
         eligibility: competition.eligibility ?? "",

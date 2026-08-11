@@ -205,6 +205,7 @@ model Event {
   venueOrLink   String
   isOnline      Boolean   @default(false)
   isPublished   Boolean   @default(false)
+  thumbnailUrl  String?
   brochureUrl   String?
   shortDescription      String?
   eligibility            String?
@@ -265,6 +266,7 @@ model Competition {
   prizeThird         String?
   maxTeamSize        Int      @default(1)
   isPublished        Boolean  @default(false)
+  thumbnailUrl            String?
   brochureUrl             String?
   certificateLogoUrl      String?
   shortDescription       String?

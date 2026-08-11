@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
+import { Thumbnail } from "@/components/Thumbnail";
 
 export const metadata: Metadata = {
   title: "Competitions",
@@ -20,21 +21,30 @@ function formatDeadline(date: Date) {
 function CompetitionCard({
   competition,
 }: {
-  competition: { slug: string; title: string; submissionDeadline: Date; fee: unknown };
+  competition: {
+    slug: string;
+    title: string;
+    submissionDeadline: Date;
+    fee: unknown;
+    thumbnailUrl: string | null;
+  };
 }) {
   return (
     <Link
       href={`/competitions/${competition.slug}`}
-      className="rounded-lg border border-gray-200 dark:border-slate-700 p-4 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
+      className="overflow-hidden rounded-lg border border-gray-200 dark:border-slate-700 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
     >
-      <Badge variant="brand">Competition</Badge>
-      <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{competition.title}</h3>
-      <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-        Submit by {formatDeadline(competition.submissionDeadline)}
-      </p>
-      <p className="mt-2 font-semibold text-slate-900 dark:text-white">
-        {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
-      </p>
+      <Thumbnail url={competition.thumbnailUrl} alt={competition.title} icon="🏆" />
+      <div className="p-4">
+        <Badge variant="brand">Competition</Badge>
+        <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{competition.title}</h3>
+        <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
+          Submit by {formatDeadline(competition.submissionDeadline)}
+        </p>
+        <p className="mt-2 font-semibold text-slate-900 dark:text-white">
+          {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
+        </p>
+      </div>
     </Link>
   );
 }

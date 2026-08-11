@@ -25,6 +25,7 @@ const updateCompetitionSchema = z
     prizeSecond: z.string().trim().nullable().optional(),
     prizeThird: z.string().trim().nullable().optional(),
     maxTeamSize: z.coerce.number().int().min(1).optional(),
+    thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
     brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
     certificateLogoUrl: z
       .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
@@ -93,6 +94,7 @@ export async function PATCH(
       ...(d.prizeSecond !== undefined && { prizeSecond: d.prizeSecond || null }),
       ...(d.prizeThird !== undefined && { prizeThird: d.prizeThird || null }),
       ...(d.maxTeamSize !== undefined && { maxTeamSize: d.maxTeamSize }),
+      ...(d.thumbnailUrl !== undefined && { thumbnailUrl: d.thumbnailUrl || null }),
       ...(d.brochureUrl !== undefined && { brochureUrl: d.brochureUrl || null }),
       ...(d.certificateLogoUrl !== undefined && {
         certificateLogoUrl: d.certificateLogoUrl || null,

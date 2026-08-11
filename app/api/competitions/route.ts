@@ -24,6 +24,7 @@ const createCompetitionSchema = z
     prizeSecond: z.string().trim().optional().or(z.literal("")),
     prizeThird: z.string().trim().optional().or(z.literal("")),
     maxTeamSize: z.coerce.number().int().min(1, "Team size must be at least 1"),
+    thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
     brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
     certificateLogoUrl: z
       .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
@@ -88,6 +89,7 @@ export async function POST(request: Request) {
       prizeSecond,
       prizeThird,
       maxTeamSize,
+      thumbnailUrl,
       brochureUrl,
       certificateLogoUrl,
       shortDescription,
@@ -119,6 +121,7 @@ export async function POST(request: Request) {
         prizeSecond: prizeSecond || null,
         prizeThird: prizeThird || null,
         maxTeamSize,
+        thumbnailUrl: thumbnailUrl || null,
         brochureUrl: brochureUrl || null,
         certificateLogoUrl: certificateLogoUrl || null,
         shortDescription: shortDescription || null,

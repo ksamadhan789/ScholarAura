@@ -10,6 +10,7 @@ const createCourseSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   price: z.coerce.number().min(0, "Price can't be negative"),
   category: z.string().min(1, "Category is required"),
+  thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
 });
 
 export async function GET() {
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { title, description, price, category } = parsed.data;
+    const { title, description, price, category, thumbnailUrl } = parsed.data;
 
     const baseSlug = slugify(title);
     let slug = baseSlug;
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
         description,
         price,
         category,
+        thumbnailUrl: thumbnailUrl || null,
         slug,
         instructorId: session.user.id,
       },

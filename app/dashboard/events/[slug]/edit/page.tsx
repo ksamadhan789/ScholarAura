@@ -34,6 +34,7 @@ export default async function EditEventPage({ params }: { params: { slug: string
         seatsTotal: event.seatsTotal.toString(),
         venueOrLink: event.venueOrLink,
         isOnline: event.isOnline,
+        thumbnailUrl: event.thumbnailUrl ?? "",
         brochureUrl: event.brochureUrl ?? "",
         eligibility: event.eligibility ?? "",
         registrationStartDate: toLocalInput(event.registrationStartDate),

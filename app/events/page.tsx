@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS, EVENT_TYPE_TABS, formatDateRange } from "@/lib/eventLabels";
 import { Badge } from "@/components/Badge";
+import { Thumbnail } from "@/components/Thumbnail";
 
 export function generateMetadata({
   searchParams,
@@ -34,26 +35,30 @@ function EventCard({
     seatsTotal: number;
     seatsFilled: number;
     fee: unknown;
+    thumbnailUrl: string | null;
   };
 }) {
   const seatsLeft = event.seatsTotal - event.seatsFilled;
   return (
     <Link
       href={`/events/${event.slug}`}
-      className="rounded-lg border border-gray-200 dark:border-slate-700 p-4 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
+      className="overflow-hidden rounded-lg border border-gray-200 dark:border-slate-700 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
     >
-      <Badge variant="brand">{EVENT_TYPE_LABELS[event.type]}</Badge>
-      <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{event.title}</h3>
-      <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-        {formatDateRange(event.startDate, event.endDate)}
-      </p>
-      <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-        {event.isOnline ? "Online" : "In person"} ·{" "}
-        {seatsLeft > 0 ? `${seatsLeft} seats left` : "Full"}
-      </p>
-      <p className="mt-2 font-semibold text-slate-900 dark:text-white">
-        {Number(event.fee) === 0 ? "Free" : `₹${event.fee}`}
-      </p>
+      <Thumbnail url={event.thumbnailUrl} alt={event.title} icon="📅" />
+      <div className="p-4">
+        <Badge variant="brand">{EVENT_TYPE_LABELS[event.type]}</Badge>
+        <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{event.title}</h3>
+        <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
+          {formatDateRange(event.startDate, event.endDate)}
+        </p>
+        <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
+          {event.isOnline ? "Online" : "In person"} ·{" "}
+          {seatsLeft > 0 ? `${seatsLeft} seats left` : "Full"}
+        </p>
+        <p className="mt-2 font-semibold text-slate-900 dark:text-white">
+          {Number(event.fee) === 0 ? "Free" : `₹${event.fee}`}
+        </p>
+      </div>
     </Link>
   );
 }
