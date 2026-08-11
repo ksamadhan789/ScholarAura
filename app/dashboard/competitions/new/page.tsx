@@ -19,6 +19,7 @@ export default function NewCompetitionPage() {
   const [prizeSecond, setPrizeSecond] = useState("");
   const [prizeThird, setPrizeThird] = useState("");
   const [maxTeamSize, setMaxTeamSize] = useState("1");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [brochureUrl, setBrochureUrl] = useState("");
   const [certificateLogoUrl, setCertificateLogoUrl] = useState("");
   const [eligibility, setEligibility] = useState("");
@@ -51,6 +52,7 @@ export default function NewCompetitionPage() {
           prizeSecond: prizeSecond || undefined,
           prizeThird: prizeThird || undefined,
           maxTeamSize,
+          thumbnailUrl: thumbnailUrl || undefined,
           brochureUrl: brochureUrl || undefined,
           certificateLogoUrl: certificateLogoUrl || undefined,
           eligibility: eligibility || undefined,
@@ -168,6 +170,19 @@ export default function NewCompetitionPage() {
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">1 = individual entries only</p>
           </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Thumbnail URL (optional)</label>
+          <input
+            type="url"
+            placeholder="https://..."
+            value={thumbnailUrl}
+            onChange={(e) => setThumbnailUrl(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+            Shown as the cover image on the competition card. Landscape images work best.
+          </p>
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Brochure URL (optional)</label>

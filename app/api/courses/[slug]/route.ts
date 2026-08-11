@@ -11,8 +11,12 @@ const updateCourseSchema = z
       .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
       .nullable()
       .optional(),
+    thumbnailUrl: z
+      .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
+      .nullable()
+      .optional(),
   })
-  .refine((data) => data.isPublished !== undefined || data.certificateLogoUrl !== undefined, {
+  .refine((data) => Object.values(data).some((v) => v !== undefined), {
     message: "Nothing to update",
   });
 
@@ -69,6 +73,7 @@ export async function PATCH(
       ...(d.certificateLogoUrl !== undefined && {
         certificateLogoUrl: d.certificateLogoUrl || null,
       }),
+      ...(d.thumbnailUrl !== undefined && { thumbnailUrl: d.thumbnailUrl || null }),
     },
   });
 

@@ -10,6 +10,7 @@ export default function NewCoursePage() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("0");
   const [category, setCategory] = useState<string>(COURSE_CATEGORIES[0]);
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +23,7 @@ export default function NewCoursePage() {
       const res = await fetch("/api/courses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, price, category }),
+        body: JSON.stringify({ title, description, price, category, thumbnailUrl: thumbnailUrl || undefined }),
       });
 
       if (!res.ok) {
@@ -79,6 +80,19 @@ export default function NewCoursePage() {
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Thumbnail URL (optional)</label>
+          <input
+            type="url"
+            placeholder="https://..."
+            value={thumbnailUrl}
+            onChange={(e) => setThumbnailUrl(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+          />
+          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+            Shown as the cover image on the course card. Landscape images work best.
+          </p>
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">

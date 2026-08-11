@@ -17,6 +17,7 @@ type FormState = {
   seatsTotal: string;
   venueOrLink: string;
   isOnline: boolean;
+  thumbnailUrl: string;
   brochureUrl: string;
   eligibility: string;
   registrationStartDate: string;
@@ -182,6 +183,19 @@ export function EditEventForm({ slug, initial }: { slug: string; initial: FormSt
             onChange={(e) => set("venueOrLink", e.target.value)}
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Thumbnail URL (optional)</label>
+          <input
+            type="url"
+            placeholder="https://..."
+            value={form.thumbnailUrl}
+            onChange={(e) => set("thumbnailUrl", e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+            Shown as the cover image on the event card. Landscape images work best.
+          </p>
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Brochure URL (optional)</label>

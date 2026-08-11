@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AddVideoForm } from "./AddVideoForm";
 import { CertificateLogoEditor } from "./CertificateLogoEditor";
+import { ThumbnailUrlEditor } from "./ThumbnailUrlEditor";
 
 export default async function ManageCoursePage({
   params,
@@ -75,6 +76,7 @@ export default async function ManageCoursePage({
         <AddVideoForm slug={course.slug} />
       </div>
 
+      <ThumbnailUrlEditor slug={course.slug} thumbnailUrl={course.thumbnailUrl} />
       <CertificateLogoEditor slug={course.slug} certificateLogoUrl={course.certificateLogoUrl} />
     </main>
   );
