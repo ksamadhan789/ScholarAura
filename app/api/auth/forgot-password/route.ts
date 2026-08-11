@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     });
 
     const resetUrl = `${SITE_URL}/reset-password?token=${rawToken}`;
-    await sendPasswordResetEmail(user.email, resetUrl);
+    await sendPasswordResetEmail(user.email, user.name, resetUrl);
   }
 
   return NextResponse.json({ message: GENERIC_MESSAGE });
