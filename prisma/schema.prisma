@@ -73,6 +73,8 @@ model User {
   jobRole        String?
   expertise      String?
   onboardingCompletedAt DateTime?
+  consentAcceptedAt DateTime?
+  marketingOptIn Boolean   @default(false)
   emailVerified  Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

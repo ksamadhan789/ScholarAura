@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
 
 const USER_TYPES = [
@@ -19,6 +20,8 @@ export default function OnboardingPage() {
   const [fieldOfStudy, setFieldOfStudy] = useState("");
   const [jobRole, setJobRole] = useState("");
   const [expertise, setExpertise] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,6 +29,10 @@ export default function OnboardingPage() {
     e.preventDefault();
     setError(null);
 
+    if (!agreedToTerms) {
+      setError("Please agree to the Privacy Policy and Terms of Use to continue.");
+      return;
+    }
     if (!firstName.trim() || !lastName.trim()) {
       setError("Please add your first and last name.");
       return;
@@ -49,6 +56,8 @@ export default function OnboardingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          agreedToTerms,
+          marketingOptIn,
           firstName,
           middleName: middleName || undefined,
           lastName,
@@ -76,12 +85,17 @@ export default function OnboardingPage() {
   }
 
   async function handleSkip() {
+    if (!agreedToTerms) {
+      setError("Please agree to the Privacy Policy and Terms of Use to continue.");
+      return;
+    }
+    setError(null);
     setLoading(true);
     try {
       await fetch("/api/account/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skip: true }),
+        body: JSON.stringify({ skip: true, agreedToTerms, marketingOptIn }),
       });
     } finally {
       router.push("/dashboard");
@@ -209,11 +223,46 @@ export default function OnboardingPage() {
           </div>
         )}
 
+        <div className="flex flex-col gap-2 border-t border-gray-200 dark:border-slate-700 pt-4">
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span className="text-gray-600 dark:text-slate-400">
+              All your information is collected, stored and processed as per our data processing
+              guidelines. By continuing, you agree to our{" "}
+              <Link href="/privacy" target="_blank" className="text-brand-600 underline dark:text-brand-400">
+                Privacy Policy
+              </Link>{" "}
+              and{" "}
+              <Link href="/terms" target="_blank" className="text-brand-600 underline dark:text-brand-400">
+                Terms of Use
+              </Link>
+              .
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={marketingOptIn}
+              onChange={(e) => setMarketingOptIn(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span className="text-gray-600 dark:text-slate-400">
+              Stay in the loop — get relevant updates about new courses, events and competitions curated
+              just for <em>you</em>!
+            </span>
+          </label>
+        </div>
+
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !agreedToTerms}
           className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2.5 text-white disabled:opacity-50"
         >
           {loading ? "Saving…" : "Continue"}
@@ -221,7 +270,7 @@ export default function OnboardingPage() {
         <button
           type="button"
           onClick={handleSkip}
-          disabled={loading}
+          disabled={loading || !agreedToTerms}
           className="text-sm text-gray-500 dark:text-slate-400 underline disabled:opacity-50"
         >
           Skip for now
