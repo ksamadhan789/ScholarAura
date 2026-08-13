@@ -27,6 +27,7 @@ export default async function AdminHomePage() {
     studentCount,
     onboardedCount,
     marketingOptInCount,
+    collegeCount,
     publishedCourseCount,
     publishedEventCount,
     publishedCompetitionCount,
@@ -37,6 +38,7 @@ export default async function AdminHomePage() {
     prisma.user.count({ where: { role: "STUDENT" } }),
     prisma.user.count({ where: { role: "STUDENT", onboardingCompletedAt: { not: null } } }),
     prisma.user.count({ where: { role: "STUDENT", marketingOptIn: true } }),
+    prisma.college.count(),
     prisma.course.count({ where: { isPublished: true } }),
     prisma.event.count({ where: { isPublished: true } }),
     prisma.competition.count({ where: { isPublished: true } }),
@@ -80,6 +82,7 @@ export default async function AdminHomePage() {
         <StatTile label="Published competitions" value={publishedCompetitionCount.toLocaleString("en-IN")} />
         <StatTile label="Onboarded" value={onboardedCount.toLocaleString("en-IN")} />
         <StatTile label="Opted into marketing" value={marketingOptInCount.toLocaleString("en-IN")} />
+        <StatTile label="Colleges" value={collegeCount.toLocaleString("en-IN")} />
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">

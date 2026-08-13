@@ -101,7 +101,7 @@ export default async function StudentsAdminPage({
                 <th className="px-4 py-2.5 font-medium">Name</th>
                 <th className="px-4 py-2.5 font-medium">Email</th>
                 <th className="px-4 py-2.5 font-medium">Phone</th>
-                <th className="px-4 py-2.5 font-medium">Organization</th>
+                <th className="px-4 py-2.5 font-medium">College</th>
                 <th className="px-4 py-2.5 font-medium">Type</th>
                 <th className="px-4 py-2.5 font-medium">Field / Role</th>
                 <th className="px-4 py-2.5 font-medium">Signed up</th>
