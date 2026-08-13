@@ -8,8 +8,14 @@ const userTypes = ["SCHOOL_STUDENT", "COLLEGE_STUDENT", "FRESHER", "PROFESSIONAL
 
 const onboardingSchema = z.object({
   skip: z.boolean().optional(),
+  firstName: z.string().trim().min(1, "First name is required").optional(),
+  middleName: z.string().trim().optional(),
+  lastName: z.string().trim().min(1, "Last name is required").optional(),
   phone: z.string().trim().min(6, "Enter a valid mobile number").max(20).optional(),
   userType: z.enum(userTypes).optional(),
+  fieldOfStudy: z.string().trim().optional(),
+  jobRole: z.string().trim().optional(),
+  expertise: z.string().trim().max(200).optional(),
 });
 
 export async function POST(request: Request) {
@@ -27,14 +33,27 @@ export async function POST(request: Request) {
     );
   }
 
-  const { skip, phone, userType } = parsed.data;
+  const { skip, firstName, middleName, lastName, phone, userType, fieldOfStudy, jobRole, expertise } =
+    parsed.data;
+
+  const fullName =
+    !skip && firstName && lastName
+      ? [firstName, middleName, lastName].filter(Boolean).join(" ")
+      : undefined;
 
   await prisma.user.update({
     where: { id: session.user.id },
     data: {
       onboardingCompletedAt: new Date(),
+      ...(!skip && firstName !== undefined && { firstName }),
+      ...(!skip && middleName !== undefined && { middleName: middleName || null }),
+      ...(!skip && lastName !== undefined && { lastName }),
+      ...(fullName !== undefined && { name: fullName }),
       ...(!skip && phone !== undefined && { phone }),
       ...(!skip && userType !== undefined && { userType }),
+      ...(!skip && fieldOfStudy !== undefined && { fieldOfStudy: fieldOfStudy || null }),
+      ...(!skip && jobRole !== undefined && { jobRole: jobRole || null }),
+      ...(!skip && expertise !== undefined && { expertise: expertise || null }),
     },
   });
 

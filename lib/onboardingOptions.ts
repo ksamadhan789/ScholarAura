@@ -1,0 +1,32 @@
+export const FIELD_OF_STUDY_OPTIONS = [
+  "Pharmacy",
+  "Engineering",
+  "Medicine (MBBS)",
+  "Nursing",
+  "Physiotherapy",
+  "Dentistry",
+  "Law",
+  "Management (MBA/BBA)",
+  "Commerce",
+  "Computer Science / IT",
+  "Science (B.Sc/M.Sc)",
+  "Arts / Humanities",
+  "Architecture",
+  "Agriculture",
+  "Veterinary Science",
+  "Education (B.Ed)",
+  "Other",
+];
+
+export const JOB_ROLE_OPTIONS = [
+  "Lecturer",
+  "Assistant Professor",
+  "Associate Professor",
+  "Professor",
+  "Principal",
+  "Dean",
+  "Head of Department (HOD)",
+  "Research Scholar",
+  "Industry Professional",
+  "Other",
+];
