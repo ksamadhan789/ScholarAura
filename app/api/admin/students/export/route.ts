@@ -63,7 +63,7 @@ export async function GET(request: Request) {
     "Name",
     "Email",
     "Phone",
-    "Organization",
+    "College",
     "Type",
     "Field / Role",
     "Signed up",
