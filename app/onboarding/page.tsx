@@ -18,10 +18,12 @@ export default function OnboardingPage() {
   const [phone, setPhone] = useState("");
   const [userType, setUserType] = useState<string | null>(null);
   const [fieldOfStudy, setFieldOfStudy] = useState("");
+  const [fieldOfStudyOther, setFieldOfStudyOther] = useState("");
   const [organization, setOrganization] = useState("");
   const [collegeSuggestions, setCollegeSuggestions] = useState<string[]>([]);
   const [showCollegeSuggestions, setShowCollegeSuggestions] = useState(false);
   const [jobRole, setJobRole] = useState("");
+  const [jobRoleOther, setJobRoleOther] = useState("");
   const [expertise, setExpertise] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
@@ -67,6 +69,10 @@ export default function OnboardingPage() {
       setError("Please select your field of study.");
       return;
     }
+    if (userType === "COLLEGE_STUDENT" && fieldOfStudy === "Other" && !fieldOfStudyOther.trim()) {
+      setError("Please tell us your field of study.");
+      return;
+    }
     if (userType === "COLLEGE_STUDENT" && !organization.trim()) {
       setError("Please add your college name.");
       return;
@@ -75,6 +81,14 @@ export default function OnboardingPage() {
       setError("Please select your job role.");
       return;
     }
+    if (userType === "PROFESSIONAL" && jobRole === "Other" && !jobRoleOther.trim()) {
+      setError("Please tell us your job role.");
+      return;
+    }
+
+    const resolvedFieldOfStudy =
+      fieldOfStudy === "Other" ? fieldOfStudyOther.trim() : fieldOfStudy;
+    const resolvedJobRole = jobRole === "Other" ? jobRoleOther.trim() : jobRole;
 
     setLoading(true);
     try {
@@ -89,9 +103,9 @@ export default function OnboardingPage() {
           lastName,
           phone,
           userType,
-          fieldOfStudy: userType === "COLLEGE_STUDENT" ? fieldOfStudy : undefined,
+          fieldOfStudy: userType === "COLLEGE_STUDENT" ? resolvedFieldOfStudy : undefined,
           organization: userType === "COLLEGE_STUDENT" ? organization.trim() : undefined,
-          jobRole: userType === "PROFESSIONAL" ? jobRole : undefined,
+          jobRole: userType === "PROFESSIONAL" ? resolvedJobRole : undefined,
           expertise: expertise || undefined,
         }),
       });
@@ -197,6 +211,15 @@ export default function OnboardingPage() {
                 </option>
               ))}
             </select>
+            {fieldOfStudy === "Other" && (
+              <input
+                type="text"
+                placeholder="Tell us your field of study"
+                value={fieldOfStudyOther}
+                onChange={(e) => setFieldOfStudyOther(e.target.value)}
+                className="mt-2 w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              />
+            )}
           </div>
         )}
 
@@ -261,6 +284,15 @@ export default function OnboardingPage() {
                 </option>
               ))}
             </select>
+            {jobRole === "Other" && (
+              <input
+                type="text"
+                placeholder="Tell us your job role"
+                value={jobRoleOther}
+                onChange={(e) => setJobRoleOther(e.target.value)}
+                className="mt-2 w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              />
+            )}
           </div>
         )}
 
