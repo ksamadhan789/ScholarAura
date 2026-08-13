@@ -65,7 +65,13 @@ model User {
   role           Role      @default(STUDENT)
   phone          String?
   organization   String?
+  firstName      String?
+  middleName     String?
+  lastName       String?
   userType       String?
+  fieldOfStudy   String?
+  jobRole        String?
+  expertise      String?
   onboardingCompletedAt DateTime?
   emailVerified  Boolean   @default(false)
   createdAt      DateTime  @default(now())
