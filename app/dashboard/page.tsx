@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -11,6 +12,15 @@ export default async function DashboardPage() {
   }
   if (session.user.role === "ADMIN") {
     redirect("/dashboard/admin");
+  }
+  if (session.user.role === "STUDENT") {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { onboardingCompletedAt: true },
+    });
+    if (!user?.onboardingCompletedAt) {
+      redirect("/onboarding");
+    }
   }
 
   const isInstructor = session.user.role === "INSTRUCTOR";
