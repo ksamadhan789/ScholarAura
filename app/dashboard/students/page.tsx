@@ -4,6 +4,11 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+const USER_TYPE_LABELS: Record<string, string> = {
+  COLLEGE_STUDENT: "College Student",
+  PROFESSIONAL: "Professional",
+};
+
 export default async function StudentsAdminPage({
   searchParams,
 }: {
@@ -37,6 +42,11 @@ export default async function StudentsAdminPage({
       email: true,
       phone: true,
       organization: true,
+      userType: true,
+      fieldOfStudy: true,
+      jobRole: true,
+      consentAcceptedAt: true,
+      marketingOptIn: true,
       createdAt: true,
       emailVerified: true,
       googleId: true,
@@ -92,9 +102,13 @@ export default async function StudentsAdminPage({
                 <th className="px-4 py-2.5 font-medium">Email</th>
                 <th className="px-4 py-2.5 font-medium">Phone</th>
                 <th className="px-4 py-2.5 font-medium">Organization</th>
+                <th className="px-4 py-2.5 font-medium">Type</th>
+                <th className="px-4 py-2.5 font-medium">Field / Role</th>
                 <th className="px-4 py-2.5 font-medium">Signed up</th>
                 <th className="px-4 py-2.5 font-medium">Verified</th>
                 <th className="px-4 py-2.5 font-medium">Method</th>
+                <th className="px-4 py-2.5 font-medium">Consent</th>
+                <th className="px-4 py-2.5 font-medium">Marketing</th>
                 <th className="px-4 py-2.5 font-medium">Enrollments</th>
                 <th className="px-4 py-2.5 font-medium">Credit</th>
               </tr>
@@ -115,6 +129,12 @@ export default async function StudentsAdminPage({
                     {student.organization ?? "—"}
                   </td>
                   <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    {student.userType ? USER_TYPE_LABELS[student.userType] ?? student.userType : "—"}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    {student.fieldOfStudy ?? student.jobRole ?? "—"}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
                     {student.createdAt.toLocaleDateString("en-IN", {
                       day: "numeric",
                       month: "short",
@@ -126,6 +146,12 @@ export default async function StudentsAdminPage({
                   </td>
                   <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
                     {student.googleId ? "Google" : "Email/Password"}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {student.consentAcceptedAt ? "✓" : "—"}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {student.marketingOptIn ? "✓" : "—"}
                   </td>
                   <td className="px-4 py-2.5">
                     {student._count.coursePurchases + student._count.eventRegistrations}

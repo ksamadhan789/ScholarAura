@@ -10,6 +10,11 @@ function csvEscape(value: string): string {
   return value;
 }
 
+const USER_TYPE_LABELS: Record<string, string> = {
+  COLLEGE_STUDENT: "College Student",
+  PROFESSIONAL: "Professional",
+};
+
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== "ADMIN") {
@@ -35,6 +40,11 @@ export async function GET(request: Request) {
       email: true,
       phone: true,
       organization: true,
+      userType: true,
+      fieldOfStudy: true,
+      jobRole: true,
+      consentAcceptedAt: true,
+      marketingOptIn: true,
       createdAt: true,
       emailVerified: true,
       googleId: true,
@@ -54,9 +64,13 @@ export async function GET(request: Request) {
     "Email",
     "Phone",
     "Organization",
+    "Type",
+    "Field / Role",
     "Signed up",
     "Email verified",
     "Signup method",
+    "Consent accepted",
+    "Marketing opt-in",
     "Enrollments",
     "Credit balance (INR)",
   ];
@@ -66,9 +80,13 @@ export async function GET(request: Request) {
     s.email,
     s.phone ?? "",
     s.organization ?? "",
+    s.userType ? USER_TYPE_LABELS[s.userType] ?? s.userType : "",
+    s.fieldOfStudy ?? s.jobRole ?? "",
     s.createdAt.toISOString(),
     s.emailVerified ? "Yes" : "No",
     s.googleId ? "Google" : "Email/Password",
+    s.consentAcceptedAt ? "Yes" : "No",
+    s.marketingOptIn ? "Yes" : "No",
     String(s._count.coursePurchases + s._count.eventRegistrations),
     Number(s.creditBalance).toFixed(2),
   ]);
