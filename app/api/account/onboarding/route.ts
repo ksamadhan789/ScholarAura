@@ -7,7 +7,6 @@ import { prisma } from "@/lib/prisma";
 const userTypes = ["COLLEGE_STUDENT", "PROFESSIONAL"] as const;
 
 const onboardingSchema = z.object({
-  skip: z.boolean().optional(),
   agreedToTerms: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the Privacy Policy and Terms of Use to continue" }),
   }),
@@ -39,7 +38,6 @@ export async function POST(request: Request) {
   }
 
   const {
-    skip,
     marketingOptIn,
     firstName,
     middleName,
@@ -53,12 +51,12 @@ export async function POST(request: Request) {
   } = parsed.data;
 
   const fullName =
-    !skip && firstName && lastName
+    firstName && lastName
       ? [firstName, middleName, lastName].filter(Boolean).join(" ")
       : undefined;
 
   let collegeName: string | undefined;
-  if (!skip && organization) {
+  if (organization) {
     const existing = await prisma.college.findFirst({
       where: { name: { equals: organization, mode: "insensitive" } },
     });
@@ -84,16 +82,16 @@ export async function POST(request: Request) {
       onboardingCompletedAt: new Date(),
       consentAcceptedAt: new Date(),
       marketingOptIn: marketingOptIn ?? false,
-      ...(!skip && firstName !== undefined && { firstName }),
-      ...(!skip && middleName !== undefined && { middleName: middleName || null }),
-      ...(!skip && lastName !== undefined && { lastName }),
+      ...(firstName !== undefined && { firstName }),
+      ...(middleName !== undefined && { middleName: middleName || null }),
+      ...(lastName !== undefined && { lastName }),
       ...(fullName !== undefined && { name: fullName }),
-      ...(!skip && phone !== undefined && { phone }),
-      ...(!skip && userType !== undefined && { userType }),
-      ...(!skip && fieldOfStudy !== undefined && { fieldOfStudy: fieldOfStudy || null }),
+      ...(phone !== undefined && { phone }),
+      ...(userType !== undefined && { userType }),
+      ...(fieldOfStudy !== undefined && { fieldOfStudy: fieldOfStudy || null }),
       ...(collegeName !== undefined && { organization: collegeName }),
-      ...(!skip && jobRole !== undefined && { jobRole: jobRole || null }),
-      ...(!skip && expertise !== undefined && { expertise: expertise || null }),
+      ...(jobRole !== undefined && { jobRole: jobRole || null }),
+      ...(expertise !== undefined && { expertise: expertise || null }),
     },
   });
 

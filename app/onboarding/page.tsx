@@ -111,25 +111,6 @@ export default function OnboardingPage() {
     }
   }
 
-  async function handleSkip() {
-    if (!agreedToTerms) {
-      setError("Please agree to the Privacy Policy and Terms of Use to continue.");
-      return;
-    }
-    setError(null);
-    setLoading(true);
-    try {
-      await fetch("/api/account/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skip: true, agreedToTerms, marketingOptIn }),
-      });
-    } finally {
-      router.push("/dashboard");
-      router.refresh();
-    }
-  }
-
   const showExpertise = userType === "COLLEGE_STUDENT" || userType === "PROFESSIONAL";
 
   return (
@@ -339,14 +320,6 @@ export default function OnboardingPage() {
           className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2.5 text-white disabled:opacity-50"
         >
           {loading ? "Saving…" : "Continue"}
-        </button>
-        <button
-          type="button"
-          onClick={handleSkip}
-          disabled={loading || !agreedToTerms}
-          className="text-sm text-gray-500 dark:text-slate-400 underline disabled:opacity-50"
-        >
-          Skip for now
         </button>
       </form>
     </main>
