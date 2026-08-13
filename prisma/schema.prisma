@@ -99,6 +99,14 @@ model User {
   @@map("users")
 }
 
+model College {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("colleges")
+}
+
 model PasswordResetToken {
   id        String    @id @default(uuid())
   userId    String
