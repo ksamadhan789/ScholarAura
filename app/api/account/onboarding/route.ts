@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const userTypes = ["SCHOOL_STUDENT", "COLLEGE_STUDENT", "FRESHER", "PROFESSIONAL"] as const;
+const userTypes = ["COLLEGE_STUDENT", "PROFESSIONAL"] as const;
 
 const onboardingSchema = z.object({
   skip: z.boolean().optional(),

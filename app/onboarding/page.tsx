@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
 
 const USER_TYPES = [
-  { value: "SCHOOL_STUDENT", label: "🎒 School Student" },
   { value: "COLLEGE_STUDENT", label: "🎓 College Student" },
-  { value: "FRESHER", label: "💼 Fresher" },
   { value: "PROFESSIONAL", label: "👔 Professional" },
 ];
 
