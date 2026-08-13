@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
@@ -18,12 +18,34 @@ export default function OnboardingPage() {
   const [phone, setPhone] = useState("");
   const [userType, setUserType] = useState<string | null>(null);
   const [fieldOfStudy, setFieldOfStudy] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [collegeSuggestions, setCollegeSuggestions] = useState<string[]>([]);
+  const [showCollegeSuggestions, setShowCollegeSuggestions] = useState(false);
   const [jobRole, setJobRole] = useState("");
   const [expertise, setExpertise] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (userType !== "COLLEGE_STUDENT" || !organization.trim()) {
+      setCollegeSuggestions([]);
+      return;
+    }
+    const handle = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/colleges?q=${encodeURIComponent(organization.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          setCollegeSuggestions(data.colleges ?? []);
+        }
+      } catch {
+        // Ignore — suggestions are a nice-to-have, not required to submit.
+      }
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [organization, userType]);
 
   async function handleContinue(e: React.FormEvent) {
     e.preventDefault();
@@ -45,6 +67,10 @@ export default function OnboardingPage() {
       setError("Please select your field of study.");
       return;
     }
+    if (userType === "COLLEGE_STUDENT" && !organization.trim()) {
+      setError("Please add your college name.");
+      return;
+    }
     if (userType === "PROFESSIONAL" && !jobRole) {
       setError("Please select your job role.");
       return;
@@ -64,6 +90,7 @@ export default function OnboardingPage() {
           phone,
           userType,
           fieldOfStudy: userType === "COLLEGE_STUDENT" ? fieldOfStudy : undefined,
+          organization: userType === "COLLEGE_STUDENT" ? organization.trim() : undefined,
           jobRole: userType === "PROFESSIONAL" ? jobRole : undefined,
           expertise: expertise || undefined,
         }),
@@ -189,6 +216,52 @@ export default function OnboardingPage() {
                 </option>
               ))}
             </select>
+          </div>
+        )}
+
+        {userType === "COLLEGE_STUDENT" && (
+          <div className="relative">
+            <label className="mb-1 block text-sm font-medium">College name</label>
+            <input
+              type="text"
+              placeholder="Start typing your college name..."
+              value={organization}
+              onChange={(e) => {
+                setOrganization(e.target.value);
+                setShowCollegeSuggestions(true);
+              }}
+              onFocus={() => setShowCollegeSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowCollegeSuggestions(false), 150)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+            {showCollegeSuggestions && organization.trim() && (
+              <div className="absolute z-10 mt-1 w-full rounded border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
+                {collegeSuggestions.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onMouseDown={() => {
+                      setOrganization(name);
+                      setShowCollegeSuggestions(false);
+                    }}
+                    className="block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-700"
+                  >
+                    {name}
+                  </button>
+                ))}
+                {!collegeSuggestions.some(
+                  (name) => name.toLowerCase() === organization.trim().toLowerCase()
+                ) && (
+                  <button
+                    type="button"
+                    onMouseDown={() => setShowCollegeSuggestions(false)}
+                    className="block w-full border-t border-gray-200 dark:border-slate-700 px-3 py-2 text-left text-sm text-brand-600 dark:text-brand-400 hover:bg-gray-50 dark:hover:bg-slate-700"
+                  >
+                    Can&rsquo;t find it? Use &ldquo;{organization.trim()}&rdquo;
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
 

@@ -18,6 +18,7 @@ const onboardingSchema = z.object({
   phone: z.string().trim().min(6, "Enter a valid mobile number").max(20).optional(),
   userType: z.enum(userTypes).optional(),
   fieldOfStudy: z.string().trim().optional(),
+  organization: z.string().trim().max(200).optional(),
   jobRole: z.string().trim().optional(),
   expertise: z.string().trim().max(200).optional(),
 });
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
     phone,
     userType,
     fieldOfStudy,
+    organization,
     jobRole,
     expertise,
   } = parsed.data;
@@ -54,6 +56,27 @@ export async function POST(request: Request) {
     !skip && firstName && lastName
       ? [firstName, middleName, lastName].filter(Boolean).join(" ")
       : undefined;
+
+  let collegeName: string | undefined;
+  if (!skip && organization) {
+    const existing = await prisma.college.findFirst({
+      where: { name: { equals: organization, mode: "insensitive" } },
+    });
+    if (existing) {
+      collegeName = existing.name;
+    } else {
+      try {
+        const created = await prisma.college.create({ data: { name: organization } });
+        collegeName = created.name;
+      } catch {
+        // Another request created the same college name concurrently.
+        const raceWinner = await prisma.college.findFirst({
+          where: { name: { equals: organization, mode: "insensitive" } },
+        });
+        collegeName = raceWinner?.name ?? organization;
+      }
+    }
+  }
 
   await prisma.user.update({
     where: { id: session.user.id },
@@ -68,6 +91,7 @@ export async function POST(request: Request) {
       ...(!skip && phone !== undefined && { phone }),
       ...(!skip && userType !== undefined && { userType }),
       ...(!skip && fieldOfStudy !== undefined && { fieldOfStudy: fieldOfStudy || null }),
+      ...(collegeName !== undefined && { organization: collegeName }),
       ...(!skip && jobRole !== undefined && { jobRole: jobRole || null }),
       ...(!skip && expertise !== undefined && { expertise: expertise || null }),
     },
