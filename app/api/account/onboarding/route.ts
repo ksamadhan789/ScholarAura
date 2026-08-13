@@ -8,6 +8,10 @@ const userTypes = ["COLLEGE_STUDENT", "PROFESSIONAL"] as const;
 
 const onboardingSchema = z.object({
   skip: z.boolean().optional(),
+  agreedToTerms: z.literal(true, {
+    errorMap: () => ({ message: "You must agree to the Privacy Policy and Terms of Use to continue" }),
+  }),
+  marketingOptIn: z.boolean().optional(),
   firstName: z.string().trim().min(1, "First name is required").optional(),
   middleName: z.string().trim().optional(),
   lastName: z.string().trim().min(1, "Last name is required").optional(),
@@ -33,8 +37,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const { skip, firstName, middleName, lastName, phone, userType, fieldOfStudy, jobRole, expertise } =
-    parsed.data;
+  const {
+    skip,
+    marketingOptIn,
+    firstName,
+    middleName,
+    lastName,
+    phone,
+    userType,
+    fieldOfStudy,
+    jobRole,
+    expertise,
+  } = parsed.data;
 
   const fullName =
     !skip && firstName && lastName
@@ -45,6 +59,8 @@ export async function POST(request: Request) {
     where: { id: session.user.id },
     data: {
       onboardingCompletedAt: new Date(),
+      consentAcceptedAt: new Date(),
+      marketingOptIn: marketingOptIn ?? false,
       ...(!skip && firstName !== undefined && { firstName }),
       ...(!skip && middleName !== undefined && { middleName: middleName || null }),
       ...(!skip && lastName !== undefined && { lastName }),
