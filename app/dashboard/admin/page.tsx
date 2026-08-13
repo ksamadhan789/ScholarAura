@@ -25,6 +25,8 @@ export default async function AdminHomePage() {
 
   const [
     studentCount,
+    onboardedCount,
+    marketingOptInCount,
     publishedCourseCount,
     publishedEventCount,
     publishedCompetitionCount,
@@ -33,6 +35,8 @@ export default async function AdminHomePage() {
     competitionRevenue,
   ] = await Promise.all([
     prisma.user.count({ where: { role: "STUDENT" } }),
+    prisma.user.count({ where: { role: "STUDENT", onboardingCompletedAt: { not: null } } }),
+    prisma.user.count({ where: { role: "STUDENT", marketingOptIn: true } }),
     prisma.course.count({ where: { isPublished: true } }),
     prisma.event.count({ where: { isPublished: true } }),
     prisma.competition.count({ where: { isPublished: true } }),
@@ -74,6 +78,8 @@ export default async function AdminHomePage() {
         <StatTile label="Published courses" value={publishedCourseCount.toLocaleString("en-IN")} />
         <StatTile label="Published events" value={publishedEventCount.toLocaleString("en-IN")} />
         <StatTile label="Published competitions" value={publishedCompetitionCount.toLocaleString("en-IN")} />
+        <StatTile label="Onboarded" value={onboardedCount.toLocaleString("en-IN")} />
+        <StatTile label="Opted into marketing" value={marketingOptInCount.toLocaleString("en-IN")} />
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
