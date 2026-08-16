@@ -18,6 +18,18 @@ export const FIELD_OF_STUDY_OPTIONS = [
   "Other",
 ];
 
+export const COLLEGE_TYPE_OPTIONS = [
+  "Junior College",
+  "Degree College",
+  "Engineering College",
+  "Medical College",
+  "Pharmacy College",
+  "Management Institute",
+  "Polytechnic",
+  "University Department",
+  "Other",
+];
+
 export const JOB_ROLE_OPTIONS = [
   "Lecturer",
   "Assistant Professor",

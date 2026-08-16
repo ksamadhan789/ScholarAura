@@ -52,6 +52,12 @@ enum CreditTransactionType {
   REDEEMED
 }
 
+enum CollegeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // ----------------------
 // AUTH / USERS (Phase 1)
 // ----------------------
@@ -100,9 +106,14 @@ model User {
 }
 
 model College {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
+  id           String        @id @default(uuid())
+  name         String        @unique
+  city         String?
+  state        String?
+  university   String?
+  collegeType  String?
+  status       CollegeStatus @default(APPROVED)
+  createdAt    DateTime      @default(now())
 
   @@map("colleges")
 }

@@ -18,6 +18,10 @@ const onboardingSchema = z.object({
   userType: z.enum(userTypes).optional(),
   fieldOfStudy: z.string().trim().optional(),
   organization: z.string().trim().max(200).optional(),
+  collegeCity: z.string().trim().max(100).optional(),
+  collegeState: z.string().trim().max(100).optional(),
+  collegeUniversity: z.string().trim().max(200).optional(),
+  collegeType: z.string().trim().max(100).optional(),
   jobRole: z.string().trim().optional(),
   expertise: z.string().trim().max(200).optional(),
 });
@@ -46,6 +50,10 @@ export async function POST(request: Request) {
     userType,
     fieldOfStudy,
     organization,
+    collegeCity,
+    collegeState,
+    collegeUniversity,
+    collegeType,
     jobRole,
     expertise,
   } = parsed.data;
@@ -58,13 +66,22 @@ export async function POST(request: Request) {
   let collegeName: string | undefined;
   if (organization) {
     const existing = await prisma.college.findFirst({
-      where: { name: { equals: organization, mode: "insensitive" } },
+      where: { name: { equals: organization, mode: "insensitive" }, status: "APPROVED" },
     });
     if (existing) {
       collegeName = existing.name;
     } else {
       try {
-        const created = await prisma.college.create({ data: { name: organization } });
+        const created = await prisma.college.create({
+          data: {
+            name: organization,
+            city: collegeCity || null,
+            state: collegeState || null,
+            university: collegeUniversity || null,
+            collegeType: collegeType || null,
+            status: "PENDING",
+          },
+        });
         collegeName = created.name;
       } catch {
         // Another request created the same college name concurrently.
