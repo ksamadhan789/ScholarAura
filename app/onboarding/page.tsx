@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
+import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS, COLLEGE_TYPE_OPTIONS } from "@/lib/onboardingOptions";
+
+type CollegeSuggestion = { name: string; city: string | null; state: string | null };
 
 const USER_TYPES = [
   { value: "COLLEGE_STUDENT", label: "🎓 College Student" },
@@ -20,8 +22,14 @@ export default function OnboardingPage() {
   const [fieldOfStudy, setFieldOfStudy] = useState("");
   const [fieldOfStudyOther, setFieldOfStudyOther] = useState("");
   const [organization, setOrganization] = useState("");
-  const [collegeSuggestions, setCollegeSuggestions] = useState<string[]>([]);
+  const [collegeSuggestions, setCollegeSuggestions] = useState<CollegeSuggestion[]>([]);
   const [showCollegeSuggestions, setShowCollegeSuggestions] = useState(false);
+  const [addingNewCollege, setAddingNewCollege] = useState(false);
+  const [collegeCity, setCollegeCity] = useState("");
+  const [collegeState, setCollegeState] = useState("");
+  const [collegeUniversity, setCollegeUniversity] = useState("");
+  const [collegeType, setCollegeType] = useState("");
+  const [collegeTypeOther, setCollegeTypeOther] = useState("");
   const [jobRole, setJobRole] = useState("");
   const [jobRoleOther, setJobRoleOther] = useState("");
   const [expertise, setExpertise] = useState("");
@@ -77,6 +85,23 @@ export default function OnboardingPage() {
       setError("Please add your college name.");
       return;
     }
+    const isKnownCollege = collegeSuggestions.some(
+      (c) => c.name.toLowerCase() === organization.trim().toLowerCase()
+    );
+    if (userType === "COLLEGE_STUDENT" && !isKnownCollege && !addingNewCollege) {
+      setError('Please select your college from the suggestions, or click "Add it manually" if it isn\'t listed.');
+      return;
+    }
+    if (userType === "COLLEGE_STUDENT" && addingNewCollege) {
+      if (!collegeCity.trim() || !collegeState.trim() || !collegeUniversity.trim() || !collegeType) {
+        setError("Please fill in your college's city, state, and university/board.");
+        return;
+      }
+      if (collegeType === "Other" && !collegeTypeOther.trim()) {
+        setError("Please tell us your college type.");
+        return;
+      }
+    }
     if (userType === "PROFESSIONAL" && !jobRole) {
       setError("Please select your job role.");
       return;
@@ -89,6 +114,8 @@ export default function OnboardingPage() {
     const resolvedFieldOfStudy =
       fieldOfStudy === "Other" ? fieldOfStudyOther.trim() : fieldOfStudy;
     const resolvedJobRole = jobRole === "Other" ? jobRoleOther.trim() : jobRole;
+    const resolvedCollegeType =
+      collegeType === "Other" ? collegeTypeOther.trim() : collegeType;
 
     setLoading(true);
     try {
@@ -105,6 +132,16 @@ export default function OnboardingPage() {
           userType,
           fieldOfStudy: userType === "COLLEGE_STUDENT" ? resolvedFieldOfStudy : undefined,
           organization: userType === "COLLEGE_STUDENT" ? organization.trim() : undefined,
+          collegeCity:
+            userType === "COLLEGE_STUDENT" && addingNewCollege ? collegeCity.trim() : undefined,
+          collegeState:
+            userType === "COLLEGE_STUDENT" && addingNewCollege ? collegeState.trim() : undefined,
+          collegeUniversity:
+            userType === "COLLEGE_STUDENT" && addingNewCollege
+              ? collegeUniversity.trim()
+              : undefined,
+          collegeType:
+            userType === "COLLEGE_STUDENT" && addingNewCollege ? resolvedCollegeType : undefined,
           jobRole: userType === "PROFESSIONAL" ? resolvedJobRole : undefined,
           expertise: expertise || undefined,
         }),
@@ -233,6 +270,7 @@ export default function OnboardingPage() {
               onChange={(e) => {
                 setOrganization(e.target.value);
                 setShowCollegeSuggestions(true);
+                setAddingNewCollege(false);
               }}
               onFocus={() => setShowCollegeSuggestions(true)}
               onBlur={() => setTimeout(() => setShowCollegeSuggestions(false), 150)}
@@ -240,29 +278,91 @@ export default function OnboardingPage() {
             />
             {showCollegeSuggestions && organization.trim() && (
               <div className="absolute z-10 mt-1 w-full rounded border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
-                {collegeSuggestions.map((name) => (
+                {collegeSuggestions.map((c) => (
                   <button
-                    key={name}
+                    key={c.name}
                     type="button"
                     onMouseDown={() => {
-                      setOrganization(name);
+                      setOrganization(c.name);
                       setShowCollegeSuggestions(false);
+                      setAddingNewCollege(false);
                     }}
                     className="block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-700"
                   >
-                    {name}
+                    {c.name}
+                    {(c.city || c.state) && (
+                      <span className="text-gray-500 dark:text-slate-400">
+                        {" — "}
+                        {[c.city, c.state].filter(Boolean).join(", ")}
+                      </span>
+                    )}
                   </button>
                 ))}
                 {!collegeSuggestions.some(
-                  (name) => name.toLowerCase() === organization.trim().toLowerCase()
+                  (c) => c.name.toLowerCase() === organization.trim().toLowerCase()
                 ) && (
                   <button
                     type="button"
-                    onMouseDown={() => setShowCollegeSuggestions(false)}
+                    onMouseDown={() => {
+                      setAddingNewCollege(true);
+                      setShowCollegeSuggestions(false);
+                    }}
                     className="block w-full border-t border-gray-200 dark:border-slate-700 px-3 py-2 text-left text-sm text-brand-600 dark:text-brand-400 hover:bg-gray-50 dark:hover:bg-slate-700"
                   >
-                    Can&rsquo;t find it? Use &ldquo;{organization.trim()}&rdquo;
+                    Can&rsquo;t find it? Add &ldquo;{organization.trim()}&rdquo; manually
                   </button>
+                )}
+              </div>
+            )}
+            {addingNewCollege && (
+              <div className="mt-2 flex flex-col gap-2 rounded border border-gray-200 dark:border-slate-700 p-3">
+                <p className="text-xs text-gray-500 dark:text-slate-400">
+                  This college will be added once ScholarAura reviews it. Tell us a bit more so we can
+                  verify it:
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    placeholder="City"
+                    value={collegeCity}
+                    onChange={(e) => setCollegeCity(e.target.value)}
+                    className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="State"
+                    value={collegeState}
+                    onChange={(e) => setCollegeState(e.target.value)}
+                    className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+                <input
+                  type="text"
+                  placeholder="University / Board"
+                  value={collegeUniversity}
+                  onChange={(e) => setCollegeUniversity(e.target.value)}
+                  className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+                />
+                <select
+                  value={collegeType}
+                  onChange={(e) => setCollegeType(e.target.value)}
+                  className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+                >
+                  <option value="">College type</option>
+                  {COLLEGE_TYPE_OPTIONS.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+                {collegeType === "Other" && (
+                  <input
+                    type="text"
+                    placeholder="Tell us your college type"
+                    value={collegeTypeOther}
+                    onChange={(e) => setCollegeTypeOther(e.target.value)}
+                    className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+                  />
                 )}
               </div>
             )}

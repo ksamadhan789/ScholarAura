@@ -15,11 +15,11 @@ export async function GET(request: Request) {
   }
 
   const colleges = await prisma.college.findMany({
-    where: { name: { contains: q, mode: "insensitive" } },
+    where: { name: { contains: q, mode: "insensitive" }, status: "APPROVED" },
     orderBy: { name: "asc" },
     take: 8,
-    select: { name: true },
+    select: { name: true, city: true, state: true },
   });
 
-  return NextResponse.json({ colleges: colleges.map((c) => c.name) });
+  return NextResponse.json({ colleges });
 }

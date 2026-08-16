@@ -28,6 +28,7 @@ export default async function AdminHomePage() {
     onboardedCount,
     marketingOptInCount,
     collegeCount,
+    pendingCollegeCount,
     publishedCourseCount,
     publishedEventCount,
     publishedCompetitionCount,
@@ -38,7 +39,8 @@ export default async function AdminHomePage() {
     prisma.user.count({ where: { role: "STUDENT" } }),
     prisma.user.count({ where: { role: "STUDENT", onboardingCompletedAt: { not: null } } }),
     prisma.user.count({ where: { role: "STUDENT", marketingOptIn: true } }),
-    prisma.college.count(),
+    prisma.college.count({ where: { status: "APPROVED" } }),
+    prisma.college.count({ where: { status: "PENDING" } }),
     prisma.course.count({ where: { isPublished: true } }),
     prisma.event.count({ where: { isPublished: true } }),
     prisma.competition.count({ where: { isPublished: true } }),
@@ -83,6 +85,7 @@ export default async function AdminHomePage() {
         <StatTile label="Onboarded" value={onboardedCount.toLocaleString("en-IN")} />
         <StatTile label="Opted into marketing" value={marketingOptInCount.toLocaleString("en-IN")} />
         <StatTile label="Colleges" value={collegeCount.toLocaleString("en-IN")} />
+        <StatTile label="Pending colleges" value={pendingCollegeCount.toLocaleString("en-IN")} />
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
@@ -109,6 +112,12 @@ export default async function AdminHomePage() {
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
           Students
+        </Link>
+        <Link
+          href="/dashboard/colleges"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          Review colleges
         </Link>
         <Link
           href="/dashboard/affiliates"
