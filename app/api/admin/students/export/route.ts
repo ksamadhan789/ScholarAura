@@ -59,11 +59,23 @@ export async function GET(request: Request) {
     orderBy: { createdAt: "desc" },
   });
 
+  const collegeNames = [...new Set(students.map((s) => s.organization).filter((v): v is string => !!v))];
+  const colleges = collegeNames.length
+    ? await prisma.college.findMany({
+        where: { name: { in: collegeNames } },
+        select: { name: true, city: true, state: true, university: true },
+      })
+    : [];
+  const collegeByName = new Map(colleges.map((c) => [c.name.toLowerCase(), c]));
+
   const header = [
     "Name",
     "Email",
     "Phone",
     "College",
+    "City",
+    "State",
+    "University",
     "Type",
     "Field / Role",
     "Signed up",
@@ -75,11 +87,16 @@ export async function GET(request: Request) {
     "Credit balance (INR)",
   ];
 
-  const rows = students.map((s) => [
+  const rows = students.map((s) => {
+    const college = s.organization ? collegeByName.get(s.organization.toLowerCase()) : undefined;
+    return [
     s.name,
     s.email,
     s.phone ?? "",
     s.organization ?? "",
+    college?.city ?? "",
+    college?.state ?? "",
+    college?.university ?? "",
     s.userType ? USER_TYPE_LABELS[s.userType] ?? s.userType : "",
     s.fieldOfStudy ?? s.jobRole ?? "",
     s.createdAt.toISOString(),
@@ -89,7 +106,8 @@ export async function GET(request: Request) {
     s.marketingOptIn ? "Yes" : "No",
     String(s._count.coursePurchases + s._count.eventRegistrations),
     Number(s.creditBalance).toFixed(2),
-  ]);
+    ];
+  });
 
   const csv = [header, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
 
