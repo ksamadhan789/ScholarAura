@@ -46,6 +46,19 @@ export default async function EditEventPage({ params }: { params: { slug: string
         prizeThird: event.prizeThird ?? "",
         certificateLogoUrl: event.certificateLogoUrl ?? "",
         people: (event.people as unknown as EventPerson[] | null) ?? [],
+        organizer: event.organizer ?? "",
+        googleFormUrl: event.googleFormUrl ?? "",
+        googleFormNameEntryId: event.googleFormNameEntryId ?? "",
+        googleFormEmailEntryId: event.googleFormEmailEntryId ?? "",
+        googleFormEnrollmentEntryId: event.googleFormEnrollmentEntryId ?? "",
+        googleSheetId: event.googleSheetId ?? "",
+        attendanceRequired: event.attendanceRequired,
+        minAttendancePercent: event.minAttendancePercent?.toString() ?? "",
+        certificateEnabled: event.certificateEnabled,
+        certificateType: event.certificateType ?? "PARTICIPATION",
+        googleSlidesTemplateId: event.googleSlidesTemplateId ?? "",
+        certificateSignatoryName: event.certificateSignatoryName ?? "",
+        certificateSignatoryTitle: event.certificateSignatoryTitle ?? "",
       }}
     />
   );

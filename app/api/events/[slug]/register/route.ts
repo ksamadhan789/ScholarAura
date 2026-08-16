@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generateEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
 
 export async function POST(
   request: Request,
@@ -36,6 +37,8 @@ export async function POST(
     return NextResponse.json({ error: "Already registered" }, { status: 409 });
   }
 
+  const enrollmentNumber = existing?.enrollmentNumber ?? (await generateEnrollmentNumber());
+
   try {
     const registration = await prisma.$transaction(async (tx) => {
       const claimed = await tx.event.updateMany({
@@ -49,18 +52,25 @@ export async function POST(
 
       return tx.eventRegistration.upsert({
         where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
-        update: { status: "CONFIRMED", amount: event.fee, certificateName },
+        update: { status: "CONFIRMED", amount: event.fee, certificateName, enrollmentNumber },
         create: {
           userId: session.user.id,
           eventId: event.id,
           amount: event.fee,
           status: "CONFIRMED",
           certificateName,
+          enrollmentNumber,
         },
       });
     });
 
-    return NextResponse.json(registration, { status: 201 });
+    const googleFormUrl = buildGoogleFormUrl(event, {
+      name: certificateName ?? session.user.name ?? "",
+      email: session.user.email ?? "",
+      enrollmentNumber,
+    });
+
+    return NextResponse.json({ ...registration, googleFormUrl }, { status: 201 });
   } catch (err) {
     if (err instanceof Error && err.message === "EVENT_FULL") {
       return NextResponse.json({ error: "This event is full" }, { status: 409 });

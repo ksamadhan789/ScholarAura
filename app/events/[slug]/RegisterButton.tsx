@@ -39,6 +39,10 @@ export function RegisterButton({
       setError(data?.error ?? "Couldn't register. Please try again.");
       return;
     }
+    const data = await res.json().catch(() => null);
+    if (data?.googleFormUrl) {
+      window.open(data.googleFormUrl, "_blank", "noopener,noreferrer");
+    }
     router.push("/dashboard/registrations");
     router.refresh();
   }
@@ -57,6 +61,9 @@ export function RegisterButton({
     const order = await checkoutRes.json();
 
     if (order.paidWithCredit) {
+      if (order.googleFormUrl) {
+        window.open(order.googleFormUrl, "_blank", "noopener,noreferrer");
+      }
       router.push("/dashboard/registrations");
       router.refresh();
       return;
@@ -87,6 +94,10 @@ export function RegisterButton({
           const data = await verifyRes.json().catch(() => null);
           setError(data?.error ?? "Payment succeeded but we couldn't confirm it. Contact support.");
           return;
+        }
+        const verifyData = await verifyRes.json().catch(() => null);
+        if (verifyData?.googleFormUrl) {
+          window.open(verifyData.googleFormUrl, "_blank", "noopener,noreferrer");
         }
         router.push("/dashboard/registrations");
         router.refresh();

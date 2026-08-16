@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getRazorpayClient } from "@/lib/razorpay";
 import { computeCreditApplication, settleReferralCredit } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
+import { generateEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
 
 export async function POST(
   request: Request,
@@ -62,6 +63,8 @@ export async function POST(
       ? await computeCreditApplication(session.user.id, fee)
       : { creditApplied: 0, amountDue: fee };
 
+  const enrollmentNumber = existing?.enrollmentNumber ?? (await generateEnrollmentNumber());
+
   try {
     if (payCurrency === "INR" && amountDue <= 0) {
       // Guarded so concurrent duplicate requests (double-click, retry) can't
@@ -78,6 +81,7 @@ export async function POST(
               chargedAmount: null,
               razorpayOrderId: null,
               certificateName,
+              enrollmentNumber,
             },
           });
 
@@ -94,6 +98,7 @@ export async function POST(
                   currency: "INR",
                   status: "CONFIRMED",
                   certificateName,
+                  enrollmentNumber,
                 },
               });
               isFreshSettlement = true;
@@ -129,7 +134,18 @@ export async function POST(
           });
         });
 
-        return NextResponse.json({ paidWithCredit: true, eventName: event.title, registration });
+        const googleFormUrl = buildGoogleFormUrl(event, {
+          name: certificateName ?? session.user.name ?? "",
+          email: session.user.email ?? "",
+          enrollmentNumber,
+        });
+
+        return NextResponse.json({
+          paidWithCredit: true,
+          eventName: event.title,
+          registration,
+          googleFormUrl,
+        });
       } catch (err) {
         if (err instanceof Error && err.message === "EVENT_FULL") {
           return NextResponse.json({ error: "This event is full" }, { status: 409 });
