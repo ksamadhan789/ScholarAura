@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
 import { settleEventRegistration, EventFullError } from "@/lib/paymentSettlement";
+import { buildGoogleFormUrl } from "@/lib/enrollment";
 
 const verifySchema = z.object({
   razorpay_order_id: z.string(),
@@ -54,7 +55,15 @@ export async function POST(
     // verification (the signature doesn't expire) can't claim a second seat or
     // re-settle referral credit for one registration.
     const updated = await settleEventRegistration(registration.id, razorpay_payment_id);
-    return NextResponse.json(updated);
+    const googleFormUrl =
+      updated && updated.enrollmentNumber
+        ? buildGoogleFormUrl(event, {
+            name: updated.certificateName ?? session.user.name ?? "",
+            email: session.user.email ?? "",
+            enrollmentNumber: updated.enrollmentNumber,
+          })
+        : null;
+    return NextResponse.json({ ...updated, googleFormUrl });
   } catch (err) {
     if (err instanceof EventFullError) {
       // Payment succeeded but the seat is gone — flagged for manual refund.

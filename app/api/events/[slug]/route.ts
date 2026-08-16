@@ -38,6 +38,24 @@ const updateEventSchema = z
       .nullable()
       .optional(),
     people: eventPeopleSchema.nullable(),
+    organizer: z.string().trim().nullable().optional(),
+    googleFormUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
+    googleFormNameEntryId: z.string().trim().nullable().optional(),
+    googleFormEmailEntryId: z.string().trim().nullable().optional(),
+    googleFormEnrollmentEntryId: z.string().trim().nullable().optional(),
+    googleSheetId: z.string().trim().nullable().optional(),
+    attendanceRequired: z.boolean().optional(),
+    minAttendancePercent: z
+      .preprocess(
+        (val) => (val === "" || val == null ? null : val),
+        z.coerce.number().int().min(0).max(100).nullable()
+      )
+      .optional(),
+    certificateEnabled: z.boolean().optional(),
+    certificateType: z.string().trim().nullable().optional(),
+    googleSlidesTemplateId: z.string().trim().nullable().optional(),
+    certificateSignatoryName: z.string().trim().nullable().optional(),
+    certificateSignatoryTitle: z.string().trim().nullable().optional(),
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined), {
     message: "Nothing to update",
@@ -108,6 +126,31 @@ export async function PATCH(
       }),
       ...(d.people !== undefined && {
         people: d.people && d.people.length > 0 ? d.people : Prisma.JsonNull,
+      }),
+      ...(d.organizer !== undefined && { organizer: d.organizer || null }),
+      ...(d.googleFormUrl !== undefined && { googleFormUrl: d.googleFormUrl || null }),
+      ...(d.googleFormNameEntryId !== undefined && {
+        googleFormNameEntryId: d.googleFormNameEntryId || null,
+      }),
+      ...(d.googleFormEmailEntryId !== undefined && {
+        googleFormEmailEntryId: d.googleFormEmailEntryId || null,
+      }),
+      ...(d.googleFormEnrollmentEntryId !== undefined && {
+        googleFormEnrollmentEntryId: d.googleFormEnrollmentEntryId || null,
+      }),
+      ...(d.googleSheetId !== undefined && { googleSheetId: d.googleSheetId || null }),
+      ...(d.attendanceRequired !== undefined && { attendanceRequired: d.attendanceRequired }),
+      ...(d.minAttendancePercent !== undefined && { minAttendancePercent: d.minAttendancePercent }),
+      ...(d.certificateEnabled !== undefined && { certificateEnabled: d.certificateEnabled }),
+      ...(d.certificateType !== undefined && { certificateType: d.certificateType || null }),
+      ...(d.googleSlidesTemplateId !== undefined && {
+        googleSlidesTemplateId: d.googleSlidesTemplateId || null,
+      }),
+      ...(d.certificateSignatoryName !== undefined && {
+        certificateSignatoryName: d.certificateSignatoryName || null,
+      }),
+      ...(d.certificateSignatoryTitle !== undefined && {
+        certificateSignatoryTitle: d.certificateSignatoryTitle || null,
       }),
     },
   });

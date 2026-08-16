@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { settleReferralCredit } from "@/lib/referral";
+import { generateEnrollmentNumber } from "@/lib/enrollment";
 
 export class EventFullError extends Error {
   constructor() {
@@ -52,10 +53,12 @@ export async function settleEventRegistration(registrationId: string, paymentId:
   const event = await prisma.event.findUnique({ where: { id: registration.eventId } });
   if (!event) return null;
 
+  const enrollmentNumber = registration.enrollmentNumber ?? (await generateEnrollmentNumber());
+
   return prisma.$transaction(async (tx) => {
     const claimedRegistration = await tx.eventRegistration.updateMany({
       where: { id: registration.id, status: { not: "CONFIRMED" } },
-      data: { status: "CONFIRMED", razorpayPaymentId: paymentId },
+      data: { status: "CONFIRMED", razorpayPaymentId: paymentId, enrollmentNumber },
     });
 
     if (claimedRegistration.count > 0) {

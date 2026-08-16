@@ -58,6 +58,16 @@ enum CollegeStatus {
   REJECTED
 }
 
+enum CertificateStatus {
+  NOT_ELIGIBLE
+  ELIGIBLE
+  PROCESSING
+  GENERATED
+  AVAILABLE
+  REVOKED
+  FAILED
+}
+
 // ----------------------
 // AUTH / USERS (Phase 1)
 // ----------------------
@@ -247,6 +257,19 @@ model Event {
   prizeThird             String?
   certificateLogoUrl     String?
   people                 Json?
+  organizer                  String?
+  googleFormUrl               String?
+  googleFormNameEntryId       String?
+  googleFormEmailEntryId      String?
+  googleFormEnrollmentEntryId String?
+  googleSheetId               String?
+  attendanceRequired          Boolean  @default(false)
+  minAttendancePercent        Int?
+  certificateEnabled          Boolean  @default(true)
+  certificateType              String?  @default("PARTICIPATION")
+  googleSlidesTemplateId       String?
+  certificateSignatoryName     String?
+  certificateSignatoryTitle    String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -270,6 +293,13 @@ model EventRegistration {
   chargedAmount     Decimal?            @db.Decimal(10, 2)
   status            RegistrationStatus  @default(PENDING)
   certificateName   String?
+  enrollmentNumber       String?   @unique
+  formSubmitted          Boolean   @default(false)
+  formSubmissionDate     DateTime?
+  googleResponseId       String?   @unique
+  attendancePercent      Int?
+  attendanceVerifiedAt   DateTime?
+  eligibleForCertificate Boolean   @default(false)
   registeredAt      DateTime            @default(now())
 
   @@unique([userId, eventId])
@@ -352,6 +382,16 @@ model Certificate {
   certificateNumber String  @unique // e.g., CERT-2026-000123, used for public verification
   pdfUrl           String
   issuedAt         DateTime @default(now())
+  status               CertificateStatus @default(GENERATED)
+  certificateType      String?
+  attendancePercentage Int?
+  googleSlideFileId    String?
+  googleDriveFileId    String?
+  errorMessage         String?
+  retryCount           Int               @default(0)
+  lastAttemptAt        DateTime?
+  revokedAt            DateTime?
+  revokedReason        String?
 
   @@unique([userId, courseId])
   @@unique([userId, eventId])

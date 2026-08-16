@@ -82,6 +82,12 @@ export async function issueEventCertificateIfEligible(userId: string, eventId: s
 
   const event = await prisma.event.findUnique({ where: { id: eventId } });
   if (!event || event.endDate > new Date()) return null;
+  if (!event.certificateEnabled) return null;
+  // Attendance-gated events only issue a certificate once eligibility has
+  // been computed (via the Google Sheets sync or a manual attendance import)
+  // and cleared the event's configured minimum — events with no attendance
+  // requirement keep today's behavior of issuing on confirmed + concluded.
+  if (event.attendanceRequired && !registration.eligibleForCertificate) return null;
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const certificateNumber = await generateCertificateNumber();
@@ -93,6 +99,8 @@ export async function issueEventCertificateIfEligible(userId: string, eventId: s
           eventId,
           certificateNumber,
           pdfUrl: `/api/certificates/${certificateNumber}/pdf`,
+          certificateType: event.certificateType,
+          attendancePercentage: registration.attendancePercent,
         },
       });
     } catch (err) {
