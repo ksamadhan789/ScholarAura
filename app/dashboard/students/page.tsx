@@ -61,6 +61,15 @@ export default async function StudentsAdminPage({
     orderBy: { createdAt: "desc" },
   });
 
+  const collegeNames = [...new Set(students.map((s) => s.organization).filter((v): v is string => !!v))];
+  const colleges = collegeNames.length
+    ? await prisma.college.findMany({
+        where: { name: { in: collegeNames } },
+        select: { name: true, city: true, state: true, university: true },
+      })
+    : [];
+  const collegeByName = new Map(colleges.map((c) => [c.name.toLowerCase(), c]));
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-16">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -102,6 +111,9 @@ export default async function StudentsAdminPage({
                 <th className="px-4 py-2.5 font-medium">Email</th>
                 <th className="px-4 py-2.5 font-medium">Phone</th>
                 <th className="px-4 py-2.5 font-medium">College</th>
+                <th className="px-4 py-2.5 font-medium">City</th>
+                <th className="px-4 py-2.5 font-medium">State</th>
+                <th className="px-4 py-2.5 font-medium">University</th>
                 <th className="px-4 py-2.5 font-medium">Type</th>
                 <th className="px-4 py-2.5 font-medium">Field / Role</th>
                 <th className="px-4 py-2.5 font-medium">Signed up</th>
@@ -114,7 +126,11 @@ export default async function StudentsAdminPage({
               </tr>
             </thead>
             <tbody>
-              {students.map((student) => (
+              {students.map((student) => {
+                const college = student.organization
+                  ? collegeByName.get(student.organization.toLowerCase())
+                  : undefined;
+                return (
                 <tr key={student.id} className="border-t border-gray-200 dark:border-slate-700">
                   <td className="px-4 py-2.5">{student.name}</td>
                   <td className="px-4 py-2.5">
@@ -127,6 +143,15 @@ export default async function StudentsAdminPage({
                   </td>
                   <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
                     {student.organization ?? "—"}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    {college?.city ?? "—"}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    {college?.state ?? "—"}
+                  </td>
+                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    {college?.university ?? "—"}
                   </td>
                   <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
                     {student.userType ? USER_TYPE_LABELS[student.userType] ?? student.userType : "—"}
@@ -160,7 +185,8 @@ export default async function StudentsAdminPage({
                     ₹{Number(student.creditBalance).toFixed(2)}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
