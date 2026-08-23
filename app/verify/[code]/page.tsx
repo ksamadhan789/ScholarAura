@@ -16,13 +16,14 @@ export default async function VerifyCertificatePage({
     where: { certificateNumber: params.code },
     include: { user: true, course: true, event: true },
   });
+  const isRevoked = certificate?.status === "REVOKED";
 
   return (
     <main className="mx-auto flex flex-1 w-full max-w-md flex-col justify-center px-4">
       <p className="mb-1 text-sm text-gray-500 dark:text-slate-400">Certificate number</p>
       <p className="mb-6 font-mono text-lg">{params.code}</p>
 
-      {certificate ? (
+      {certificate && !isRevoked ? (
         <div className="rounded border border-green-300 bg-green-50 dark:bg-green-900/40 p-5">
           <p className="mb-4 text-lg font-semibold text-green-800 dark:text-green-300">✓ Valid certificate</p>
           <dl className="flex flex-col gap-2 text-sm">
@@ -63,9 +64,13 @@ export default async function VerifyCertificatePage({
         </div>
       ) : (
         <div className="rounded border border-red-300 bg-red-50 p-5 dark:border-red-700 dark:bg-red-900/30">
-          <p className="text-lg font-semibold text-red-800 dark:text-red-300">✗ Not found</p>
+          <p className="text-lg font-semibold text-red-800 dark:text-red-300">
+            ✗ {isRevoked ? "Revoked" : "Not found"}
+          </p>
           <p className="mt-1 text-sm text-red-700 dark:text-red-400">
-            No certificate matches this number. Double-check it was typed correctly.
+            {isRevoked
+              ? "This certificate has been revoked and is no longer valid."
+              : "No certificate matches this number. Double-check it was typed correctly."}
           </p>
         </div>
       )}
