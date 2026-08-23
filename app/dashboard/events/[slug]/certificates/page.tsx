@@ -5,10 +5,12 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { issueEventCertificateIfEligible } from "@/lib/certificate";
+import { getConnectedGoogleEmail } from "@/lib/google/delegatedAuth";
 import { SyncAttendanceButton } from "./SyncAttendanceButton";
 import { ProcessPendingButton } from "./ProcessPendingButton";
 import { CertificateActionButton } from "./CertificateActionButton";
 import { RevokeCertificateButton } from "./RevokeCertificateButton";
+import { DisconnectDriveButton } from "./DisconnectDriveButton";
 
 const CERT_STATUS_VARIANT: Record<string, "success" | "warning" | "brand" | "neutral"> = {
   ELIGIBLE: "warning",
@@ -20,7 +22,13 @@ const CERT_STATUS_VARIANT: Record<string, "success" | "warning" | "brand" | "neu
   NOT_ELIGIBLE: "neutral",
 };
 
-export default async function EventCertificatesPage({ params }: { params: { slug: string } }) {
+export default async function EventCertificatesPage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { driveConnected?: string; driveError?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) {
     redirect("/login");
@@ -33,6 +41,9 @@ export default async function EventCertificatesPage({ params }: { params: { slug
   if (!event) {
     notFound();
   }
+
+  const connectedEmail = await getConnectedGoogleEmail();
+  const returnTo = `/dashboard/events/${event.slug}/certificates`;
 
   const registrations = await prisma.eventRegistration.findMany({
     where: { eventId: event.id, status: "CONFIRMED" },
@@ -79,6 +90,37 @@ export default async function EventCertificatesPage({ params }: { params: { slug
           {hasTemplate && <ProcessPendingButton />}
         </div>
       </div>
+
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded border border-gray-200 dark:border-slate-700 p-3 text-sm">
+        {connectedEmail ? (
+          <>
+            <span className="text-gray-600 dark:text-slate-300">
+              ✓ Google Drive connected as <span className="font-medium">{connectedEmail}</span>
+            </span>
+            <DisconnectDriveButton />
+          </>
+        ) : (
+          <>
+            <span className="text-amber-700 dark:text-amber-400">
+              ⚠️ No Google Drive account connected — certificate generation will fail until one is.
+            </span>
+            <a
+              href={`/api/admin/google-drive/connect?returnTo=${encodeURIComponent(returnTo)}`}
+              className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-3 py-1.5 text-sm text-white"
+            >
+              Connect Google Drive
+            </a>
+          </>
+        )}
+      </div>
+      {searchParams.driveConnected && (
+        <p className="mb-4 text-sm text-green-700 dark:text-green-400">✓ Google Drive connected successfully.</p>
+      )}
+      {searchParams.driveError && (
+        <p className="mb-4 text-sm text-red-700 dark:text-red-400">
+          Google Drive connection failed ({searchParams.driveError}). Please try again.
+        </p>
+      )}
 
       {!hasTemplate && (
         <p className="mb-6 rounded border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30 p-3 text-sm text-amber-800 dark:text-amber-300">
