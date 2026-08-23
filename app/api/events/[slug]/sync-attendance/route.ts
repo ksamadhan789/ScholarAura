@@ -101,18 +101,35 @@ export async function POST(request: Request, { params }: { params: { slug: strin
     );
   }
 
+  // Returns the first candidate column that's actually present with a
+  // non-empty value — a `??` chain would stop at the first key that merely
+  // *exists* (even blank), missing real data in a later fallback column.
+  function firstNonEmpty(row: Record<string, string>, keys: string[]): string | undefined {
+    for (const key of keys) {
+      const value = row[key];
+      if (value !== undefined && value !== "") return value;
+    }
+    return undefined;
+  }
+
+  let skipped = 0;
   const rows = sheetRows
     .map((row) => {
       // A missing/blank cell must NOT become 0% — Number("") is 0 in JS, which
       // would silently record "no data" as "failed attendance."
-      const raw = row["attendance"] ?? row["attendance %"] ?? row["attendance%"];
+      const raw = firstNonEmpty(row, ["attendance", "attendance %", "attendance%"]);
       return {
         email: row["email"] ?? "",
-        attendancePercent: raw !== undefined && raw !== "" ? Number(raw) : NaN,
+        attendancePercent: raw !== undefined ? Number(raw) : NaN,
       };
     })
-    .filter((row) => row.email && Number.isFinite(row.attendancePercent));
+    .filter((row) => {
+      const valid =
+        row.email && Number.isFinite(row.attendancePercent) && row.attendancePercent >= 0 && row.attendancePercent <= 100;
+      if (!valid) skipped++;
+      return valid;
+    });
 
   const result = await applyAttendanceRows(event.id, event, rows);
-  return NextResponse.json(result);
+  return NextResponse.json({ ...result, skipped });
 }

@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { generateReferralCode } from "@/lib/referral";
 
@@ -16,9 +17,20 @@ export async function findOrCreateGoogleUser({
   const existing = await prisma.user.findUnique({ where: { email } });
   if (!existing) {
     const referralCode = await generateReferralCode();
-    return prisma.user.create({
-      data: { email, name, googleId, emailVerified: true, referralCode },
-    });
+    try {
+      return await prisma.user.create({
+        data: { email, name, googleId, emailVerified: true, referralCode },
+      });
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+        // A concurrent sign-in for the same brand-new email (double-click,
+        // duplicate tab, One Tap racing a manual click) already created the
+        // user — fetch what that request created instead of failing.
+        const winner = await prisma.user.findUnique({ where: { email } });
+        if (winner) return winner;
+      }
+      throw err;
+    }
   }
   if (!existing.googleId) {
     return prisma.user.update({ where: { email }, data: { googleId } });

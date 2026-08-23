@@ -64,7 +64,7 @@ export default async function StudentsAdminPage({
   const collegeNames = [...new Set(students.map((s) => s.organization).filter((v): v is string => !!v))];
   const colleges = collegeNames.length
     ? await prisma.college.findMany({
-        where: { name: { in: collegeNames } },
+        where: { name: { in: collegeNames, mode: "insensitive" } },
         select: { name: true, city: true, state: true, university: true },
       })
     : [];
