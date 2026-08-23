@@ -101,6 +101,11 @@ export async function issueEventCertificateIfEligible(userId: string, eventId: s
           pdfUrl: `/api/certificates/${certificateNumber}/pdf`,
           certificateType: event.certificateType,
           attendancePercentage: registration.attendancePercent,
+          // Events with a Slides template need the async generation pipeline
+          // (admin-triggered) to actually produce a file, so they start as
+          // ELIGIBLE (pending); events without one keep today's behavior of
+          // serving an on-the-fly PDF immediately, so stay GENERATED.
+          status: event.googleSlidesTemplateId ? "ELIGIBLE" : "GENERATED",
         },
       });
     } catch (err) {

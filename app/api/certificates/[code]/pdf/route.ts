@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 import { generateCertificatePdf } from "@/lib/generateCertificatePdf";
+import { downloadFile } from "@/lib/google/driveService";
 import { SITE_URL } from "@/lib/siteUrl";
 
 async function fetchImageBytes(url: string): Promise<Uint8Array | null> {
@@ -26,6 +27,23 @@ export async function GET(
 
   if (!certificate) {
     return NextResponse.json({ error: "Certificate not found" }, { status: 404 });
+  }
+
+  // A Slides-generated certificate already has its final stamped PDF sitting
+  // in Drive — serve those bytes directly instead of re-rendering.
+  if (certificate.status === "AVAILABLE" && certificate.googleDriveFileId) {
+    try {
+      const pdfBytes = await downloadFile(certificate.googleDriveFileId);
+      return new NextResponse(pdfBytes, {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `inline; filename="${certificate.certificateNumber}.pdf"`,
+        },
+      });
+    } catch (err) {
+      console.error(`Failed to fetch certificate PDF from Drive for ${certificate.certificateNumber}:`, err);
+      // Fall through to the in-house generator below rather than erroring out.
+    }
   }
 
   const title = certificate.course?.title ?? certificate.event?.title ?? "";
