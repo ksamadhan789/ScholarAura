@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS, formatDateRange } from "@/lib/eventLabels";
 import { issueEventCertificateIfEligible } from "@/lib/certificate";
+import { buildGoogleFormUrl } from "@/lib/enrollment";
 
 export default async function MyEventsPage() {
   const session = await getServerSession(authOptions);
@@ -52,28 +53,52 @@ export default async function MyEventsPage() {
         </p>
       ) : (
         <div className="flex flex-col gap-3">
-          {registrations.map(({ event }) => (
-            <div
-              key={event.id}
-              className="flex items-center justify-between rounded border border-gray-200 dark:border-slate-700 p-4 hover:border-gray-400"
-            >
-              <Link href={`/events/${event.slug}`}>
-                <p className="text-sm text-gray-500 dark:text-slate-400">{EVENT_TYPE_LABELS[event.type]}</p>
-                <h2 className="font-medium">{event.title}</h2>
-                <p className="text-sm text-gray-500 dark:text-slate-400">
-                  {formatDateRange(event.startDate, event.endDate)}
-                </p>
-              </Link>
-              {certifiedEventIds.has(event.id) && (
-                <Link
-                  href="/dashboard/certificates"
-                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                >
-                  🎓 Certificate
+          {registrations.map((r) => {
+            const { event } = r;
+            const googleFormUrl =
+              !r.formSubmitted && r.enrollmentNumber
+                ? buildGoogleFormUrl(event, {
+                    name: r.certificateName ?? session.user.name ?? "",
+                    email: session.user.email ?? "",
+                    enrollmentNumber: r.enrollmentNumber,
+                  })
+                : null;
+
+            return (
+              <div
+                key={event.id}
+                className="flex items-center justify-between rounded border border-gray-200 dark:border-slate-700 p-4 hover:border-gray-400"
+              >
+                <Link href={`/events/${event.slug}`}>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">{EVENT_TYPE_LABELS[event.type]}</p>
+                  <h2 className="font-medium">{event.title}</h2>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">
+                    {formatDateRange(event.startDate, event.endDate)}
+                  </p>
                 </Link>
-              )}
-            </div>
-          ))}
+                <div className="flex gap-2">
+                  {googleFormUrl && (
+                    <a
+                      href={googleFormUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                    >
+                      📝 Complete Google Form
+                    </a>
+                  )}
+                  {certifiedEventIds.has(event.id) && (
+                    <Link
+                      href="/dashboard/certificates"
+                      className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                    >
+                      🎓 Certificate
+                    </Link>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </main>

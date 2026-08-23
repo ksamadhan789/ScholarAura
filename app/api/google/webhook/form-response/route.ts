@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { computeEligibility } from "@/lib/eligibility";
@@ -10,15 +11,14 @@ const webhookSchema = z.object({
   enrollmentNumber: z.string().trim().optional(),
 });
 
-export async function POST(request: Request) {
-  const secret = process.env.GOOGLE_WEBHOOK_SECRET;
-  if (!secret) {
-    return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 });
-  }
-  if (request.headers.get("x-webhook-secret") !== secret) {
-    return NextResponse.json({ error: "Not allowed" }, { status: 403 });
-  }
+function secretsMatch(provided: string, expected: string): boolean {
+  const providedBuffer = Buffer.from(provided);
+  const expectedBuffer = Buffer.from(expected);
+  if (providedBuffer.length !== expectedBuffer.length) return false;
+  return crypto.timingSafeEqual(providedBuffer, expectedBuffer);
+}
 
+export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = webhookSchema.safeParse(body);
   if (!parsed.success) {
@@ -32,6 +32,14 @@ export async function POST(request: Request) {
   const event = await prisma.event.findUnique({ where: { slug: eventSlug } });
   if (!event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  // Each event has its own secret (shown on its admin edit page) rather than
+  // one shared globally — so access to one event's Apps Script can't be used
+  // to forge form-submission data for a different event.
+  const providedSecret = request.headers.get("x-webhook-secret") ?? "";
+  if (!secretsMatch(providedSecret, event.webhookSecret)) {
+    return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
 
   // A retried delivery of a response we've already recorded is a no-op, not an error.

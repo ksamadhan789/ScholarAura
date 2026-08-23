@@ -33,6 +33,12 @@ export function getReferralRatePercent(user: {
   return DEFAULT_REFERRAL_RATE_PERCENT;
 }
 
+export class InsufficientCreditError extends Error {
+  constructor() {
+    super("INSUFFICIENT_CREDIT");
+  }
+}
+
 export async function computeCreditApplication(userId: string, price: number) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   const balance = Number(user?.creditBalance ?? 0);
@@ -64,10 +70,16 @@ export async function settleReferralCredit(
   if (!buyer) return;
 
   if (creditApplied > 0) {
-    await tx.user.update({
-      where: { id: buyerId },
+    // Guarded on the balance still covering the amount — computeCreditApplication
+    // reads the balance before this transaction starts, so two purchases racing
+    // against the same stale reading must not both succeed in deducting it.
+    const deducted = await tx.user.updateMany({
+      where: { id: buyerId, creditBalance: { gte: creditApplied } },
       data: { creditBalance: { decrement: creditApplied } },
     });
+    if (deducted.count === 0) {
+      throw new InsufficientCreditError();
+    }
     await tx.creditTransaction.create({
       data: {
         userId: buyerId,

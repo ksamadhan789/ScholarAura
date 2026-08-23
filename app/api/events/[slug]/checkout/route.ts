@@ -4,9 +4,9 @@ import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getRazorpayClient } from "@/lib/razorpay";
-import { computeCreditApplication, settleReferralCredit } from "@/lib/referral";
+import { computeCreditApplication, settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
-import { generateEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
+import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
 
 export async function POST(
   request: Request,
@@ -63,81 +63,83 @@ export async function POST(
       ? await computeCreditApplication(session.user.id, fee)
       : { creditApplied: 0, amountDue: fee };
 
-  const enrollmentNumber = existing?.enrollmentNumber ?? (await generateEnrollmentNumber());
-
   try {
     if (payCurrency === "INR" && amountDue <= 0) {
       // Guarded so concurrent duplicate requests (double-click, retry) can't
       // each claim a seat and pay the referrer a second time for one registration.
       try {
-        const registration = await prisma.$transaction(async (tx) => {
-          const claimedExisting = await tx.eventRegistration.updateMany({
-            where: { userId: session.user.id, eventId: event.id, status: { not: "CONFIRMED" } },
-            data: {
-              status: "CONFIRMED",
-              amount: fee,
-              creditApplied,
-              currency: "INR",
-              chargedAmount: null,
-              razorpayOrderId: null,
-              certificateName,
-              enrollmentNumber,
-            },
-          });
-
-          let isFreshSettlement = claimedExisting.count > 0;
-
-          if (claimedExisting.count === 0) {
-            try {
-              await tx.eventRegistration.create({
+        const registration = await withEnrollmentNumber(
+          existing?.enrollmentNumber,
+          (enrollmentNumber) =>
+            prisma.$transaction(async (tx) => {
+              const claimedExisting = await tx.eventRegistration.updateMany({
+                where: { userId: session.user.id, eventId: event.id, status: { not: "CONFIRMED" } },
                 data: {
-                  userId: session.user.id,
-                  eventId: event.id,
+                  status: "CONFIRMED",
                   amount: fee,
                   creditApplied,
                   currency: "INR",
-                  status: "CONFIRMED",
+                  chargedAmount: null,
+                  razorpayOrderId: null,
                   certificateName,
                   enrollmentNumber,
                 },
               });
-              isFreshSettlement = true;
-            } catch (err) {
-              if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-                // A concurrent request already created/settled this registration.
-                isFreshSettlement = false;
-              } else {
-                throw err;
+
+              let isFreshSettlement = claimedExisting.count > 0;
+
+              if (claimedExisting.count === 0) {
+                try {
+                  await tx.eventRegistration.create({
+                    data: {
+                      userId: session.user.id,
+                      eventId: event.id,
+                      amount: fee,
+                      creditApplied,
+                      currency: "INR",
+                      status: "CONFIRMED",
+                      certificateName,
+                      enrollmentNumber,
+                    },
+                  });
+                  isFreshSettlement = true;
+                } catch (err) {
+                  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+                    // A concurrent request already created/settled this registration.
+                    isFreshSettlement = false;
+                  } else {
+                    throw err;
+                  }
+                }
               }
-            }
-          }
 
-          if (isFreshSettlement) {
-            const claimedSeat = await tx.event.updateMany({
-              where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
-              data: { seatsFilled: { increment: 1 } },
-            });
-            if (claimedSeat.count === 0) {
-              throw new Error("EVENT_FULL");
-            }
+              if (isFreshSettlement) {
+                const claimedSeat = await tx.event.updateMany({
+                  where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
+                  data: { seatsFilled: { increment: 1 } },
+                });
+                if (claimedSeat.count === 0) {
+                  throw new Error("EVENT_FULL");
+                }
 
-            await settleReferralCredit(tx, {
-              buyerId: session.user.id,
-              originalAmount: fee,
-              creditApplied,
-              description: `Event: ${event.title}`,
-            });
-          }
+                await settleReferralCredit(tx, {
+                  buyerId: session.user.id,
+                  originalAmount: fee,
+                  creditApplied,
+                  description: `Event: ${event.title}`,
+                });
+              }
 
-          return tx.eventRegistration.findUniqueOrThrow({
-            where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
-          });
-        });
+              return tx.eventRegistration.findUniqueOrThrow({
+                where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
+              });
+            })
+        );
 
         const googleFormUrl = buildGoogleFormUrl(event, {
           name: certificateName ?? session.user.name ?? "",
           email: session.user.email ?? "",
-          enrollmentNumber,
+          enrollmentNumber: registration.enrollmentNumber!,
         });
 
         return NextResponse.json({
@@ -198,6 +200,12 @@ export async function POST(
       creditApplied,
     });
   } catch (err) {
+    if (err instanceof InsufficientCreditError) {
+      return NextResponse.json(
+        { error: "Your credit balance changed. Please retry checkout." },
+        { status: 409 }
+      );
+    }
     console.error("Event checkout failed:", err);
     if (payCurrency !== "INR") {
       return NextResponse.json(

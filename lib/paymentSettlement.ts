@@ -1,6 +1,29 @@
 import { prisma } from "@/lib/prisma";
-import { settleReferralCredit } from "@/lib/referral";
-import { generateEnrollmentNumber } from "@/lib/enrollment";
+import { settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
+import { withEnrollmentNumber } from "@/lib/enrollment";
+
+/**
+ * Settles referral credit but never lets an already-captured payment fail to
+ * confirm just because the buyer's credit balance was spent elsewhere in the
+ * window between checkout and payment verification — that's a rarer,
+ * lower-stakes edge case than leaving a paying customer unregistered.
+ */
+async function settleReferralCreditBestEffort(
+  tx: Parameters<typeof settleReferralCredit>[0],
+  args: Parameters<typeof settleReferralCredit>[1]
+) {
+  try {
+    await settleReferralCredit(tx, args);
+  } catch (err) {
+    if (err instanceof InsufficientCreditError) {
+      console.error(
+        `Credit balance insufficient at settlement for user ${args.buyerId} (${args.description}) — payment still honored, credit not deducted.`
+      );
+      return;
+    }
+    throw err;
+  }
+}
 
 export class EventFullError extends Error {
   constructor() {
@@ -28,7 +51,7 @@ export async function settleCoursePurchase(purchaseId: string, paymentId: string
     });
 
     if (claimed.count > 0) {
-      await settleReferralCredit(tx, {
+      await settleReferralCreditBestEffort(tx, {
         buyerId: purchase.userId,
         originalAmount: Number(purchase.amount),
         creditApplied: Number(purchase.creditApplied),
@@ -53,34 +76,34 @@ export async function settleEventRegistration(registrationId: string, paymentId:
   const event = await prisma.event.findUnique({ where: { id: registration.eventId } });
   if (!event) return null;
 
-  const enrollmentNumber = registration.enrollmentNumber ?? (await generateEnrollmentNumber());
-
-  return prisma.$transaction(async (tx) => {
-    const claimedRegistration = await tx.eventRegistration.updateMany({
-      where: { id: registration.id, status: { not: "CONFIRMED" } },
-      data: { status: "CONFIRMED", razorpayPaymentId: paymentId, enrollmentNumber },
-    });
-
-    if (claimedRegistration.count > 0) {
-      const claimedSeat = await tx.event.updateMany({
-        where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
-        data: { seatsFilled: { increment: 1 } },
+  return withEnrollmentNumber(registration.enrollmentNumber, (enrollmentNumber) =>
+    prisma.$transaction(async (tx) => {
+      const claimedRegistration = await tx.eventRegistration.updateMany({
+        where: { id: registration.id, status: { not: "CONFIRMED" } },
+        data: { status: "CONFIRMED", razorpayPaymentId: paymentId, enrollmentNumber },
       });
 
-      if (claimedSeat.count === 0) {
-        throw new EventFullError();
+      if (claimedRegistration.count > 0) {
+        const claimedSeat = await tx.event.updateMany({
+          where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
+          data: { seatsFilled: { increment: 1 } },
+        });
+
+        if (claimedSeat.count === 0) {
+          throw new EventFullError();
+        }
+
+        await settleReferralCreditBestEffort(tx, {
+          buyerId: registration.userId,
+          originalAmount: Number(registration.amount),
+          creditApplied: Number(registration.creditApplied),
+          description: `Event: ${event.title}`,
+        });
       }
 
-      await settleReferralCredit(tx, {
-        buyerId: registration.userId,
-        originalAmount: Number(registration.amount),
-        creditApplied: Number(registration.creditApplied),
-        description: `Event: ${event.title}`,
-      });
-    }
-
-    return tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
-  });
+      return tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
+    })
+  );
 }
 
 /**
@@ -101,7 +124,7 @@ export async function settleCompetitionEntry(entryId: string, paymentId: string)
     });
 
     if (claimed.count > 0) {
-      await settleReferralCredit(tx, {
+      await settleReferralCreditBestEffort(tx, {
         buyerId: entry.userId,
         originalAmount: Number(entry.amount),
         creditApplied: Number(entry.creditApplied),

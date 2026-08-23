@@ -46,7 +46,15 @@ type FormState = {
 
 const CERTIFICATE_TYPES = ["PARTICIPATION", "COMPLETION", "APPRECIATION", "CUSTOM"];
 
-export function EditEventForm({ slug, initial }: { slug: string; initial: FormState }) {
+export function EditEventForm({
+  slug,
+  webhookSecret,
+  initial,
+}: {
+  slug: string;
+  webhookSecret: string;
+  initial: FormState;
+}) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(initial);
   const [error, setError] = useState<string | null>(null);
@@ -389,6 +397,21 @@ export function EditEventForm({ slug, initial }: { slug: string; initial: FormSt
                 synced from it. Expected columns: <code>email</code>, <code>attendance</code> (0-100).
               </p>
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Webhook secret</label>
+              <input
+                type="text"
+                readOnly
+                value={webhookSecret}
+                onClick={(e) => e.currentTarget.select()}
+                className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 font-mono text-xs dark:bg-slate-800 dark:text-white"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                Unique to this event — paste it as the <code>WEBHOOK_SECRET</code> script property in
+                the Apps Script bound to this event&rsquo;s response sheet. Each event has its own, so
+                access to one event&rsquo;s script can&rsquo;t be used to submit data for another event.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -407,6 +430,7 @@ export function EditEventForm({ slug, initial }: { slug: string; initial: FormSt
               <label className="mb-1 block text-sm font-medium">Minimum attendance (%)</label>
               <input
                 type="number"
+                required
                 min="0"
                 max="100"
                 value={form.minAttendancePercent}

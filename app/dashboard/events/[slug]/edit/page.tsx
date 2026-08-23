@@ -23,6 +23,7 @@ export default async function EditEventPage({ params }: { params: { slug: string
   return (
     <EditEventForm
       slug={event.slug}
+      webhookSecret={event.webhookSecret}
       initial={{
         title: event.title,
         description: event.description,
