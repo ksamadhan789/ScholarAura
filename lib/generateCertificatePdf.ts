@@ -135,3 +135,38 @@ export async function generateCertificatePdf({
 
   return doc.save();
 }
+
+/**
+ * Stamps a verification QR code + certificate number onto the first page of
+ * an already-rendered PDF (used for certificates exported from a Google
+ * Slides template, which we don't generate from scratch). Positioned
+ * relative to the page's own size since Slides templates vary in dimensions.
+ */
+export async function stampVerificationOnPdf(
+  pdfBytes: Uint8Array,
+  certificateNumber: string,
+  verifyUrl: string
+): Promise<Uint8Array> {
+  const doc = await PDFDocument.load(pdfBytes);
+  const page = doc.getPage(0);
+  const { width } = page.getSize();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+
+  const margin = 28;
+  const qrSize = 64;
+
+  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 200 });
+  const qrImageBytes = Buffer.from(qrDataUrl.split(",")[1], "base64");
+  const qrImage = await doc.embedPng(qrImageBytes);
+  page.drawImage(qrImage, { x: width - margin - qrSize, y: margin, width: qrSize, height: qrSize });
+
+  page.drawText(`Certificate No: ${certificateNumber}`, {
+    x: margin,
+    y: margin,
+    size: 9,
+    font,
+    color: rgb(0.4, 0.4, 0.4),
+  });
+
+  return doc.save();
+}
