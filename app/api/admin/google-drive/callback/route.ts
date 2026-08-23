@@ -25,8 +25,8 @@ export async function GET(request: Request) {
   }
 
   const client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_DRIVE_OAUTH_CLIENT_ID,
+    process.env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET,
     `${SITE_URL}/api/admin/google-drive/callback`
   );
 
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
 
     const ticket = await client.verifyIdToken({
       idToken: tokens.id_token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_DRIVE_OAUTH_CLIENT_ID,
     });
     const email = ticket.getPayload()?.email;
     if (!email) {
