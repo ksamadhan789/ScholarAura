@@ -399,6 +399,21 @@ model Certificate {
   @@map("certificates")
 }
 
+// Singleton row (fixed id "drive-connection") holding the OAuth refresh
+// token for the personal Google account certificate generation runs as.
+// Needed because a bare service account has zero Drive storage quota on a
+// non-Workspace account — files it creates/copies can't actually be saved.
+// Delegating to a real connected account's own storage sidesteps that.
+model GoogleDriveConnection {
+  id           String   @id
+  googleEmail  String
+  refreshToken String
+  connectedAt  DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("google_drive_connections")
+}
+
 // ----------------------
 // CURRENCY (Phase 6)
 // ----------------------
