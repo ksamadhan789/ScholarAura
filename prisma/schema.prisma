@@ -263,6 +263,7 @@ model Event {
   googleFormEmailEntryId      String?
   googleFormEnrollmentEntryId String?
   googleSheetId               String?
+  webhookSecret               String   @unique @default(uuid())
   attendanceRequired          Boolean  @default(false)
   minAttendancePercent        Int?
   certificateEnabled          Boolean  @default(true)

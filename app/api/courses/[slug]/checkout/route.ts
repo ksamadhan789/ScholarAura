@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getRazorpayClient } from "@/lib/razorpay";
-import { computeCreditApplication, settleReferralCredit } from "@/lib/referral";
+import { computeCreditApplication, settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
 
 export async function POST(
@@ -154,6 +154,12 @@ export async function POST(
       creditApplied,
     });
   } catch (err) {
+    if (err instanceof InsufficientCreditError) {
+      return NextResponse.json(
+        { error: "Your credit balance changed. Please retry checkout." },
+        { status: 409 }
+      );
+    }
     console.error("Checkout failed:", err);
     if (payCurrency !== "INR") {
       return NextResponse.json(

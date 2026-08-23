@@ -98,6 +98,17 @@ export async function PATCH(
   }
 
   const d = parsed.data;
+
+  const effectiveAttendanceRequired = d.attendanceRequired ?? event.attendanceRequired;
+  const effectiveMinAttendancePercent =
+    d.minAttendancePercent !== undefined ? d.minAttendancePercent : event.minAttendancePercent;
+  if (effectiveAttendanceRequired && effectiveMinAttendancePercent == null) {
+    return NextResponse.json(
+      { error: "Set a minimum attendance percentage, or turn off the attendance requirement" },
+      { status: 400 }
+    );
+  }
+
   const updated = await prisma.event.update({
     where: { slug: params.slug },
     data: {

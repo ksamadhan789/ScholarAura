@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
+import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
 
 export async function POST(
   request: Request,
@@ -37,37 +37,37 @@ export async function POST(
     return NextResponse.json({ error: "Already registered" }, { status: 409 });
   }
 
-  const enrollmentNumber = existing?.enrollmentNumber ?? (await generateEnrollmentNumber());
-
   try {
-    const registration = await prisma.$transaction(async (tx) => {
-      const claimed = await tx.event.updateMany({
-        where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
-        data: { seatsFilled: { increment: 1 } },
-      });
+    const registration = await withEnrollmentNumber(existing?.enrollmentNumber, (enrollmentNumber) =>
+      prisma.$transaction(async (tx) => {
+        const claimed = await tx.event.updateMany({
+          where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
+          data: { seatsFilled: { increment: 1 } },
+        });
 
-      if (claimed.count === 0) {
-        throw new Error("EVENT_FULL");
-      }
+        if (claimed.count === 0) {
+          throw new Error("EVENT_FULL");
+        }
 
-      return tx.eventRegistration.upsert({
-        where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
-        update: { status: "CONFIRMED", amount: event.fee, certificateName, enrollmentNumber },
-        create: {
-          userId: session.user.id,
-          eventId: event.id,
-          amount: event.fee,
-          status: "CONFIRMED",
-          certificateName,
-          enrollmentNumber,
-        },
-      });
-    });
+        return tx.eventRegistration.upsert({
+          where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
+          update: { status: "CONFIRMED", amount: event.fee, certificateName, enrollmentNumber },
+          create: {
+            userId: session.user.id,
+            eventId: event.id,
+            amount: event.fee,
+            status: "CONFIRMED",
+            certificateName,
+            enrollmentNumber,
+          },
+        });
+      })
+    );
 
     const googleFormUrl = buildGoogleFormUrl(event, {
       name: certificateName ?? session.user.name ?? "",
       email: session.user.email ?? "",
-      enrollmentNumber,
+      enrollmentNumber: registration.enrollmentNumber!,
     });
 
     return NextResponse.json({ ...registration, googleFormUrl }, { status: 201 });

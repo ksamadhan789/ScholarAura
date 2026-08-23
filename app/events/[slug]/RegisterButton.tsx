@@ -27,6 +27,22 @@ export function RegisterButton({
   const [certificateName, setCertificateName] = useState(userName ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [blockedFormUrl, setBlockedFormUrl] = useState<string | null>(null);
+
+  // Opens the Google Form and, if the browser's popup blocker silently
+  // swallowed it (common since this runs after an awaited fetch, breaking
+  // the direct-click gesture chain most blockers require), surfaces a
+  // manual link instead of just redirecting the student away with no way
+  // to reach the form.
+  function openGoogleForm(url: string): boolean {
+    const popup = window.open(url, "_blank", "noopener,noreferrer");
+    if (!popup) {
+      setBlockedFormUrl(url);
+      setLoading(false);
+      return false;
+    }
+    return true;
+  }
 
   async function handleFreeRegister() {
     const res = await fetch(`/api/events/${slug}/register`, {
@@ -40,8 +56,8 @@ export function RegisterButton({
       return;
     }
     const data = await res.json().catch(() => null);
-    if (data?.googleFormUrl) {
-      window.open(data.googleFormUrl, "_blank", "noopener,noreferrer");
+    if (data?.googleFormUrl && !openGoogleForm(data.googleFormUrl)) {
+      return;
     }
     router.push("/dashboard/registrations");
     router.refresh();
@@ -61,8 +77,8 @@ export function RegisterButton({
     const order = await checkoutRes.json();
 
     if (order.paidWithCredit) {
-      if (order.googleFormUrl) {
-        window.open(order.googleFormUrl, "_blank", "noopener,noreferrer");
+      if (order.googleFormUrl && !openGoogleForm(order.googleFormUrl)) {
+        return;
       }
       router.push("/dashboard/registrations");
       router.refresh();
@@ -96,8 +112,8 @@ export function RegisterButton({
           return;
         }
         const verifyData = await verifyRes.json().catch(() => null);
-        if (verifyData?.googleFormUrl) {
-          window.open(verifyData.googleFormUrl, "_blank", "noopener,noreferrer");
+        if (verifyData?.googleFormUrl && !openGoogleForm(verifyData.googleFormUrl)) {
+          return;
         }
         router.push("/dashboard/registrations");
         router.refresh();
@@ -155,6 +171,31 @@ export function RegisterButton({
         {loading ? "Please wait…" : isPaid ? "Register & Pay" : "Register"}
       </button>
       {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {blockedFormUrl && (
+        <div className="mt-3 rounded border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30 p-3 text-sm">
+          <p className="mb-2">
+            🎉 You&apos;re registered! Your browser blocked the Google Form from opening automatically.
+          </p>
+          <a
+            href={blockedFormUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mr-3 underline"
+          >
+            Open the Google Form →
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              router.push("/dashboard/registrations");
+              router.refresh();
+            }}
+            className="underline"
+          >
+            Continue to My Events
+          </button>
+        </div>
+      )}
     </div>
   );
 }
