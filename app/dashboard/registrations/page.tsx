@@ -36,6 +36,10 @@ export default async function MyEventsPage() {
     where: {
       userId: session.user.id,
       eventId: { in: registrations.map((r) => r.eventId) },
+      // Only link to a certificate once there's actually something to view —
+      // an ELIGIBLE/PROCESSING row (pending Slides generation) or a FAILED/
+      // REVOKED one has nothing viewable yet.
+      status: { in: ["AVAILABLE", "GENERATED"] },
     },
   });
   const certifiedEventIds = new Set(certificates.map((c) => c.eventId));

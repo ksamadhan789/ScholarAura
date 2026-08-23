@@ -70,6 +70,12 @@ export default async function ManageEventsPage() {
                 >
                   Registrations
                 </Link>
+                <Link
+                  href={`/dashboard/events/${event.slug}/certificates`}
+                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                >
+                  Certificates
+                </Link>
                 <EventPublishToggle slug={event.slug} isPublished={event.isPublished} />
               </div>
             </div>
