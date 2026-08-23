@@ -102,10 +102,15 @@ export async function POST(request: Request, { params }: { params: { slug: strin
   }
 
   const rows = sheetRows
-    .map((row) => ({
-      email: row["email"] ?? "",
-      attendancePercent: Number(row["attendance"] ?? row["attendance %"] ?? row["attendance%"] ?? ""),
-    }))
+    .map((row) => {
+      // A missing/blank cell must NOT become 0% — Number("") is 0 in JS, which
+      // would silently record "no data" as "failed attendance."
+      const raw = row["attendance"] ?? row["attendance %"] ?? row["attendance%"];
+      return {
+        email: row["email"] ?? "",
+        attendancePercent: raw !== undefined && raw !== "" ? Number(raw) : NaN,
+      };
+    })
     .filter((row) => row.email && Number.isFinite(row.attendancePercent));
 
   const result = await applyAttendanceRows(event.id, event, rows);
