@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -65,10 +66,24 @@ export async function POST(request: Request) {
 
   let collegeName: string | undefined;
   if (organization) {
+    // Case-insensitive so "IIT Bombay" and "iit bombay" are treated as the
+    // same college regardless of status — the DB's unique constraint on
+    // name is case-sensitive, so without this check here a case-different
+    // near-duplicate could otherwise be created successfully.
     const existing = await prisma.college.findFirst({
-      where: { name: { equals: organization, mode: "insensitive" }, status: "APPROVED" },
+      where: { name: { equals: organization, mode: "insensitive" } },
     });
-    if (existing) {
+
+    if (existing?.status === "APPROVED") {
+      collegeName = existing.name;
+    } else if (existing) {
+      // PENDING: already awaiting review — attach to it rather than
+      // creating a duplicate. REJECTED: give it another chance by
+      // re-queuing for review instead of silently reusing a college an
+      // admin has no way to ever see again.
+      if (existing.status === "REJECTED") {
+        await prisma.college.update({ where: { id: existing.id }, data: { status: "PENDING" } });
+      }
       collegeName = existing.name;
     } else {
       try {
@@ -83,12 +98,16 @@ export async function POST(request: Request) {
           },
         });
         collegeName = created.name;
-      } catch {
-        // Another request created the same college name concurrently.
-        const raceWinner = await prisma.college.findFirst({
-          where: { name: { equals: organization, mode: "insensitive" } },
-        });
-        collegeName = raceWinner?.name ?? organization;
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+          // Another request created the same college name concurrently.
+          const raceWinner = await prisma.college.findFirst({
+            where: { name: { equals: organization, mode: "insensitive" } },
+          });
+          collegeName = raceWinner?.name ?? organization;
+        } else {
+          throw err;
+        }
       }
     }
   }

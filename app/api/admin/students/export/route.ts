@@ -4,10 +4,15 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 function csvEscape(value: string): string {
-  if (/[",\n]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
+  // Neutralize formula injection — a name/organization value that starts with
+  // =, +, -, or @ would otherwise be interpreted as a formula by Excel/Sheets
+  // when the exported file is opened, letting a malicious profile field run
+  // arbitrary formulas (e.g. HYPERLINK/DDE payloads) on whoever opens the CSV.
+  const safeValue = /^[=+\-@]/.test(value) ? `'${value}` : value;
+  if (/[",\n]/.test(safeValue)) {
+    return `"${safeValue.replace(/"/g, '""')}"`;
   }
-  return value;
+  return safeValue;
 }
 
 const USER_TYPE_LABELS: Record<string, string> = {
@@ -62,7 +67,7 @@ export async function GET(request: Request) {
   const collegeNames = [...new Set(students.map((s) => s.organization).filter((v): v is string => !!v))];
   const colleges = collegeNames.length
     ? await prisma.college.findMany({
-        where: { name: { in: collegeNames } },
+        where: { name: { in: collegeNames, mode: "insensitive" } },
         select: { name: true, city: true, state: true, university: true },
       })
     : [];
