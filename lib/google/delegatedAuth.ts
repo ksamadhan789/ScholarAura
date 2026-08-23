@@ -23,7 +23,10 @@ export async function getDelegatedGoogleAuth() {
   });
   if (!connection) return null;
 
-  const client = new google.auth.OAuth2(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET);
+  const client = new google.auth.OAuth2(
+    process.env.GOOGLE_DRIVE_OAUTH_CLIENT_ID,
+    process.env.GOOGLE_DRIVE_OAUTH_CLIENT_SECRET
+  );
   client.setCredentials({ refresh_token: connection.refreshToken });
   return client;
 }
