@@ -9,6 +9,7 @@ import {
 } from "@/lib/google/driveService";
 import { replacePlaceholders } from "@/lib/google/slidesService";
 import { stampVerificationOnPdf } from "@/lib/generateCertificatePdf";
+import { sendCertificateReadyEmail } from "@/lib/email";
 
 function buildPlaceholders(params: {
   name: string;
@@ -118,6 +119,14 @@ export async function generateEventCertificate(
         errorMessage: null,
       },
     });
+
+    await sendCertificateReadyEmail(
+      certificate.user.email,
+      certificate.user.name,
+      certificate.certificateNumber,
+      event.title
+    );
+
     return { ok: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error generating certificate";

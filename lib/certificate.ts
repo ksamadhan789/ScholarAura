@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { sendCertificateReadyEmail } from "@/lib/email";
 
 async function generateCertificateNumber(): Promise<string> {
   const year = new Date().getFullYear();
@@ -93,7 +94,7 @@ export async function issueEventCertificateIfEligible(userId: string, eventId: s
     const certificateNumber = await generateCertificateNumber();
 
     try {
-      return await prisma.certificate.create({
+      const created = await prisma.certificate.create({
         data: {
           userId,
           eventId,
@@ -108,6 +109,18 @@ export async function issueEventCertificateIfEligible(userId: string, eventId: s
           status: event.googleSlidesTemplateId ? "ELIGIBLE" : "GENERATED",
         },
       });
+
+      // Only notify once a real, downloadable certificate exists — an
+      // ELIGIBLE row is just a placeholder pending Slides generation, which
+      // sends its own email once that pipeline actually finishes.
+      if (created.status === "GENERATED") {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+        if (user) {
+          await sendCertificateReadyEmail(user.email, user.name, created.certificateNumber, event.title);
+        }
+      }
+
+      return created;
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
         const target = err.meta?.target;

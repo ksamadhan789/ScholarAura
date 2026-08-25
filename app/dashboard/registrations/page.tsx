@@ -6,6 +6,20 @@ import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS, formatDateRange } from "@/lib/eventLabels";
 import { issueEventCertificateIfEligible } from "@/lib/certificate";
 import { buildGoogleFormUrl } from "@/lib/enrollment";
+import { Badge } from "@/components/Badge";
+
+const CERT_STATUS_LABEL: Record<string, string> = {
+  ELIGIBLE: "Processing",
+  PROCESSING: "Processing",
+  FAILED: "Generation issue",
+  REVOKED: "Revoked",
+};
+const CERT_STATUS_VARIANT: Record<string, "success" | "warning" | "brand" | "neutral"> = {
+  ELIGIBLE: "warning",
+  PROCESSING: "brand",
+  FAILED: "warning",
+  REVOKED: "neutral",
+};
 
 export default async function MyEventsPage() {
   const session = await getServerSession(authOptions);
@@ -33,16 +47,9 @@ export default async function MyEventsPage() {
   }
 
   const certificates = await prisma.certificate.findMany({
-    where: {
-      userId: session.user.id,
-      eventId: { in: registrations.map((r) => r.eventId) },
-      // Only link to a certificate once there's actually something to view —
-      // an ELIGIBLE/PROCESSING row (pending Slides generation) or a FAILED/
-      // REVOKED one has nothing viewable yet.
-      status: { in: ["AVAILABLE", "GENERATED"] },
-    },
+    where: { userId: session.user.id, eventId: { in: registrations.map((r) => r.eventId) } },
   });
-  const certifiedEventIds = new Set(certificates.map((c) => c.eventId));
+  const certByEventId = new Map(certificates.map((c) => [c.eventId, c]));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -67,11 +74,13 @@ export default async function MyEventsPage() {
                     enrollmentNumber: r.enrollmentNumber,
                   })
                 : null;
+            const cert = certByEventId.get(event.id);
+            const certReady = cert && (cert.status === "AVAILABLE" || cert.status === "GENERATED");
 
             return (
               <div
                 key={event.id}
-                className="flex items-center justify-between rounded border border-gray-200 dark:border-slate-700 p-4 hover:border-gray-400"
+                className="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-200 dark:border-slate-700 p-4 hover:border-gray-400"
               >
                 <Link href={`/events/${event.slug}`}>
                   <p className="text-sm text-gray-500 dark:text-slate-400">{EVENT_TYPE_LABELS[event.type]}</p>
@@ -79,8 +88,14 @@ export default async function MyEventsPage() {
                   <p className="text-sm text-gray-500 dark:text-slate-400">
                     {formatDateRange(event.startDate, event.endDate)}
                   </p>
+                  {r.enrollmentNumber && (
+                    <p className="mt-1 font-mono text-xs text-gray-400 dark:text-slate-500">
+                      {r.enrollmentNumber}
+                    </p>
+                  )}
                 </Link>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {r.formSubmitted && <Badge variant="success">Form submitted</Badge>}
                   {googleFormUrl && (
                     <a
                       href={googleFormUrl}
@@ -91,13 +106,19 @@ export default async function MyEventsPage() {
                       📝 Complete Google Form
                     </a>
                   )}
-                  {certifiedEventIds.has(event.id) && (
+                  {certReady ? (
                     <Link
                       href="/dashboard/certificates"
                       className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
                     >
                       🎓 Certificate
                     </Link>
+                  ) : (
+                    cert && (
+                      <Badge variant={CERT_STATUS_VARIANT[cert.status] ?? "neutral"}>
+                        🎓 {CERT_STATUS_LABEL[cert.status] ?? cert.status}
+                      </Badge>
+                    )
                   )}
                 </div>
               </div>
