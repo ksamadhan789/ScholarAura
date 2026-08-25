@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { SITE_URL } from "@/lib/siteUrl";
 
 function getClient(): Resend | null {
   const apiKey = process.env.RESEND_API_KEY;
@@ -44,6 +45,52 @@ export async function sendPasswordResetEmail(
     }
   } catch (err) {
     console.error("Failed to send password reset email:", err);
+    return false;
+  }
+
+  return true;
+}
+
+export async function sendCertificateReadyEmail(
+  to: string,
+  name: string,
+  certificateNumber: string,
+  eventTitle: string
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send certificate ready email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const certificatesUrl = `${SITE_URL}/dashboard/certificates`;
+  const verifyUrl = `${SITE_URL}/verify/${certificateNumber}`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Your certificate for ${eventTitle} is ready`,
+      text: `Hi ${displayName},\n\nYour certificate for "${eventTitle}" is ready.\n\nCertificate number: ${certificateNumber}\n\nView and download it here: ${certificatesUrl}\n\nYou can verify it anytime at: ${verifyUrl}\n\nCongratulations!\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>Your certificate for <strong>${eventTitle}</strong> is ready.</p>
+        <p>
+          <a href="${certificatesUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Certificate</a>
+        </p>
+        <p>Certificate number: <strong>${certificateNumber}</strong></p>
+        <p>You can verify it anytime at <a href="${verifyUrl}">${verifyUrl}</a>.</p>
+        <p>Congratulations!<br>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send certificate ready email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send certificate ready email:", err);
     return false;
   }
 

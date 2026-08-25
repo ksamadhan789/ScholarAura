@@ -52,6 +52,20 @@ export default async function VerifyCertificatePage({
                 })}
               </dd>
             </div>
+            {certificate.event && certificate.certificateType && (
+              <div>
+                <dt className="text-gray-500 dark:text-slate-400">Certificate type</dt>
+                <dd className="font-medium">
+                  {certificate.certificateType.charAt(0) + certificate.certificateType.slice(1).toLowerCase()}
+                </dd>
+              </div>
+            )}
+            {certificate.event && certificate.user.organization && (
+              <div>
+                <dt className="text-gray-500 dark:text-slate-400">Institution</dt>
+                <dd className="font-medium">{certificate.user.organization}</dd>
+              </div>
+            )}
           </dl>
 
           <a
