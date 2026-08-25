@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateEventCertificate } from "@/lib/certificateGeneration";
+import { generateCertificate } from "@/lib/certificateGeneration";
 
 export async function POST(_request: Request, { params }: { params: { code: string } }) {
   const session = await getServerSession(authOptions);
@@ -23,7 +23,7 @@ export async function POST(_request: Request, { params }: { params: { code: stri
     );
   }
 
-  const result = await generateEventCertificate(certificate.id);
+  const result = await generateCertificate(certificate.id);
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 502 });
   }
