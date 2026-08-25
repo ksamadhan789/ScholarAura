@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function SyncAttendanceButton({ slug }: { slug: string }) {
+export function SyncAttendanceButton({ syncUrl }: { syncUrl: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -12,7 +12,7 @@ export function SyncAttendanceButton({ slug }: { slug: string }) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/events/${slug}/sync-attendance`, { method: "POST" });
+      const res = await fetch(syncUrl, { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setMessage(data.error ?? "Sync failed");

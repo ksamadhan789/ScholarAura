@@ -9,7 +9,9 @@ export function RevokeCertificateButton({ code }: { code: string }) {
   const [error, setError] = useState<string | null>(null);
 
   async function run() {
-    if (!window.confirm("Revoke this certificate? It will fail public verification until restored.")) {
+    if (
+      !window.confirm("Revoke this certificate? It will fail public verification until restored.")
+    ) {
       return;
     }
     const reason = window.prompt("Reason (optional):") ?? undefined;
