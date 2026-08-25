@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getRazorpayClient } from "@/lib/razorpay";
 import { computeCreditApplication, settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
+import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/competitionEnrollment";
 
 export async function POST(
   request: Request,
@@ -38,6 +39,10 @@ export async function POST(
   const requestedCurrency = (body?.currency ?? "INR").toUpperCase();
   const teamName = typeof body?.teamName === "string" ? body.teamName.trim() || null : null;
   const teammates = typeof body?.teammates === "string" ? body.teammates.trim() || null : null;
+  const certificateName =
+    typeof body?.certificateName === "string" && body.certificateName.trim()
+      ? body.certificateName.trim()
+      : null;
 
   let payCurrency = "INR";
   let chargedAmount: number | null = null;
@@ -62,58 +67,79 @@ export async function POST(
       // Covers both genuinely free entries (fee = 0) and credit-covered
       // ones — guarded so concurrent duplicate requests can't each pay the
       // referrer a second time for one entry.
-      await prisma.$transaction(async (tx) => {
-        const claimedExisting = await tx.competitionEntry.updateMany({
-          where: { userId: session.user.id, competitionId: competition.id, status: { not: "SUCCESS" } },
-          data: {
-            status: "SUCCESS",
-            amount: fee,
-            creditApplied,
-            currency: "INR",
-            chargedAmount: null,
-            razorpayOrderId: null,
-            teamName,
-            teammates,
-          },
-        });
+      const entry = await withEnrollmentNumber(existing?.enrollmentNumber, (enrollmentNumber) =>
+        prisma.$transaction(async (tx) => {
+          const claimedExisting = await tx.competitionEntry.updateMany({
+            where: { userId: session.user.id, competitionId: competition.id, status: { not: "SUCCESS" } },
+            data: {
+              status: "SUCCESS",
+              amount: fee,
+              creditApplied,
+              currency: "INR",
+              chargedAmount: null,
+              razorpayOrderId: null,
+              teamName,
+              teammates,
+              certificateName,
+              enrollmentNumber,
+            },
+          });
 
-        let isFreshSettlement = claimedExisting.count > 0;
+          let isFreshSettlement = claimedExisting.count > 0;
 
-        if (claimedExisting.count === 0) {
-          try {
-            await tx.competitionEntry.create({
-              data: {
-                userId: session.user.id,
-                competitionId: competition.id,
-                amount: fee,
-                creditApplied,
-                currency: "INR",
-                status: "SUCCESS",
-                teamName,
-                teammates,
-              },
-            });
-            isFreshSettlement = true;
-          } catch (err) {
-            if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-              isFreshSettlement = false;
-            } else {
-              throw err;
+          if (claimedExisting.count === 0) {
+            try {
+              await tx.competitionEntry.create({
+                data: {
+                  userId: session.user.id,
+                  competitionId: competition.id,
+                  amount: fee,
+                  creditApplied,
+                  currency: "INR",
+                  status: "SUCCESS",
+                  teamName,
+                  teammates,
+                  certificateName,
+                  enrollmentNumber,
+                },
+              });
+              isFreshSettlement = true;
+            } catch (err) {
+              if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+                isFreshSettlement = false;
+              } else {
+                throw err;
+              }
             }
           }
-        }
 
-        if (isFreshSettlement) {
-          await settleReferralCredit(tx, {
-            buyerId: session.user.id,
-            originalAmount: fee,
-            creditApplied,
-            description: `Competition: ${competition.title}`,
+          if (isFreshSettlement) {
+            await settleReferralCredit(tx, {
+              buyerId: session.user.id,
+              originalAmount: fee,
+              creditApplied,
+              description: `Competition: ${competition.title}`,
+            });
+          }
+
+          return tx.competitionEntry.findUniqueOrThrow({
+            where: { userId_competitionId: { userId: session.user.id, competitionId: competition.id } },
           });
-        }
+        })
+      );
+
+      const googleFormUrl = buildGoogleFormUrl(competition, {
+        name: certificateName ?? session.user.name ?? "",
+        email: session.user.email ?? "",
+        enrollmentNumber: entry.enrollmentNumber!,
       });
 
-      return NextResponse.json({ paidWithCredit: true, competitionName: competition.title });
+      return NextResponse.json({
+        paidWithCredit: true,
+        competitionName: competition.title,
+        entry,
+        googleFormUrl,
+      });
     }
 
     const razorpay = getRazorpayClient();
@@ -137,6 +163,7 @@ export async function POST(
         status: "PENDING",
         teamName,
         teammates,
+        certificateName,
       },
       create: {
         userId: session.user.id,
@@ -149,6 +176,7 @@ export async function POST(
         status: "PENDING",
         teamName,
         teammates,
+        certificateName,
       },
     });
 

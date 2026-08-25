@@ -23,6 +23,7 @@ export default async function EditCompetitionPage({ params }: { params: { slug: 
   return (
     <EditCompetitionForm
       slug={competition.slug}
+      webhookSecret={competition.webhookSecret}
       initial={{
         title: competition.title,
         description: competition.description,
@@ -44,6 +45,19 @@ export default async function EditCompetitionPage({ params }: { params: { slug: 
         registrationDeadline: toLocalInput(competition.registrationDeadline),
         resultDate: toLocalInput(competition.resultDate),
         people: (competition.people as unknown as EventPerson[] | null) ?? [],
+        organizer: competition.organizer ?? "",
+        googleFormUrl: competition.googleFormUrl ?? "",
+        googleFormNameEntryId: competition.googleFormNameEntryId ?? "",
+        googleFormEmailEntryId: competition.googleFormEmailEntryId ?? "",
+        googleFormEnrollmentEntryId: competition.googleFormEnrollmentEntryId ?? "",
+        googleSheetId: competition.googleSheetId ?? "",
+        attendanceRequired: competition.attendanceRequired,
+        minAttendancePercent: competition.minAttendancePercent?.toString() ?? "",
+        certificateEnabled: competition.certificateEnabled,
+        certificateType: competition.certificateType ?? "PARTICIPATION",
+        googleSlidesTemplateId: competition.googleSlidesTemplateId ?? "",
+        certificateSignatoryName: competition.certificateSignatoryName ?? "",
+        certificateSignatoryTitle: competition.certificateSignatoryTitle ?? "",
       }}
     />
   );

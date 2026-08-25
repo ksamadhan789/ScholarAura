@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
 import { settleCompetitionEntry } from "@/lib/paymentSettlement";
+import { buildGoogleFormUrl } from "@/lib/competitionEnrollment";
 
 const verifySchema = z.object({
   razorpay_order_id: z.string(),
@@ -53,5 +54,13 @@ export async function POST(
   // verification (the signature doesn't expire) can't re-settle referral
   // credit a second time for the same entry.
   const updated = await settleCompetitionEntry(entry.id, razorpay_payment_id);
-  return NextResponse.json(updated);
+  const googleFormUrl =
+    updated && updated.enrollmentNumber
+      ? buildGoogleFormUrl(competition, {
+          name: updated.certificateName ?? session.user.name ?? "",
+          email: session.user.email ?? "",
+          enrollmentNumber: updated.enrollmentNumber,
+        })
+      : null;
+  return NextResponse.json({ ...updated, googleFormUrl });
 }

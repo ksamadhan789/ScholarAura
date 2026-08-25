@@ -1,0 +1,79 @@
+import { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+
+/**
+ * Runs `attempt` with a freshly generated enrollment number, retrying with a
+ * new number if it collides with one assigned by a concurrent request (which
+ * generateEnrollmentNumber's plain count-based generation can't itself
+ * prevent). If `existingNumber` is already set, reuses it directly with no
+ * retry, since it was already committed successfully once.
+ */
+export async function withEnrollmentNumber<T>(
+  existingNumber: string | null | undefined,
+  attempt: (enrollmentNumber: string) => Promise<T>
+): Promise<T> {
+  if (existingNumber) return attempt(existingNumber);
+
+  for (let i = 0; i < 5; i++) {
+    const enrollmentNumber = await generateEnrollmentNumber();
+    try {
+      return await attempt(enrollmentNumber);
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2002" &&
+        Array.isArray(err.meta?.target) &&
+        (err.meta.target as string[]).includes("enrollmentNumber")
+      ) {
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw new Error("Could not enter after several attempts — enrollment number kept colliding");
+}
+
+export async function generateEnrollmentNumber(): Promise<string> {
+  const year = new Date().getFullYear();
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const count = await prisma.competitionEntry.count({
+      where: { enrollmentNumber: { startsWith: `CENR-${year}-` } },
+    });
+    const sequence = (count + 1 + attempt).toString().padStart(6, "0");
+    const candidate = `CENR-${year}-${sequence}`;
+
+    const existing = await prisma.competitionEntry.findUnique({
+      where: { enrollmentNumber: candidate },
+    });
+    if (!existing) return candidate;
+  }
+
+  throw new Error("Could not generate a unique enrollment number");
+}
+
+export function buildGoogleFormUrl(
+  competition: {
+    googleFormUrl: string | null;
+    googleFormNameEntryId: string | null;
+    googleFormEmailEntryId: string | null;
+    googleFormEnrollmentEntryId: string | null;
+  },
+  participant: { name: string; email: string; enrollmentNumber: string }
+): string | null {
+  if (!competition.googleFormUrl) return null;
+
+  const url = new URL(competition.googleFormUrl);
+  url.searchParams.set("usp", "pp_url");
+  if (competition.googleFormNameEntryId) {
+    url.searchParams.set(competition.googleFormNameEntryId, participant.name);
+  }
+  if (competition.googleFormEmailEntryId) {
+    url.searchParams.set(competition.googleFormEmailEntryId, participant.email);
+  }
+  if (competition.googleFormEnrollmentEntryId) {
+    url.searchParams.set(competition.googleFormEnrollmentEntryId, participant.enrollmentNumber);
+  }
+  return url.toString();
+}
