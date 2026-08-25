@@ -4,7 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
-import { issueEventCertificateIfEligible } from "@/lib/certificate";
+import { issueCompetitionCertificateIfEligible } from "@/lib/certificate";
 import { getConnectedGoogleEmail } from "@/lib/google/delegatedAuth";
 import { SyncAttendanceButton } from "@/components/certificates/SyncAttendanceButton";
 import { ProcessPendingButton } from "@/components/certificates/ProcessPendingButton";
@@ -22,7 +22,7 @@ const CERT_STATUS_VARIANT: Record<string, "success" | "warning" | "brand" | "neu
   NOT_ELIGIBLE: "neutral",
 };
 
-export default async function EventCertificatesPage({
+export default async function CompetitionCertificatesPage({
   params,
   searchParams,
 }: {
@@ -37,26 +37,26 @@ export default async function EventCertificatesPage({
     redirect("/dashboard");
   }
 
-  const event = await prisma.event.findUnique({ where: { slug: params.slug } });
-  if (!event) {
+  const competition = await prisma.competition.findUnique({ where: { slug: params.slug } });
+  if (!competition) {
     notFound();
   }
 
   const connectedEmail = await getConnectedGoogleEmail();
-  const returnTo = `/dashboard/events/${event.slug}/certificates`;
+  const returnTo = `/dashboard/competitions/${competition.slug}/certificates`;
 
-  const registrations = await prisma.eventRegistration.findMany({
-    where: { eventId: event.id, status: "CONFIRMED" },
+  const entries = await prisma.competitionEntry.findMany({
+    where: { competitionId: competition.id, status: "SUCCESS" },
     include: { user: { select: { id: true, name: true, email: true, organization: true } } },
     orderBy: { registeredAt: "asc" },
   });
 
-  // Certificates are otherwise only lazily issued when a student visits their
-  // own dashboard — do the same eager check here so an admin can drive
+  // Certificates are otherwise only lazily issued when an entrant visits
+  // their own dashboard — do the same eager check here so an admin can drive
   // generation without waiting on that. allSettled so one failure can't take
   // down the whole page.
   const issuanceResults = await Promise.allSettled(
-    registrations.map((r) => issueEventCertificateIfEligible(r.userId, event.id))
+    entries.map((e) => issueCompetitionCertificateIfEligible(e.userId, competition.id))
   );
   for (const result of issuanceResults) {
     if (result.status === "rejected") {
@@ -64,15 +64,15 @@ export default async function EventCertificatesPage({
     }
   }
 
-  const certificates = await prisma.certificate.findMany({ where: { eventId: event.id } });
+  const certificates = await prisma.certificate.findMany({ where: { competitionId: competition.id } });
   const certByUserId = new Map(certificates.map((c) => [c.userId, c]));
 
-  const hasTemplate = !!event.googleSlidesTemplateId;
+  const hasTemplate = !!competition.googleSlidesTemplateId;
 
   const stats = [
-    ["Registered", registrations.length],
-    ["Attendance verified", registrations.filter((r) => r.attendanceVerifiedAt).length],
-    ["Eligible", registrations.filter((r) => r.eligibleForCertificate).length],
+    ["Entries", entries.length],
+    ["Attendance verified", entries.filter((e) => e.attendanceVerifiedAt).length],
+    ["Eligible", entries.filter((e) => e.eligibleForCertificate).length],
     ["Generated", certificates.filter((c) => c.status === "AVAILABLE" || c.status === "GENERATED").length],
     ["Pending", certificates.filter((c) => c.status === "ELIGIBLE" || c.status === "PROCESSING").length],
     ["Failed", certificates.filter((c) => c.status === "FAILED").length],
@@ -80,13 +80,13 @@ export default async function EventCertificatesPage({
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-16">
-      <Link href="/dashboard/events" className="text-sm text-gray-500 hover:underline dark:text-slate-400">
-        ← Manage events
+      <Link href="/dashboard/competitions" className="text-sm text-gray-500 hover:underline dark:text-slate-400">
+        ← Manage competitions
       </Link>
       <div className="mt-2 mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">{event.title} — Certificates</h1>
+        <h1 className="text-2xl font-semibold">{competition.title} — Certificates</h1>
         <div className="flex gap-2">
-          <SyncAttendanceButton syncUrl={`/api/events/${event.slug}/sync-attendance`} />
+          <SyncAttendanceButton syncUrl={`/api/competitions/${competition.slug}/sync-attendance`} />
           {hasTemplate && <ProcessPendingButton />}
         </div>
       </div>
@@ -124,8 +124,8 @@ export default async function EventCertificatesPage({
 
       {!hasTemplate && (
         <p className="mb-6 rounded border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30 p-3 text-sm text-amber-800 dark:text-amber-300">
-          No Google Slides certificate template is configured for this event — set one on the Edit page to enable
-          automated certificate generation. Certificates will otherwise use the default in-house design.
+          No Google Slides certificate template is configured for this competition — set one on the Edit page to
+          enable automated certificate generation. Certificates will otherwise use the default in-house design.
         </p>
       )}
 
@@ -138,8 +138,8 @@ export default async function EventCertificatesPage({
         ))}
       </div>
 
-      {registrations.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-slate-400">No confirmed registrations yet.</p>
+      {entries.length === 0 ? (
+        <p className="text-sm text-gray-500 dark:text-slate-400">No successful entries yet.</p>
       ) : (
         <div className="overflow-x-auto rounded border border-gray-200 dark:border-slate-700">
           <table className="w-full text-left text-sm">
@@ -157,19 +157,19 @@ export default async function EventCertificatesPage({
               </tr>
             </thead>
             <tbody>
-              {registrations.map((r) => {
-                const cert = certByUserId.get(r.userId);
+              {entries.map((e) => {
+                const cert = certByUserId.get(e.userId);
                 return (
-                  <tr key={r.id} className="border-t border-gray-200 dark:border-slate-700 align-top">
-                    <td className="px-4 py-2.5 font-mono text-xs">{r.enrollmentNumber ?? "—"}</td>
-                    <td className="px-4 py-2.5">{r.user.name}</td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">{r.user.email}</td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">{r.user.organization ?? "—"}</td>
-                    <td className="px-4 py-2.5">{r.formSubmitted ? "✓" : "—"}</td>
+                  <tr key={e.id} className="border-t border-gray-200 dark:border-slate-700 align-top">
+                    <td className="px-4 py-2.5 font-mono text-xs">{e.enrollmentNumber ?? "—"}</td>
+                    <td className="px-4 py-2.5">{e.user.name}</td>
+                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">{e.user.email}</td>
+                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">{e.user.organization ?? "—"}</td>
+                    <td className="px-4 py-2.5">{e.formSubmitted ? "✓" : "—"}</td>
                     <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                      {r.attendancePercent != null ? `${r.attendancePercent}%` : "—"}
+                      {e.attendancePercent != null ? `${e.attendancePercent}%` : "—"}
                     </td>
-                    <td className="px-4 py-2.5">{r.eligibleForCertificate ? "✓" : "—"}</td>
+                    <td className="px-4 py-2.5">{e.eligibleForCertificate ? "✓" : "—"}</td>
                     <td className="px-4 py-2.5">
                       {cert ? (
                         <div className="flex flex-col gap-1">
@@ -229,7 +229,7 @@ export default async function EventCertificatesPage({
                         </div>
                       ) : (
                         <span className="text-xs text-gray-400 dark:text-slate-500">
-                          {r.eligibleForCertificate ? "Not yet issued" : "Not eligible yet"}
+                          {e.eligibleForCertificate ? "Not yet issued" : "Not eligible yet"}
                         </span>
                       )}
                     </td>
