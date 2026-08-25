@@ -19,7 +19,7 @@ export default async function MyCertificatesPage() {
 
   const certificates = await prisma.certificate.findMany({
     where: { userId: session.user.id },
-    include: { course: true, event: true },
+    include: { course: true, event: true, competition: true },
     orderBy: { issuedAt: "desc" },
   });
 
@@ -42,11 +42,14 @@ export default async function MyCertificatesPage() {
               >
                 <div>
                   <h2 className="font-medium">
-                    {cert.course?.title ?? cert.event?.title}
+                    {cert.course?.title ?? cert.event?.title ?? cert.competition?.title}
                     {cert.event && (
                       <span className="ml-1 text-sm text-gray-500 dark:text-slate-400">
                         ({EVENT_TYPE_LABELS[cert.event.type]})
                       </span>
+                    )}
+                    {cert.competition && (
+                      <span className="ml-1 text-sm text-gray-500 dark:text-slate-400">(Competition)</span>
                     )}
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-slate-400">

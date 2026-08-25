@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { withEnrollmentNumber } from "@/lib/enrollment";
+import { withEnrollmentNumber as withCompetitionEnrollmentNumber } from "@/lib/competitionEnrollment";
 
 /**
  * Settles referral credit but never lets an already-captured payment fail to
@@ -117,21 +118,23 @@ export async function settleCompetitionEntry(entryId: string, paymentId: string)
   const competition = await prisma.competition.findUnique({ where: { id: entry.competitionId } });
   if (!competition) return null;
 
-  return prisma.$transaction(async (tx) => {
-    const claimed = await tx.competitionEntry.updateMany({
-      where: { id: entry.id, status: { not: "SUCCESS" } },
-      data: { status: "SUCCESS", razorpayPaymentId: paymentId },
-    });
-
-    if (claimed.count > 0) {
-      await settleReferralCreditBestEffort(tx, {
-        buyerId: entry.userId,
-        originalAmount: Number(entry.amount),
-        creditApplied: Number(entry.creditApplied),
-        description: `Competition: ${competition.title}`,
+  return withCompetitionEnrollmentNumber(entry.enrollmentNumber, (enrollmentNumber) =>
+    prisma.$transaction(async (tx) => {
+      const claimed = await tx.competitionEntry.updateMany({
+        where: { id: entry.id, status: { not: "SUCCESS" } },
+        data: { status: "SUCCESS", razorpayPaymentId: paymentId, enrollmentNumber },
       });
-    }
 
-    return tx.competitionEntry.findUniqueOrThrow({ where: { id: entry.id } });
-  });
+      if (claimed.count > 0) {
+        await settleReferralCreditBestEffort(tx, {
+          buyerId: entry.userId,
+          originalAmount: Number(entry.amount),
+          creditApplied: Number(entry.creditApplied),
+          description: `Competition: ${competition.title}`,
+        });
+      }
+
+      return tx.competitionEntry.findUniqueOrThrow({ where: { id: entry.id } });
+    })
+  );
 }

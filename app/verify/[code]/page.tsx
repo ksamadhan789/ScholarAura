@@ -14,7 +14,7 @@ export default async function VerifyCertificatePage({
 }) {
   const certificate = await prisma.certificate.findUnique({
     where: { certificateNumber: params.code },
-    include: { user: true, course: true, event: true },
+    include: { user: true, course: true, event: true, competition: true },
   });
   const isRevoked = certificate?.status === "REVOKED";
 
@@ -34,11 +34,14 @@ export default async function VerifyCertificatePage({
             <div>
               <dt className="text-gray-500 dark:text-slate-400">For</dt>
               <dd className="font-medium">
-                {certificate.course?.title ?? certificate.event?.title}
+                {certificate.course?.title ?? certificate.event?.title ?? certificate.competition?.title}
                 {certificate.event && (
                   <span className="ml-1 text-gray-500 dark:text-slate-400">
                     ({EVENT_TYPE_LABELS[certificate.event.type]})
                   </span>
+                )}
+                {certificate.competition && (
+                  <span className="ml-1 text-gray-500 dark:text-slate-400">(Competition)</span>
                 )}
               </dd>
             </div>
@@ -52,7 +55,7 @@ export default async function VerifyCertificatePage({
                 })}
               </dd>
             </div>
-            {certificate.event && certificate.certificateType && (
+            {(certificate.event || certificate.competition) && certificate.certificateType && (
               <div>
                 <dt className="text-gray-500 dark:text-slate-400">Certificate type</dt>
                 <dd className="font-medium">
@@ -60,7 +63,7 @@ export default async function VerifyCertificatePage({
                 </dd>
               </div>
             )}
-            {certificate.event && certificate.user.organization && (
+            {(certificate.event || certificate.competition) && certificate.user.organization && (
               <div>
                 <dt className="text-gray-500 dark:text-slate-400">Institution</dt>
                 <dd className="font-medium">{certificate.user.organization}</dd>

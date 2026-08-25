@@ -2,14 +2,22 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { computeEligibility } from "@/lib/eligibility";
+import { computeEligibility, computeCompetitionEligibility } from "@/lib/eligibility";
 
-const webhookSchema = z.object({
-  eventSlug: z.string().min(1),
-  responseId: z.string().min(1),
-  email: z.string().trim().email(),
-  enrollmentNumber: z.string().trim().optional(),
-});
+// Exactly one of eventSlug/competitionSlug identifies which Apps Script this
+// delivery came from — one shared webhook URL for both, since the Apps
+// Script setup instructions only differ in which slug field gets set.
+const webhookSchema = z
+  .object({
+    eventSlug: z.string().min(1).optional(),
+    competitionSlug: z.string().min(1).optional(),
+    responseId: z.string().min(1),
+    email: z.string().trim().email(),
+    enrollmentNumber: z.string().trim().optional(),
+  })
+  .refine((data) => Boolean(data.eventSlug) !== Boolean(data.competitionSlug), {
+    message: "Provide exactly one of eventSlug or competitionSlug",
+  });
 
 function secretsMatch(provided: string, expected: string): boolean {
   const providedBuffer = Buffer.from(provided);
@@ -27,50 +35,90 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  const { eventSlug, responseId, email, enrollmentNumber } = parsed.data;
+  const { eventSlug, competitionSlug, responseId, email, enrollmentNumber } = parsed.data;
 
-  const event = await prisma.event.findUnique({ where: { slug: eventSlug } });
-  if (!event) {
-    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  if (eventSlug) {
+    const event = await prisma.event.findUnique({ where: { slug: eventSlug } });
+    if (!event) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    // Each event has its own secret (shown on its admin edit page) rather than
+    // one shared globally — so access to one event's Apps Script can't be used
+    // to forge form-submission data for a different event.
+    const providedSecret = request.headers.get("x-webhook-secret") ?? "";
+    if (!secretsMatch(providedSecret, event.webhookSecret)) {
+      return NextResponse.json({ error: "Not allowed" }, { status: 403 });
+    }
+
+    // A retried delivery of a response we've already recorded is a no-op, not an error.
+    const alreadyRecorded = await prisma.eventRegistration.findUnique({
+      where: { googleResponseId: responseId },
+    });
+    if (alreadyRecorded) {
+      return NextResponse.json({ ok: true, alreadyRecorded: true });
+    }
+
+    // Match priority: enrollment number (reliable, immune to duplicate names/emails)
+    // first, falling back to email — never match on name alone.
+    const registration = enrollmentNumber
+      ? await prisma.eventRegistration.findFirst({ where: { eventId: event.id, enrollmentNumber } })
+      : await prisma.eventRegistration.findFirst({ where: { eventId: event.id, user: { email } } });
+
+    if (!registration) {
+      return NextResponse.json(
+        { error: "No matching enrollment found for this response" },
+        { status: 404 }
+      );
+    }
+
+    const eligibleForCertificate = computeEligibility(registration, event);
+
+    await prisma.eventRegistration.update({
+      where: { id: registration.id },
+      data: {
+        formSubmitted: true,
+        formSubmissionDate: new Date(),
+        googleResponseId: responseId,
+        eligibleForCertificate,
+      },
+    });
+
+    return NextResponse.json({ ok: true });
   }
 
-  // Each event has its own secret (shown on its admin edit page) rather than
-  // one shared globally — so access to one event's Apps Script can't be used
-  // to forge form-submission data for a different event.
+  const competition = await prisma.competition.findUnique({ where: { slug: competitionSlug } });
+  if (!competition) {
+    return NextResponse.json({ error: "Competition not found" }, { status: 404 });
+  }
+
   const providedSecret = request.headers.get("x-webhook-secret") ?? "";
-  if (!secretsMatch(providedSecret, event.webhookSecret)) {
+  if (!secretsMatch(providedSecret, competition.webhookSecret)) {
     return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
 
-  // A retried delivery of a response we've already recorded is a no-op, not an error.
-  const alreadyRecorded = await prisma.eventRegistration.findUnique({
+  const alreadyRecorded = await prisma.competitionEntry.findUnique({
     where: { googleResponseId: responseId },
   });
   if (alreadyRecorded) {
     return NextResponse.json({ ok: true, alreadyRecorded: true });
   }
 
-  // Match priority: enrollment number (reliable, immune to duplicate names/emails)
-  // first, falling back to email — never match on name alone.
-  const registration = enrollmentNumber
-    ? await prisma.eventRegistration.findFirst({
-        where: { eventId: event.id, enrollmentNumber },
-      })
-    : await prisma.eventRegistration.findFirst({
-        where: { eventId: event.id, user: { email } },
-      });
+  const entry = enrollmentNumber
+    ? await prisma.competitionEntry.findFirst({ where: { competitionId: competition.id, enrollmentNumber } })
+    : await prisma.competitionEntry.findFirst({ where: { competitionId: competition.id, user: { email } } });
 
-  if (!registration) {
+  if (!entry) {
     return NextResponse.json(
-      { error: "No matching enrollment found for this response" },
+      { error: "No matching entry found for this response" },
       { status: 404 }
     );
   }
 
-  const eligibleForCertificate = computeEligibility(registration, event);
+  const eligibleForCertificate = computeCompetitionEligibility(entry, competition);
 
-  await prisma.eventRegistration.update({
-    where: { id: registration.id },
+  await prisma.competitionEntry.update({
+    where: { id: entry.id },
     data: {
       formSubmitted: true,
       formSubmissionDate: new Date(),

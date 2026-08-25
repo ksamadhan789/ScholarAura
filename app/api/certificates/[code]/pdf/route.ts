@@ -22,7 +22,7 @@ export async function GET(
 ) {
   const certificate = await prisma.certificate.findUnique({
     where: { certificateNumber: params.code },
-    include: { user: true, course: true, event: true },
+    include: { user: true, course: true, event: true, competition: true },
   });
 
   if (!certificate) {
@@ -46,7 +46,7 @@ export async function GET(
     }
   }
 
-  const title = certificate.course?.title ?? certificate.event?.title ?? "";
+  const title = certificate.course?.title ?? certificate.event?.title ?? certificate.competition?.title ?? "";
   const subtitle = certificate.course
     ? "for successfully completing the course"
     : "for participating in";
@@ -60,11 +60,24 @@ export async function GET(
     if (registration?.certificateName) {
       recipientName = registration.certificateName;
     }
+  } else if (certificate.competitionId) {
+    const entry = await prisma.competitionEntry.findUnique({
+      where: {
+        userId_competitionId: { userId: certificate.userId, competitionId: certificate.competitionId },
+      },
+      select: { certificateName: true },
+    });
+    if (entry?.certificateName) {
+      recipientName = entry.certificateName;
+    }
   }
 
   const orgLogoBytes = fs.readFileSync(path.join(process.cwd(), "public", "logo.png"));
 
-  const partnerLogoUrl = certificate.course?.certificateLogoUrl ?? certificate.event?.certificateLogoUrl;
+  const partnerLogoUrl =
+    certificate.course?.certificateLogoUrl ??
+    certificate.event?.certificateLogoUrl ??
+    certificate.competition?.certificateLogoUrl;
   const partnerLogoBytes = partnerLogoUrl ? await fetchImageBytes(partnerLogoUrl) : null;
 
   const pdfBytes = await generateCertificatePdf({
