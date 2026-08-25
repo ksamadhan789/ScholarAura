@@ -143,3 +143,66 @@ export async function issueEventCertificateIfEligible(userId: string, eventId: s
 
   throw new Error("Could not issue event certificate after several attempts");
 }
+
+export async function issueCompetitionCertificateIfEligible(userId: string, competitionId: string) {
+  const existing = await prisma.certificate.findUnique({
+    where: { userId_competitionId: { userId, competitionId } },
+  });
+  if (existing) return existing;
+
+  const entry = await prisma.competitionEntry.findUnique({
+    where: { userId_competitionId: { userId, competitionId } },
+  });
+  if (!entry || entry.status !== "SUCCESS") return null;
+
+  const competition = await prisma.competition.findUnique({ where: { id: competitionId } });
+  if (!competition || competition.endDate > new Date()) return null;
+  if (!competition.certificateEnabled) return null;
+  if (competition.attendanceRequired && !entry.eligibleForCertificate) return null;
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const certificateNumber = await generateCertificateNumber();
+
+    try {
+      const created = await prisma.certificate.create({
+        data: {
+          userId,
+          competitionId,
+          certificateNumber,
+          pdfUrl: `/api/certificates/${certificateNumber}/pdf`,
+          certificateType: competition.certificateType,
+          attendancePercentage: entry.attendancePercent,
+          status: competition.googleSlidesTemplateId ? "ELIGIBLE" : "GENERATED",
+        },
+      });
+
+      if (created.status === "GENERATED") {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+        if (user) {
+          await sendCertificateReadyEmail(user.email, user.name, created.certificateNumber, competition.title);
+        }
+      }
+
+      return created;
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+        const target = err.meta?.target;
+        const violatedOwnUniqueness =
+          Array.isArray(target) && target.includes("userId") && target.includes("competitionId");
+        if (violatedOwnUniqueness) {
+          // A concurrent request for this same user+competition already issued one — return it.
+          const own = await prisma.certificate.findUnique({
+            where: { userId_competitionId: { userId, competitionId } },
+          });
+          if (own) return own;
+        }
+        // Otherwise the certificateNumber candidate collided with someone else's
+        // concurrent issuance — retry with a freshly generated number.
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw new Error("Could not issue competition certificate after several attempts");
+}

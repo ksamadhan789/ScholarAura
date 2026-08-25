@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateEventCertificate } from "@/lib/certificateGeneration";
+import { generateCertificate } from "@/lib/certificateGeneration";
 
 // Unlike /generate, this is allowed regardless of current status — it's the
 // admin's explicit way to overwrite an already-AVAILABLE (or FAILED) file,
@@ -20,7 +20,7 @@ export async function POST(_request: Request, { params }: { params: { code: stri
     return NextResponse.json({ error: "Certificate not found" }, { status: 404 });
   }
 
-  const result = await generateEventCertificate(certificate.id);
+  const result = await generateCertificate(certificate.id);
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 502 });
   }

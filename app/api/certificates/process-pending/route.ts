@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { generateEventCertificate } from "@/lib/certificateGeneration";
+import { generateCertificate } from "@/lib/certificateGeneration";
 
 // Processed sequentially, one batch at a time — this is the admin-triggered
 // alternative to a cron job, so it must finish within one serverless
@@ -16,12 +17,16 @@ export async function POST() {
     return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
 
+  const pendingWhere: Prisma.CertificateWhereInput = {
+    status: { in: ["ELIGIBLE", "FAILED"] },
+    OR: [
+      { eventId: { not: null }, event: { googleSlidesTemplateId: { not: null } } },
+      { competitionId: { not: null }, competition: { googleSlidesTemplateId: { not: null } } },
+    ],
+  };
+
   const pending = await prisma.certificate.findMany({
-    where: {
-      eventId: { not: null },
-      status: { in: ["ELIGIBLE", "FAILED"] },
-      event: { googleSlidesTemplateId: { not: null } },
-    },
+    where: pendingWhere,
     select: { id: true },
     orderBy: { issuedAt: "asc" },
     take: BATCH_SIZE,
@@ -30,18 +35,12 @@ export async function POST() {
   let succeeded = 0;
   let failed = 0;
   for (const { id } of pending) {
-    const result = await generateEventCertificate(id);
+    const result = await generateCertificate(id);
     if (result.ok) succeeded++;
     else failed++;
   }
 
-  const remaining = await prisma.certificate.count({
-    where: {
-      eventId: { not: null },
-      status: { in: ["ELIGIBLE", "FAILED"] },
-      event: { googleSlidesTemplateId: { not: null } },
-    },
-  });
+  const remaining = await prisma.certificate.count({ where: pendingWhere });
 
   return NextResponse.json({ processed: pending.length, succeeded, failed, remaining });
 }

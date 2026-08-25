@@ -148,3 +148,128 @@ export async function generateEventCertificate(
     return { ok: false, error: message };
   }
 }
+
+/**
+ * Same pipeline as generateEventCertificate, for a competition certificate.
+ * Reuses buildPlaceholders as-is — the {{EVENT_TITLE}} placeholder just gets
+ * the competition's title, keeping one placeholder vocabulary for admins
+ * designing templates regardless of which kind of certificate they're for.
+ */
+export async function generateCompetitionCertificate(
+  certificateId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const certificate = await prisma.certificate.findUnique({
+    where: { id: certificateId },
+    include: { user: true, competition: true },
+  });
+  if (!certificate || !certificate.competitionId || !certificate.competition) {
+    return { ok: false, error: "Not a competition certificate" };
+  }
+
+  const competition = certificate.competition;
+  if (!competition.googleSlidesTemplateId) {
+    return { ok: false, error: "Competition has no certificate template configured" };
+  }
+
+  const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
+  if (!rootFolderId) {
+    return { ok: false, error: "GOOGLE_DRIVE_ROOT_FOLDER_ID is not configured" };
+  }
+
+  await prisma.certificate.update({
+    where: { id: certificateId },
+    data: { status: "PROCESSING", lastAttemptAt: new Date() },
+  });
+
+  let slideCopyId: string | undefined;
+  try {
+    const entry = await prisma.competitionEntry.findUnique({
+      where: { userId_competitionId: { userId: certificate.userId, competitionId: competition.id } },
+      select: { certificateName: true },
+    });
+    const recipientName = entry?.certificateName || certificate.user.name;
+
+    const yearFolderId = await findOrCreateFolder(String(certificate.issuedAt.getFullYear()), rootFolderId);
+    const competitionFolderId = await findOrCreateFolder(competition.slug, yearFolderId);
+
+    slideCopyId = await copyFile(
+      competition.googleSlidesTemplateId,
+      `${certificate.certificateNumber} - ${recipientName}`,
+      competitionFolderId
+    );
+
+    await replacePlaceholders(
+      slideCopyId,
+      buildPlaceholders({
+        name: recipientName,
+        eventTitle: competition.title,
+        certificateNumber: certificate.certificateNumber,
+        issuedAt: certificate.issuedAt,
+        certificateType: certificate.certificateType ?? competition.certificateType ?? "PARTICIPATION",
+        signatoryName: competition.certificateSignatoryName,
+        signatoryTitle: competition.certificateSignatoryTitle,
+        college: certificate.user.organization,
+      })
+    );
+
+    const exportedPdf = await exportAsPdf(slideCopyId);
+    const stampedPdf = await stampVerificationOnPdf(
+      exportedPdf,
+      certificate.certificateNumber,
+      `${SITE_URL}/verify/${certificate.certificateNumber}`
+    );
+
+    const driveFileId = await uploadPdf(`${certificate.certificateNumber}.pdf`, competitionFolderId, stampedPdf);
+
+    await prisma.certificate.update({
+      where: { id: certificateId },
+      data: {
+        status: "AVAILABLE",
+        googleSlideFileId: slideCopyId,
+        googleDriveFileId: driveFileId,
+        errorMessage: null,
+      },
+    });
+
+    await sendCertificateReadyEmail(
+      certificate.user.email,
+      certificate.user.name,
+      certificate.certificateNumber,
+      competition.title
+    );
+
+    return { ok: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error generating certificate";
+    console.error(`Certificate generation failed for ${certificateId}:`, err);
+
+    await prisma.certificate.update({
+      where: { id: certificateId },
+      data: {
+        status: "FAILED",
+        errorMessage: message.slice(0, 500),
+        retryCount: { increment: 1 },
+      },
+    });
+    if (slideCopyId) {
+      await deleteFile(slideCopyId).catch(() => {});
+    }
+    return { ok: false, error: message };
+  }
+}
+
+/** Dispatches to the right pipeline based on which entity the certificate belongs to. */
+export async function generateCertificate(
+  certificateId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const certificate = await prisma.certificate.findUnique({
+    where: { id: certificateId },
+    select: { eventId: true, competitionId: true },
+  });
+  if (!certificate) {
+    return { ok: false, error: "Certificate not found" };
+  }
+  if (certificate.eventId) return generateEventCertificate(certificateId);
+  if (certificate.competitionId) return generateCompetitionCertificate(certificateId);
+  return { ok: false, error: "Not an event or competition certificate" };
+}
