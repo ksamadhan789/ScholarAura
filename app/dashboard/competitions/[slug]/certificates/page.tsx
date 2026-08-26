@@ -46,38 +46,45 @@ export default async function CompetitionCertificatesPage({
   const connectedEmail = await getConnectedGoogleEmail();
   const returnTo = `/dashboard/competitions/${competition.slug}/certificates`;
 
-  const entries = await prisma.competitionEntry.findMany({
-    where: { competitionId: competition.id, status: "SUCCESS" },
-    include: { user: { select: { id: true, name: true, email: true, organization: true } } },
-    orderBy: { registeredAt: "asc" },
-  });
+  const [entries, certificates] = await Promise.all([
+    prisma.competitionEntry.findMany({
+      where: { competitionId: competition.id, status: "SUCCESS" },
+      include: { user: { select: { id: true, name: true, email: true, organization: true } } },
+      orderBy: { registeredAt: "asc" },
+    }),
+    prisma.certificate.findMany({ where: { competitionId: competition.id } }),
+  ]);
+  const certByUserId = new Map(certificates.map((c) => [c.userId, c]));
 
   // Certificates are otherwise only lazily issued when an entrant visits
   // their own dashboard — do the same eager check here so an admin can drive
-  // generation without waiting on that. allSettled so one failure can't take
-  // down the whole page.
+  // generation without waiting on that. Only entries without a certificate
+  // yet need checking — re-running eligibility for every already-issued
+  // entry on every page view doesn't scale once a competition has hundreds
+  // of entries. allSettled so one failure can't take down the whole page.
+  const pendingEntries = entries.filter((e) => !certByUserId.has(e.userId));
   const issuanceResults = await Promise.allSettled(
-    entries.map((e) => issueCompetitionCertificateIfEligible(e.userId, competition.id))
+    pendingEntries.map((e) => issueCompetitionCertificateIfEligible(e.userId, competition.id))
   );
   for (const result of issuanceResults) {
     if (result.status === "rejected") {
       console.error("Certificate issuance failed:", result.reason);
+    } else if (result.value) {
+      certByUserId.set(result.value.userId, result.value);
     }
   }
 
-  const certificates = await prisma.certificate.findMany({ where: { competitionId: competition.id } });
-  const certByUserId = new Map(certificates.map((c) => [c.userId, c]));
-
   const hasTemplate = !!competition.googleSlidesTemplateId;
-  const generatedCount = certificates.filter((c) => c.status === "AVAILABLE" || c.status === "GENERATED").length;
+  const allCertificates = Array.from(certByUserId.values());
+  const generatedCount = allCertificates.filter((c) => c.status === "AVAILABLE" || c.status === "GENERATED").length;
 
   const stats = [
     ["Entries", entries.length],
     ["Attendance verified", entries.filter((e) => e.attendanceVerifiedAt).length],
     ["Eligible", entries.filter((e) => e.eligibleForCertificate).length],
     ["Generated", generatedCount],
-    ["Pending", certificates.filter((c) => c.status === "ELIGIBLE" || c.status === "PROCESSING").length],
-    ["Failed", certificates.filter((c) => c.status === "FAILED").length],
+    ["Pending", allCertificates.filter((c) => c.status === "ELIGIBLE" || c.status === "PROCESSING").length],
+    ["Failed", allCertificates.filter((c) => c.status === "FAILED").length],
   ] as const;
 
   return (
