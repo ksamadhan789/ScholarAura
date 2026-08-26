@@ -4,6 +4,13 @@ import JSZip from "jszip";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCertificatePdfBytes } from "@/lib/certificatePdf";
+import { mapWithConcurrency } from "@/lib/concurrency";
+
+// Drive downloads / PDF renders per certificate are I/O-bound — running a
+// handful at once instead of one at a time cuts wall-clock time enough to
+// matter for a serverless function's execution time limit, without opening
+// so many simultaneous Drive API calls that they start getting rate limited.
+const PDF_CONCURRENCY = 5;
 
 function sanitizeFilename(name: string): string {
   return name.replace(/[^a-zA-Z0-9-_]+/g, "_");
@@ -47,9 +54,13 @@ export async function GET(request: Request) {
 
   const enrollmentByUserId = new Map(enrollments.map((e) => [e.userId, e.enrollmentNumber]));
 
+  const pdfsByCertificate = await mapWithConcurrency(certificates, PDF_CONCURRENCY, async (certificate) => ({
+    certificate,
+    pdfBytes: await getCertificatePdfBytes(certificate),
+  }));
+
   const zip = new JSZip();
-  for (const certificate of certificates) {
-    const pdfBytes = await getCertificatePdfBytes(certificate);
+  for (const { certificate, pdfBytes } of pdfsByCertificate) {
     const enrollmentNumber = enrollmentByUserId.get(certificate.userId);
     const filenameBase = sanitizeFilename(
       enrollmentNumber ? `${enrollmentNumber}-${certificate.user.name}` : certificate.certificateNumber
