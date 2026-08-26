@@ -105,6 +105,7 @@ model User {
   consentAcceptedAt DateTime?
   marketingOptIn Boolean   @default(false)
   emailVerified  Boolean   @default(false)
+  publicProfileEnabled Boolean @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

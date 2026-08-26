@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
+import { SITE_URL } from "@/lib/siteUrl";
+import { PublicProfileToggle } from "@/components/certificates/PublicProfileToggle";
 
 const STATUS_LABEL: Record<string, string> = {
   ELIGIBLE: "⏳ Processing",
@@ -17,15 +19,26 @@ export default async function MyCertificatesPage() {
     redirect("/login");
   }
 
-  const certificates = await prisma.certificate.findMany({
-    where: { userId: session.user.id },
-    include: { course: true, event: true, competition: true },
-    orderBy: { issuedAt: "desc" },
-  });
+  const [certificates, user] = await Promise.all([
+    prisma.certificate.findMany({
+      where: { userId: session.user.id },
+      include: { course: true, event: true, competition: true },
+      orderBy: { issuedAt: "desc" },
+    }),
+    prisma.user.findUniqueOrThrow({
+      where: { id: session.user.id },
+      select: { publicProfileEnabled: true },
+    }),
+  ]);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
       <h1 className="mb-8 text-2xl font-semibold">📜 My certificates</h1>
+
+      <PublicProfileToggle
+        initialEnabled={user.publicProfileEnabled}
+        portfolioUrl={`${SITE_URL}/portfolio/${session.user.id}`}
+      />
 
       {certificates.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
