@@ -45,6 +45,7 @@ enum RegistrationStatus {
   CONFIRMED
   CANCELLED
   ATTENDED
+  REFUNDED
 }
 
 enum CreditTransactionType {

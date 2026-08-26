@@ -12,6 +12,13 @@ export function getRazorpayClient() {
   return new Razorpay({ key_id: keyId, key_secret: keySecret });
 }
 
+/** Issues a full refund for a captured payment. */
+export async function createRefund(paymentId: string): Promise<{ id: string; status: string }> {
+  const razorpay = getRazorpayClient();
+  const refund = await razorpay.payments.refund(paymentId, {});
+  return { id: refund.id, status: refund.status };
+}
+
 export function verifyRazorpaySignature({
   orderId,
   paymentId,
