@@ -96,3 +96,104 @@ export async function sendCertificateReadyEmail(
 
   return true;
 }
+
+function formatDateTime(date: Date): string {
+  return date.toLocaleString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Asia/Kolkata",
+  });
+}
+
+export async function sendEventReminderEmail(
+  to: string,
+  name: string,
+  eventTitle: string,
+  startDate: Date,
+  venueOrLink: string
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send event reminder email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const when = formatDateTime(startDate);
+  const eventsUrl = `${SITE_URL}/dashboard/registrations`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Reminder: ${eventTitle} starts soon`,
+      text: `Hi ${displayName},\n\nThis is a reminder that "${eventTitle}" starts on ${when}.\n\nVenue/link: ${venueOrLink}\n\nView your registration: ${eventsUrl}\n\nSee you there!\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>This is a reminder that <strong>${eventTitle}</strong> starts on <strong>${when}</strong>.</p>
+        <p>Venue/link: ${venueOrLink}</p>
+        <p>
+          <a href="${eventsUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Registration</a>
+        </p>
+        <p>See you there!<br>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send event reminder email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send event reminder email:", err);
+    return false;
+  }
+
+  return true;
+}
+
+export async function sendCompetitionReminderEmail(
+  to: string,
+  name: string,
+  competitionTitle: string,
+  submissionDeadline: Date
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send competition reminder email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const when = formatDateTime(submissionDeadline);
+  const entriesUrl = `${SITE_URL}/dashboard/entries`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Reminder: submission deadline for ${competitionTitle} is approaching`,
+      text: `Hi ${displayName},\n\nThis is a reminder that the submission deadline for "${competitionTitle}" is ${when}.\n\nView your entry: ${entriesUrl}\n\nGood luck!\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>This is a reminder that the submission deadline for <strong>${competitionTitle}</strong> is <strong>${when}</strong>.</p>
+        <p>
+          <a href="${entriesUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Entry</a>
+        </p>
+        <p>Good luck!<br>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send competition reminder email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send competition reminder email:", err);
+    return false;
+  }
+
+  return true;
+}
