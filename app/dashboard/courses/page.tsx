@@ -26,12 +26,20 @@ export default async function MyCoursesPage() {
     <main className="mx-auto max-w-3xl px-4 py-16">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">My courses</h1>
-        <Link
-          href="/dashboard/courses/new"
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-sm text-white"
-        >
-          + New course
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/dashboard/courses/analytics"
+            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          >
+            Analytics
+          </Link>
+          <Link
+            href="/dashboard/courses/new"
+            className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-sm text-white"
+          >
+            + New course
+          </Link>
+        </div>
       </div>
 
       {courses.length === 0 ? (
