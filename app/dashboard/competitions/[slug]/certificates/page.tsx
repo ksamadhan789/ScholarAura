@@ -11,6 +11,7 @@ import { ProcessPendingButton } from "@/components/certificates/ProcessPendingBu
 import { CertificateActionButton } from "@/components/certificates/CertificateActionButton";
 import { RevokeCertificateButton } from "@/components/certificates/RevokeCertificateButton";
 import { DisconnectDriveButton } from "@/components/certificates/DisconnectDriveButton";
+import { BulkCertificateActions } from "@/components/certificates/BulkCertificateActions";
 
 const CERT_STATUS_VARIANT: Record<string, "success" | "warning" | "brand" | "neutral"> = {
   ELIGIBLE: "warning",
@@ -68,12 +69,13 @@ export default async function CompetitionCertificatesPage({
   const certByUserId = new Map(certificates.map((c) => [c.userId, c]));
 
   const hasTemplate = !!competition.googleSlidesTemplateId;
+  const generatedCount = certificates.filter((c) => c.status === "AVAILABLE" || c.status === "GENERATED").length;
 
   const stats = [
     ["Entries", entries.length],
     ["Attendance verified", entries.filter((e) => e.attendanceVerifiedAt).length],
     ["Eligible", entries.filter((e) => e.eligibleForCertificate).length],
-    ["Generated", certificates.filter((c) => c.status === "AVAILABLE" || c.status === "GENERATED").length],
+    ["Generated", generatedCount],
     ["Pending", certificates.filter((c) => c.status === "ELIGIBLE" || c.status === "PROCESSING").length],
     ["Failed", certificates.filter((c) => c.status === "FAILED").length],
   ] as const;
@@ -85,9 +87,10 @@ export default async function CompetitionCertificatesPage({
       </Link>
       <div className="mt-2 mb-6 flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">{competition.title} — Certificates</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-start gap-2">
           <SyncAttendanceButton syncUrl={`/api/competitions/${competition.slug}/sync-attendance`} />
           {hasTemplate && <ProcessPendingButton />}
+          {generatedCount > 0 && <BulkCertificateActions competitionId={competition.id} />}
         </div>
       </div>
 
