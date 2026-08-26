@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getRazorpayClient } from "@/lib/razorpay";
 import { computeCreditApplication, settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
+import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, CouponError } from "@/lib/coupon";
 
 export async function POST(
   request: Request,
@@ -36,10 +37,30 @@ export async function POST(
 
   const body = await request.json().catch(() => ({}));
   const requestedCurrency = (body?.currency ?? "INR").toUpperCase();
+  const couponCode = typeof body?.couponCode === "string" ? body.couponCode.trim() : "";
 
   let payCurrency = "INR";
   let chargedAmount: number | null = null;
-  const price = Number(course.price);
+  let price = Number(course.price);
+  let couponId: string | null = null;
+  let discountAmount = 0;
+
+  if (couponCode) {
+    try {
+      const coupon = await findValidCoupon(couponCode, "COURSE", price);
+      if (await hasUserRedeemedCoupon(session.user.id, coupon.id)) {
+        throw new CouponError("You've already used this coupon");
+      }
+      discountAmount = computeDiscount(coupon, price);
+      couponId = coupon.id;
+      price = Math.round((price - discountAmount) * 100) / 100;
+    } catch (err) {
+      if (err instanceof CouponError) {
+        return NextResponse.json({ error: err.message }, { status: 400 });
+      }
+      throw err;
+    }
+  }
 
   if (requestedCurrency !== "INR") {
     const rate = await getExchangeRate(requestedCurrency);
@@ -71,6 +92,8 @@ export async function POST(
             currency: "INR",
             chargedAmount: null,
             razorpayOrderId: null,
+            couponId,
+            discountAmount,
           },
         });
 
@@ -86,6 +109,8 @@ export async function POST(
                 creditApplied,
                 currency: "INR",
                 status: "SUCCESS",
+                couponId,
+                discountAmount,
               },
             });
             isFreshSettlement = true;
@@ -106,6 +131,9 @@ export async function POST(
             creditApplied,
             description: `Course: ${course.title}`,
           });
+          if (couponId) {
+            await tx.coupon.update({ where: { id: couponId }, data: { redemptionCount: { increment: 1 } } });
+          }
         }
       });
 
@@ -131,6 +159,8 @@ export async function POST(
         currency: payCurrency,
         chargedAmount: payCurrency === "INR" ? null : chargedAmount,
         status: "PENDING",
+        couponId,
+        discountAmount,
       },
       create: {
         userId: session.user.id,
@@ -141,6 +171,8 @@ export async function POST(
         currency: payCurrency,
         chargedAmount: payCurrency === "INR" ? null : chargedAmount,
         status: "PENDING",
+        couponId,
+        discountAmount,
       },
     });
 

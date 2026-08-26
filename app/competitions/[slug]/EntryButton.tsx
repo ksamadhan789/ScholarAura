@@ -29,6 +29,7 @@ export function EntryButton({
   const [teamName, setTeamName] = useState("");
   const [teammates, setTeammates] = useState("");
   const [certificateName, setCertificateName] = useState(userName ?? "");
+  const [couponCode, setCouponCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [blockedFormUrl, setBlockedFormUrl] = useState<string | null>(null);
@@ -61,6 +62,7 @@ export function EntryButton({
           teamName: teamName || undefined,
           teammates: teammates || undefined,
           certificateName,
+          couponCode: couponCode || undefined,
         }),
       });
       if (!checkoutRes.ok) {
@@ -162,7 +164,16 @@ export function EntryButton({
         </>
       )}
       {isPaid && (
-        <CurrencySelector priceInInr={price} rates={rates} value={currency} onChange={setCurrency} />
+        <>
+          <CurrencySelector priceInInr={price} rates={rates} value={currency} onChange={setCurrency} />
+          <input
+            type="text"
+            placeholder="Coupon code (optional)"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm uppercase"
+          />
+        </>
       )}
       <button
         onClick={handleClick}

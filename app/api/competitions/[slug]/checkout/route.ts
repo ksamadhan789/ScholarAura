@@ -7,6 +7,7 @@ import { getRazorpayClient } from "@/lib/razorpay";
 import { computeCreditApplication, settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
 import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/competitionEnrollment";
+import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, CouponError } from "@/lib/coupon";
 
 export async function POST(
   request: Request,
@@ -43,10 +44,30 @@ export async function POST(
     typeof body?.certificateName === "string" && body.certificateName.trim()
       ? body.certificateName.trim()
       : null;
+  const couponCode = typeof body?.couponCode === "string" ? body.couponCode.trim() : "";
 
   let payCurrency = "INR";
   let chargedAmount: number | null = null;
-  const fee = Number(competition.fee);
+  let fee = Number(competition.fee);
+  let couponId: string | null = null;
+  let discountAmount = 0;
+
+  if (couponCode) {
+    try {
+      const coupon = await findValidCoupon(couponCode, "COMPETITION", fee);
+      if (await hasUserRedeemedCoupon(session.user.id, coupon.id)) {
+        throw new CouponError("You've already used this coupon");
+      }
+      discountAmount = computeDiscount(coupon, fee);
+      couponId = coupon.id;
+      fee = Math.round((fee - discountAmount) * 100) / 100;
+    } catch (err) {
+      if (err instanceof CouponError) {
+        return NextResponse.json({ error: err.message }, { status: 400 });
+      }
+      throw err;
+    }
+  }
 
   if (requestedCurrency !== "INR") {
     const rate = await getExchangeRate(requestedCurrency);
@@ -82,6 +103,8 @@ export async function POST(
               teammates,
               certificateName,
               enrollmentNumber,
+              couponId,
+              discountAmount,
             },
           });
 
@@ -101,6 +124,8 @@ export async function POST(
                   teammates,
                   certificateName,
                   enrollmentNumber,
+                  couponId,
+                  discountAmount,
                 },
               });
               isFreshSettlement = true;
@@ -120,6 +145,9 @@ export async function POST(
               creditApplied,
               description: `Competition: ${competition.title}`,
             });
+            if (couponId) {
+              await tx.coupon.update({ where: { id: couponId }, data: { redemptionCount: { increment: 1 } } });
+            }
           }
 
           return tx.competitionEntry.findUniqueOrThrow({
@@ -164,6 +192,8 @@ export async function POST(
         teamName,
         teammates,
         certificateName,
+        couponId,
+        discountAmount,
       },
       create: {
         userId: session.user.id,
@@ -177,6 +207,8 @@ export async function POST(
         teamName,
         teammates,
         certificateName,
+        couponId,
+        discountAmount,
       },
     });
 

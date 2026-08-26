@@ -53,6 +53,18 @@ enum CreditTransactionType {
   REDEEMED
 }
 
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum CouponScope {
+  ALL
+  COURSE
+  EVENT
+  COMPETITION
+}
+
 enum CollegeStatus {
   PENDING
   APPROVED
@@ -153,6 +165,27 @@ model CreditTransaction {
   @@map("credit_transactions")
 }
 
+model Coupon {
+  id              String       @id @default(uuid())
+  code            String       @unique
+  discountType    DiscountType
+  discountValue   Decimal      @db.Decimal(10, 2)
+  appliesTo       CouponScope  @default(ALL)
+  maxRedemptions  Int?
+  redemptionCount Int          @default(0)
+  minAmount       Decimal?     @db.Decimal(10, 2)
+  expiresAt       DateTime?
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  coursePurchases    CoursePurchase[]
+  eventRegistrations EventRegistration[]
+  competitionEntries CompetitionEntry[]
+
+  @@map("coupons")
+}
+
 // ----------------------
 // COURSES (Phase 2)
 // ----------------------
@@ -207,6 +240,9 @@ model CoursePurchase {
   currency         String        @default("INR")
   chargedAmount    Decimal?      @db.Decimal(10, 2)
   status           PaymentStatus @default(PENDING)
+  couponId         String?
+  coupon           Coupon?       @relation(fields: [couponId], references: [id])
+  discountAmount   Decimal       @default(0) @db.Decimal(10, 2)
   purchasedAt      DateTime      @default(now())
 
   @@unique([userId, courseId])
@@ -294,6 +330,9 @@ model EventRegistration {
   currency          String              @default("INR")
   chargedAmount     Decimal?            @db.Decimal(10, 2)
   status            RegistrationStatus  @default(PENDING)
+  couponId          String?
+  coupon            Coupon?             @relation(fields: [couponId], references: [id])
+  discountAmount    Decimal             @default(0) @db.Decimal(10, 2)
   certificateName   String?
   enrollmentNumber       String?   @unique
   formSubmitted          Boolean   @default(false)
@@ -374,6 +413,9 @@ model CompetitionEntry {
   currency          String        @default("INR")
   chargedAmount     Decimal?      @db.Decimal(10, 2)
   status            PaymentStatus @default(PENDING)
+  couponId          String?
+  coupon            Coupon?       @relation(fields: [couponId], references: [id])
+  discountAmount    Decimal       @default(0) @db.Decimal(10, 2)
   submissionUrl     String?
   submissionNotes   String?
   submittedAt       DateTime?
