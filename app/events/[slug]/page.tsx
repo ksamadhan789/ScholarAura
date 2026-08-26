@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS, formatDateRange, formatDateTime } from "@/lib/eventLabels";
 import { RegisterButton } from "./RegisterButton";
 import { PeopleList } from "@/components/PeopleList";
+import { WaitlistButton } from "@/components/events/WaitlistButton";
 import type { EventPerson } from "@/lib/eventPeople";
 
 export async function generateMetadata({
@@ -44,15 +45,18 @@ export default async function EventDetailPage({
     notFound();
   }
 
-  const [registration, currentUser, rates] = session
+  const [registration, currentUser, rates, waitlistEntry] = session
     ? await Promise.all([
         prisma.eventRegistration.findUnique({
           where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
         }),
         prisma.user.findUnique({ where: { id: session.user.id } }),
         prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } }),
+        prisma.eventWaitlist.findUnique({
+          where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
+        }),
       ])
-    : [null, null, await prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } })];
+    : [null, null, await prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } }), null];
 
   const serializedRates = rates.map((r) => ({
     currencyCode: r.currencyCode,
@@ -155,9 +159,7 @@ export default async function EventDetailPage({
             🎉 You&apos;re registered for this event!
           </p>
         ) : seatsLeft <= 0 ? (
-          <p className="rounded bg-gray-100 dark:bg-slate-700 px-4 py-2.5 text-sm text-gray-600 dark:text-slate-400">
-            This event is fully booked
-          </p>
+          <WaitlistButton slug={event.slug} isWaitlisted={!!waitlistEntry} />
         ) : (
           <>
             {Number(event.fee) > 0 && currentUser && Number(currentUser.creditBalance) > 0 && (

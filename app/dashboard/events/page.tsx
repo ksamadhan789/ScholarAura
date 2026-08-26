@@ -17,7 +17,11 @@ export default async function ManageEventsPage() {
     redirect("/dashboard");
   }
 
-  const events = await prisma.event.findMany({ orderBy: { startDate: "asc" } });
+  const [events, waitlistCounts] = await Promise.all([
+    prisma.event.findMany({ orderBy: { startDate: "asc" } }),
+    prisma.eventWaitlist.groupBy({ by: ["eventId"], _count: { _all: true } }),
+  ]);
+  const waitlistCountByEventId = new Map(waitlistCounts.map((w) => [w.eventId, w._count._all]));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -55,6 +59,9 @@ export default async function ManageEventsPage() {
                   <span>
                     {event.seatsFilled}/{event.seatsTotal} registered
                   </span>
+                  {(waitlistCountByEventId.get(event.id) ?? 0) > 0 && (
+                    <span>· {waitlistCountByEventId.get(event.id)} waitlisted</span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">

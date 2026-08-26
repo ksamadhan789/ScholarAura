@@ -197,3 +197,46 @@ export async function sendCompetitionReminderEmail(
 
   return true;
 }
+
+export async function sendWaitlistSeatAvailableEmail(
+  to: string,
+  name: string,
+  eventTitle: string,
+  eventUrl: string
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send waitlist seat available email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `A seat just opened up for ${eventTitle}`,
+      text: `Hi ${displayName},\n\nA seat just opened up for "${eventTitle}", which you're on the waitlist for.\n\nSeats are first-come, first-served, so register soon before it fills up again: ${eventUrl}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>A seat just opened up for <strong>${eventTitle}</strong>, which you're on the waitlist for.</p>
+        <p>Seats are first-come, first-served, so register soon before it fills up again:</p>
+        <p>
+          <a href="${eventUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Register now</a>
+        </p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send waitlist seat available email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send waitlist seat available email:", err);
+    return false;
+  }
+
+  return true;
+}
