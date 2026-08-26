@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
+import { RefundButton } from "@/components/RefundButton";
 
 const STATUS_VARIANT = {
   SUCCESS: "success",
@@ -75,6 +76,7 @@ export default async function CourseStudentsPage({
                 <th className="px-4 py-2.5 font-medium">Purchased</th>
                 <th className="px-4 py-2.5 font-medium">Payment status</th>
                 <th className="px-4 py-2.5 font-medium">Progress</th>
+                {isAdmin && <th className="px-4 py-2.5 font-medium">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -104,6 +106,13 @@ export default async function CourseStudentsPage({
                         ? `${percent}% (${completed}/${totalVideos})`
                         : "—"}
                     </td>
+                    {isAdmin && (
+                      <td className="px-4 py-2.5">
+                        {purchase.status === "SUCCESS" && (
+                          <RefundButton refundUrl={`/api/admin/course-purchases/${purchase.id}/refund`} />
+                        )}
+                      </td>
+                    )}
                   </tr>
                 );
               })}

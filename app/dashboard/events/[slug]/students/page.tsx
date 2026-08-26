@@ -4,12 +4,14 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
+import { RefundButton } from "@/components/RefundButton";
 
 const STATUS_VARIANT = {
   CONFIRMED: "success",
   PENDING: "warning",
   CANCELLED: "neutral",
   ATTENDED: "brand",
+  REFUNDED: "neutral",
 } as const;
 
 export default async function EventStudentsPage({
@@ -54,6 +56,7 @@ export default async function EventStudentsPage({
                 <th className="px-4 py-2.5 font-medium">Email</th>
                 <th className="px-4 py-2.5 font-medium">Registered</th>
                 <th className="px-4 py-2.5 font-medium">Payment status</th>
+                <th className="px-4 py-2.5 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -74,6 +77,11 @@ export default async function EventStudentsPage({
                   </td>
                   <td className="px-4 py-2.5">
                     <Badge variant={STATUS_VARIANT[registration.status]}>{registration.status}</Badge>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {registration.status === "CONFIRMED" && (
+                      <RefundButton refundUrl={`/api/admin/event-registrations/${registration.id}/refund`} />
+                    )}
                   </td>
                 </tr>
               ))}

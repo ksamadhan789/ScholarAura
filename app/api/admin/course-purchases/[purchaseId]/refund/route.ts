@@ -1,0 +1,25 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { refundCoursePurchase, AlreadyRefundedError, NotRefundableError } from "@/lib/refund";
+
+export async function POST(_request: Request, { params }: { params: { purchaseId: string } }) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "ADMIN") {
+    return NextResponse.json({ error: "Not allowed" }, { status: 403 });
+  }
+
+  try {
+    const updated = await refundCoursePurchase(params.purchaseId);
+    return NextResponse.json(updated);
+  } catch (err) {
+    if (err instanceof AlreadyRefundedError) {
+      return NextResponse.json({ error: "This purchase was already refunded" }, { status: 409 });
+    }
+    if (err instanceof NotRefundableError) {
+      return NextResponse.json({ error: "Only a successful purchase can be refunded" }, { status: 400 });
+    }
+    console.error("Course purchase refund failed:", err);
+    return NextResponse.json({ error: "Refund failed. Please try again or check Razorpay directly." }, { status: 502 });
+  }
+}

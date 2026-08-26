@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
+import { RefundButton } from "@/components/RefundButton";
 import { RankInput } from "./RankInput";
 
 const STATUS_VARIANT = {
@@ -62,6 +63,7 @@ export default async function CompetitionEntriesPage({
                 <th className="px-4 py-2.5 font-medium">Payment</th>
                 <th className="px-4 py-2.5 font-medium">Submission</th>
                 <th className="px-4 py-2.5 font-medium">Rank</th>
+                <th className="px-4 py-2.5 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -96,6 +98,11 @@ export default async function CompetitionEntriesPage({
                   </td>
                   <td className="px-4 py-2.5">
                     <RankInput entryId={entry.id} initialRank={entry.rank} />
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {entry.status === "SUCCESS" && (
+                      <RefundButton refundUrl={`/api/admin/competition-entries/${entry.id}/refund`} />
+                    )}
                   </td>
                 </tr>
               ))}
