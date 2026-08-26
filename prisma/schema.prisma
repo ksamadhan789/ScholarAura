@@ -534,3 +534,19 @@ model ExternalCourse {
 
   @@map("external_courses")
 }
+
+// ----------------------
+// RATE LIMITING
+// One row per limited key (e.g. "login:user@example.com", "checkout:{userId}")
+// — the table stays bounded by the number of distinct keys ever seen, not by
+// request volume, since each new window overwrites the same row rather than
+// inserting a new one.
+// ----------------------
+
+model RateLimitBucket {
+  key         String   @id
+  windowStart DateTime
+  count       Int      @default(1)
+
+  @@map("rate_limit_buckets")
+}

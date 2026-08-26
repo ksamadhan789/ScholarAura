@@ -5,6 +5,10 @@ import bcrypt from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
 import { prisma } from "@/lib/prisma";
 import { findOrCreateGoogleUser } from "@/lib/googleAccount";
+import { checkRateLimit } from "@/lib/rateLimit";
+
+const LOGIN_ATTEMPT_LIMIT = 5;
+const LOGIN_WINDOW_MS = 5 * 60 * 1000;
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -24,6 +28,18 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
+
+        // Keyed by the submitted email (not IP, which isn't reliably
+        // available in this callback) — protects a single account from
+        // being brute-forced regardless of where the attempts come from.
+        // Returning null either way (rate-limited or wrong password) keeps
+        // the response indistinguishable, same as any other failed login.
+        const allowed = await checkRateLimit(
+          `login:${credentials.email.trim().toLowerCase()}`,
+          LOGIN_ATTEMPT_LIMIT,
+          LOGIN_WINDOW_MS
+        );
+        if (!allowed) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
