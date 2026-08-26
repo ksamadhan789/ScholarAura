@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
+import { SearchBar } from "./SearchBar";
 import { EVENT_TYPE_TABS } from "@/lib/eventLabels";
 
 export function Header() {
@@ -88,6 +89,8 @@ export function Header() {
             )}
           </div>
         </nav>
+
+        <SearchBar />
 
         <div className="flex items-center gap-3 text-sm">
           <ThemeToggle />
