@@ -7,6 +7,13 @@ import { getRazorpayClient } from "@/lib/razorpay";
 import { computeCreditApplication, settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
 import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, CouponError } from "@/lib/coupon";
+import {
+  checkRateLimit,
+  CHECKOUT_ATTEMPT_LIMIT,
+  CHECKOUT_WINDOW_MS,
+  COUPON_ATTEMPT_LIMIT,
+  COUPON_WINDOW_MS,
+} from "@/lib/rateLimit";
 
 export async function POST(
   request: Request,
@@ -15,6 +22,18 @@ export async function POST(
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "You must be logged in" }, { status: 401 });
+  }
+
+  const withinCheckoutLimit = await checkRateLimit(
+    `checkout:${session.user.id}`,
+    CHECKOUT_ATTEMPT_LIMIT,
+    CHECKOUT_WINDOW_MS
+  );
+  if (!withinCheckoutLimit) {
+    return NextResponse.json(
+      { error: "Too many checkout attempts. Please wait a few minutes and try again." },
+      { status: 429 }
+    );
   }
 
   const course = await prisma.course.findUnique({ where: { slug: params.slug } });
@@ -46,6 +65,17 @@ export async function POST(
   let discountAmount = 0;
 
   if (couponCode) {
+    const withinCouponLimit = await checkRateLimit(
+      `coupon:${session.user.id}`,
+      COUPON_ATTEMPT_LIMIT,
+      COUPON_WINDOW_MS
+    );
+    if (!withinCouponLimit) {
+      return NextResponse.json(
+        { error: "Too many coupon attempts. Please wait a few minutes and try again." },
+        { status: 429 }
+      );
+    }
     try {
       const coupon = await findValidCoupon(couponCode, "COURSE", price);
       if (await hasUserRedeemedCoupon(session.user.id, coupon.id)) {
