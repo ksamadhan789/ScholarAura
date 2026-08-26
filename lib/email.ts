@@ -240,3 +240,72 @@ export async function sendWaitlistSeatAvailableEmail(
 
   return true;
 }
+
+export async function sendAdminDigestEmail(
+  to: string,
+  name: string,
+  stats: {
+    newStudents: number;
+    revenue: number;
+    newCoursePurchases: number;
+    newEventRegistrations: number;
+    newCompetitionEntries: number;
+    pendingColleges: number;
+    failedCertificates: number;
+  }
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send admin digest email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const adminUrl = `${SITE_URL}/dashboard/admin`;
+
+  const rows: [string, string][] = [
+    ["New students", stats.newStudents.toLocaleString("en-IN")],
+    ["Revenue collected", `₹${stats.revenue.toLocaleString("en-IN")}`],
+    ["New course enrollments", stats.newCoursePurchases.toLocaleString("en-IN")],
+    ["New event registrations", stats.newEventRegistrations.toLocaleString("en-IN")],
+    ["New competition entries", stats.newCompetitionEntries.toLocaleString("en-IN")],
+    ["Colleges pending approval", stats.pendingColleges.toLocaleString("en-IN")],
+    ["Certificates needing attention", stats.failedCertificates.toLocaleString("en-IN")],
+  ];
+
+  const textRows = rows.map(([label, value]) => `${label}: ${value}`).join("\n");
+  const htmlRows = rows
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding:6px 12px;color:#666;">${label}</td><td style="padding:6px 12px;font-weight:600;">${value}</td></tr>`
+    )
+    .join("");
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: "ScholarAura — daily admin digest",
+      text: `Hi ${displayName},\n\nHere's what happened on ScholarAura in the last 24 hours:\n\n${textRows}\n\nFull dashboard: ${adminUrl}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>Here's what happened on ScholarAura in the last 24 hours:</p>
+        <table cellspacing="0" cellpadding="0">${htmlRows}</table>
+        <p style="margin-top:16px;">
+          <a href="${adminUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Open admin dashboard</a>
+        </p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send admin digest email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send admin digest email:", err);
+    return false;
+  }
+
+  return true;
+}
