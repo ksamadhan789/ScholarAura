@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createRefund } from "@/lib/razorpay";
 import { getReferralRatePercent } from "@/lib/referral";
+import { notifyNextWaitlisted } from "@/lib/waitlist";
 
 export class AlreadyRefundedError extends Error {
   constructor() {
@@ -113,7 +114,7 @@ export async function refundEventRegistration(registrationId: string) {
     await createRefund(registration.razorpayPaymentId);
   }
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     await tx.eventRegistration.update({ where: { id: registrationId }, data: { status: "REFUNDED" } });
     // Frees the seat back up — guarded so it can never go negative.
     await tx.event.updateMany({
@@ -129,6 +130,13 @@ export async function refundEventRegistration(registrationId: string) {
     );
     return tx.eventRegistration.findUniqueOrThrow({ where: { id: registrationId } });
   });
+
+  // Best-effort — a waitlist notification failure shouldn't undo the refund.
+  await notifyNextWaitlisted(registration.eventId).catch((err) =>
+    console.error(`Failed to notify next waitlisted user for event ${registration.eventId}:`, err)
+  );
+
+  return result;
 }
 
 export async function refundCompetitionEntry(entryId: string) {

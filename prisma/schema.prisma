@@ -125,6 +125,7 @@ model User {
   creditTransactions CreditTransaction[]
   passwordResetTokens PasswordResetToken[]
   competitionEntries CompetitionEntry[]
+  eventWaitlistEntries EventWaitlist[]
 
   @@map("users")
 }
@@ -314,8 +315,22 @@ model Event {
 
   registrations EventRegistration[]
   certificates  Certificate[]
+  waitlist      EventWaitlist[]
 
   @@map("events")
+}
+
+model EventWaitlist {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  eventId    String
+  event      Event     @relation(fields: [eventId], references: [id])
+  notifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([userId, eventId])
+  @@map("event_waitlist")
 }
 
 model EventRegistration {
