@@ -79,7 +79,11 @@ export async function generateEventCertificate(
     const recipientName = registration?.certificateName || certificate.user.name;
 
     const yearFolderId = await findOrCreateFolder(String(certificate.issuedAt.getFullYear()), rootFolderId);
-    const eventFolderId = await findOrCreateFolder(event.slug, yearFolderId);
+    // An "events" segment so an Event and a Competition that happen to share
+    // a slug (uniqueness is only enforced within each table) can't end up
+    // writing certificates into the same Drive folder.
+    const kindFolderId = await findOrCreateFolder("events", yearFolderId);
+    const eventFolderId = await findOrCreateFolder(event.slug, kindFolderId);
 
     slideCopyId = await copyFile(
       event.googleSlidesTemplateId,
@@ -190,7 +194,8 @@ export async function generateCompetitionCertificate(
     const recipientName = entry?.certificateName || certificate.user.name;
 
     const yearFolderId = await findOrCreateFolder(String(certificate.issuedAt.getFullYear()), rootFolderId);
-    const competitionFolderId = await findOrCreateFolder(competition.slug, yearFolderId);
+    const kindFolderId = await findOrCreateFolder("competitions", yearFolderId);
+    const competitionFolderId = await findOrCreateFolder(competition.slug, kindFolderId);
 
     slideCopyId = await copyFile(
       competition.googleSlidesTemplateId,

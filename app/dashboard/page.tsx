@@ -69,6 +69,18 @@ export default async function DashboardPage() {
           🗓️ My events
         </Link>
         <Link
+          href="/competitions"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          🏆 Browse competitions
+        </Link>
+        <Link
+          href="/dashboard/entries"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          🏆 My competitions
+        </Link>
+        <Link
           href="/dashboard/certificates"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
