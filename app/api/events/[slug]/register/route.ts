@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
+import { sendEventRegistrationConfirmationEmail } from "@/lib/email";
 
 export async function POST(
   request: Request,
@@ -69,6 +70,15 @@ export async function POST(
       email: session.user.email ?? "",
       enrollmentNumber: registration.enrollmentNumber!,
     });
+
+    await sendEventRegistrationConfirmationEmail(
+      session.user.email!,
+      session.user.name ?? "",
+      event.title,
+      event.startDate,
+      event.venueOrLink,
+      registration.enrollmentNumber
+    ).catch((err) => console.error("Failed to send event registration confirmation email:", err));
 
     return NextResponse.json({ ...registration, googleFormUrl }, { status: 201 });
   } catch (err) {

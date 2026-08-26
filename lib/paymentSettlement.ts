@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { withEnrollmentNumber } from "@/lib/enrollment";
 import { withEnrollmentNumber as withCompetitionEnrollmentNumber } from "@/lib/competitionEnrollment";
+import { sendEventRegistrationConfirmationEmail, sendCompetitionEntryConfirmationEmail } from "@/lib/email";
 
 /**
  * Settles referral credit but never lets an already-captured payment fail to
@@ -77,41 +78,60 @@ export async function settleCoursePurchase(purchaseId: string, paymentId: string
  * already succeeded at that point, so this needs a human to sort out).
  */
 export async function settleEventRegistration(registrationId: string, paymentId: string) {
-  const registration = await prisma.eventRegistration.findUnique({ where: { id: registrationId } });
+  const registration = await prisma.eventRegistration.findUnique({
+    where: { id: registrationId },
+    include: { user: true },
+  });
   if (!registration) return null;
 
   const event = await prisma.event.findUnique({ where: { id: registration.eventId } });
   if (!event) return null;
 
-  return withEnrollmentNumber(registration.enrollmentNumber, (enrollmentNumber) =>
-    prisma.$transaction(async (tx) => {
-      const claimedRegistration = await tx.eventRegistration.updateMany({
-        where: { id: registration.id, status: { not: "CONFIRMED" } },
-        data: { status: "CONFIRMED", razorpayPaymentId: paymentId, enrollmentNumber },
-      });
-
-      if (claimedRegistration.count > 0) {
-        const claimedSeat = await tx.event.updateMany({
-          where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
-          data: { seatsFilled: { increment: 1 } },
+  const { settled, isFreshSettlement } = await withEnrollmentNumber(
+    registration.enrollmentNumber,
+    (enrollmentNumber) =>
+      prisma.$transaction(async (tx) => {
+        const claimedRegistration = await tx.eventRegistration.updateMany({
+          where: { id: registration.id, status: { not: "CONFIRMED" } },
+          data: { status: "CONFIRMED", razorpayPaymentId: paymentId, enrollmentNumber },
         });
 
-        if (claimedSeat.count === 0) {
-          throw new EventFullError();
+        if (claimedRegistration.count > 0) {
+          const claimedSeat = await tx.event.updateMany({
+            where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
+            data: { seatsFilled: { increment: 1 } },
+          });
+
+          if (claimedSeat.count === 0) {
+            throw new EventFullError();
+          }
+
+          await settleReferralCreditBestEffort(tx, {
+            buyerId: registration.userId,
+            originalAmount: Number(registration.amount),
+            creditApplied: Number(registration.creditApplied),
+            description: `Event: ${event.title}`,
+          });
+          await bumpCouponRedemption(tx, registration.couponId);
         }
 
-        await settleReferralCreditBestEffort(tx, {
-          buyerId: registration.userId,
-          originalAmount: Number(registration.amount),
-          creditApplied: Number(registration.creditApplied),
-          description: `Event: ${event.title}`,
-        });
-        await bumpCouponRedemption(tx, registration.couponId);
-      }
-
-      return tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
-    })
+        const result = await tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
+        return { settled: result, isFreshSettlement: claimedRegistration.count > 0 };
+      })
   );
+
+  if (isFreshSettlement) {
+    await sendEventRegistrationConfirmationEmail(
+      registration.user.email,
+      registration.user.name,
+      event.title,
+      event.startDate,
+      event.venueOrLink,
+      settled.enrollmentNumber
+    ).catch((err) => console.error("Failed to send event registration confirmation email:", err));
+  }
+
+  return settled;
 }
 
 /**
@@ -119,30 +139,48 @@ export async function settleEventRegistration(registrationId: string, paymentId:
  * the same way as settleCoursePurchase/settleEventRegistration.
  */
 export async function settleCompetitionEntry(entryId: string, paymentId: string) {
-  const entry = await prisma.competitionEntry.findUnique({ where: { id: entryId } });
+  const entry = await prisma.competitionEntry.findUnique({
+    where: { id: entryId },
+    include: { user: true },
+  });
   if (!entry) return null;
 
   const competition = await prisma.competition.findUnique({ where: { id: entry.competitionId } });
   if (!competition) return null;
 
-  return withCompetitionEnrollmentNumber(entry.enrollmentNumber, (enrollmentNumber) =>
-    prisma.$transaction(async (tx) => {
-      const claimed = await tx.competitionEntry.updateMany({
-        where: { id: entry.id, status: { not: "SUCCESS" } },
-        data: { status: "SUCCESS", razorpayPaymentId: paymentId, enrollmentNumber },
-      });
-
-      if (claimed.count > 0) {
-        await settleReferralCreditBestEffort(tx, {
-          buyerId: entry.userId,
-          originalAmount: Number(entry.amount),
-          creditApplied: Number(entry.creditApplied),
-          description: `Competition: ${competition.title}`,
+  const { settled, isFreshSettlement } = await withCompetitionEnrollmentNumber(
+    entry.enrollmentNumber,
+    (enrollmentNumber) =>
+      prisma.$transaction(async (tx) => {
+        const claimed = await tx.competitionEntry.updateMany({
+          where: { id: entry.id, status: { not: "SUCCESS" } },
+          data: { status: "SUCCESS", razorpayPaymentId: paymentId, enrollmentNumber },
         });
-        await bumpCouponRedemption(tx, entry.couponId);
-      }
 
-      return tx.competitionEntry.findUniqueOrThrow({ where: { id: entry.id } });
-    })
+        if (claimed.count > 0) {
+          await settleReferralCreditBestEffort(tx, {
+            buyerId: entry.userId,
+            originalAmount: Number(entry.amount),
+            creditApplied: Number(entry.creditApplied),
+            description: `Competition: ${competition.title}`,
+          });
+          await bumpCouponRedemption(tx, entry.couponId);
+        }
+
+        const result = await tx.competitionEntry.findUniqueOrThrow({ where: { id: entry.id } });
+        return { settled: result, isFreshSettlement: claimed.count > 0 };
+      })
   );
+
+  if (isFreshSettlement) {
+    await sendCompetitionEntryConfirmationEmail(
+      entry.user.email,
+      entry.user.name,
+      competition.title,
+      competition.submissionDeadline,
+      settled.enrollmentNumber
+    ).catch((err) => console.error("Failed to send competition entry confirmation email:", err));
+  }
+
+  return settled;
 }
