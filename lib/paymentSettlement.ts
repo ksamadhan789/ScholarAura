@@ -32,6 +32,11 @@ export class EventFullError extends Error {
   }
 }
 
+async function bumpCouponRedemption(tx: Parameters<typeof settleReferralCredit>[0], couponId: string | null) {
+  if (!couponId) return;
+  await tx.coupon.update({ where: { id: couponId }, data: { redemptionCount: { increment: 1 } } });
+}
+
 /**
  * Marks a course purchase SUCCESS and settles referral credit, guarded so
  * this can be called more than once for the same purchase (browser
@@ -58,6 +63,7 @@ export async function settleCoursePurchase(purchaseId: string, paymentId: string
         creditApplied: Number(purchase.creditApplied),
         description: `Course: ${course.title}`,
       });
+      await bumpCouponRedemption(tx, purchase.couponId);
     }
 
     return tx.coursePurchase.findUniqueOrThrow({ where: { id: purchase.id } });
@@ -100,6 +106,7 @@ export async function settleEventRegistration(registrationId: string, paymentId:
           creditApplied: Number(registration.creditApplied),
           description: `Event: ${event.title}`,
         });
+        await bumpCouponRedemption(tx, registration.couponId);
       }
 
       return tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
@@ -132,6 +139,7 @@ export async function settleCompetitionEntry(entryId: string, paymentId: string)
           creditApplied: Number(entry.creditApplied),
           description: `Competition: ${competition.title}`,
         });
+        await bumpCouponRedemption(tx, entry.couponId);
       }
 
       return tx.competitionEntry.findUniqueOrThrow({ where: { id: entry.id } });

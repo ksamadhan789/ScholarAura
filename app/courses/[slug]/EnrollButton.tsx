@@ -24,6 +24,7 @@ export function EnrollButton({
 }) {
   const router = useRouter();
   const [currency, setCurrency] = useState("INR");
+  const [couponCode, setCouponCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +43,7 @@ export function EnrollButton({
     const checkoutRes = await fetch(`/api/courses/${slug}/checkout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currency }),
+      body: JSON.stringify({ currency, couponCode: couponCode || undefined }),
     });
     if (!checkoutRes.ok) {
       const data = await checkoutRes.json().catch(() => null);
@@ -113,12 +114,21 @@ export function EnrollButton({
   return (
     <div>
       {isPaid && (
-        <CurrencySelector
-          priceInInr={price}
-          rates={rates}
-          value={currency}
-          onChange={setCurrency}
-        />
+        <>
+          <CurrencySelector
+            priceInInr={price}
+            rates={rates}
+            value={currency}
+            onChange={setCurrency}
+          />
+          <input
+            type="text"
+            placeholder="Coupon code (optional)"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value)}
+            className="mb-3 w-full rounded border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm uppercase"
+          />
+        </>
       )}
       <button
         onClick={handleClick}

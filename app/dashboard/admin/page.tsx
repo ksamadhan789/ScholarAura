@@ -132,6 +132,12 @@ export default async function AdminHomePage() {
           Currency rates
         </Link>
         <Link
+          href="/dashboard/coupons"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          Coupons
+        </Link>
+        <Link
           href="/dashboard/external-courses"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
