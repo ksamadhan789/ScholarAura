@@ -95,6 +95,14 @@ export default async function MyEventsPage() {
                   )}
                 </Link>
                 <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href={`/api/receipts/event/${r.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                  >
+                    🧾 Receipt
+                  </a>
                   {r.formSubmitted && <Badge variant="success">Form submitted</Badge>}
                   {googleFormUrl && (
                     <a
