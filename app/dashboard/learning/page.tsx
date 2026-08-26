@@ -29,15 +29,24 @@ export default async function MyLearningPage() {
         </p>
       ) : (
         <div className="flex flex-col gap-3">
-          {purchases.map(({ course }) => (
-            <Link
-              key={course.id}
-              href={`/courses/${course.slug}`}
-              className="rounded border border-gray-200 dark:border-slate-700 p-4 hover:border-gray-400"
+          {purchases.map((purchase) => (
+            <div
+              key={purchase.course.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-200 dark:border-slate-700 p-4 hover:border-gray-400"
             >
-              <h2 className="font-medium">{course.title}</h2>
-              <p className="text-sm text-gray-500 dark:text-slate-400">{course.category}</p>
-            </Link>
+              <Link href={`/courses/${purchase.course.slug}`}>
+                <h2 className="font-medium">{purchase.course.title}</h2>
+                <p className="text-sm text-gray-500 dark:text-slate-400">{purchase.course.category}</p>
+              </Link>
+              <a
+                href={`/api/receipts/course/${purchase.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+              >
+                🧾 Receipt
+              </a>
+            </div>
           ))}
         </div>
       )}

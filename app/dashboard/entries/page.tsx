@@ -99,6 +99,14 @@ export default async function MyCompetitionsPage() {
                   )}
                 </Link>
                 <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href={`/api/receipts/competition/${e.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                  >
+                    🧾 Receipt
+                  </a>
                   {e.formSubmitted && <Badge variant="success">Form submitted</Badge>}
                   {googleFormUrl && (
                     <a
