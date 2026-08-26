@@ -8,6 +8,7 @@ import { computeCreditApplication, settleReferralCredit, InsufficientCreditError
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
 import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
 import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, CouponError } from "@/lib/coupon";
+import { sendEventRegistrationConfirmationEmail } from "@/lib/email";
 
 export async function POST(
   request: Request,
@@ -89,7 +90,7 @@ export async function POST(
       // Guarded so concurrent duplicate requests (double-click, retry) can't
       // each claim a seat and pay the referrer a second time for one registration.
       try {
-        const registration = await withEnrollmentNumber(
+        const { registration, isFreshSettlement } = await withEnrollmentNumber(
           existing?.enrollmentNumber,
           (enrollmentNumber) =>
             prisma.$transaction(async (tx) => {
@@ -158,9 +159,10 @@ export async function POST(
                 }
               }
 
-              return tx.eventRegistration.findUniqueOrThrow({
+              const settled = await tx.eventRegistration.findUniqueOrThrow({
                 where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
               });
+              return { registration: settled, isFreshSettlement };
             })
         );
 
@@ -169,6 +171,17 @@ export async function POST(
           email: session.user.email ?? "",
           enrollmentNumber: registration.enrollmentNumber!,
         });
+
+        if (isFreshSettlement) {
+          await sendEventRegistrationConfirmationEmail(
+            session.user.email!,
+            session.user.name ?? "",
+            event.title,
+            event.startDate,
+            event.venueOrLink,
+            registration.enrollmentNumber
+          ).catch((err) => console.error("Failed to send event registration confirmation email:", err));
+        }
 
         return NextResponse.json({
           paidWithCredit: true,

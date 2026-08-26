@@ -310,3 +310,105 @@ export async function sendAdminDigestEmail(
 
   return true;
 }
+
+export async function sendEventRegistrationConfirmationEmail(
+  to: string,
+  name: string,
+  eventTitle: string,
+  startDate: Date,
+  venueOrLink: string,
+  enrollmentNumber: string | null
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send event registration confirmation email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const when = formatDateTime(startDate);
+  const registrationsUrl = `${SITE_URL}/dashboard/registrations`;
+  const enrollmentLine = enrollmentNumber ? `\n\nEnrollment number: ${enrollmentNumber}` : "";
+  const enrollmentHtml = enrollmentNumber
+    ? `<p>Enrollment number: <strong>${enrollmentNumber}</strong></p>`
+    : "";
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `You're registered for ${eventTitle}`,
+      text: `Hi ${displayName},\n\nYou're confirmed for "${eventTitle}" on ${when}.\n\nVenue/link: ${venueOrLink}${enrollmentLine}\n\nView your registration: ${registrationsUrl}\n\nSee you there!\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>You're confirmed for <strong>${eventTitle}</strong> on <strong>${when}</strong>.</p>
+        <p>Venue/link: ${venueOrLink}</p>
+        ${enrollmentHtml}
+        <p>
+          <a href="${registrationsUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Registration</a>
+        </p>
+        <p>See you there!<br>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send event registration confirmation email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send event registration confirmation email:", err);
+    return false;
+  }
+
+  return true;
+}
+
+export async function sendCompetitionEntryConfirmationEmail(
+  to: string,
+  name: string,
+  competitionTitle: string,
+  submissionDeadline: Date,
+  enrollmentNumber: string | null
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send competition entry confirmation email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const when = formatDateTime(submissionDeadline);
+  const entriesUrl = `${SITE_URL}/dashboard/entries`;
+  const enrollmentLine = enrollmentNumber ? `\n\nEnrollment number: ${enrollmentNumber}` : "";
+  const enrollmentHtml = enrollmentNumber
+    ? `<p>Enrollment number: <strong>${enrollmentNumber}</strong></p>`
+    : "";
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `You're entered in ${competitionTitle}`,
+      text: `Hi ${displayName},\n\nYou're confirmed for "${competitionTitle}". Submission deadline: ${when}.${enrollmentLine}\n\nView your entry: ${entriesUrl}\n\nGood luck!\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>You're confirmed for <strong>${competitionTitle}</strong>. Submission deadline: <strong>${when}</strong>.</p>
+        ${enrollmentHtml}
+        <p>
+          <a href="${entriesUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Entry</a>
+        </p>
+        <p>Good luck!<br>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send competition entry confirmation email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send competition entry confirmation email:", err);
+    return false;
+  }
+
+  return true;
+}

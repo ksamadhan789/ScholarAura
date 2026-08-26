@@ -8,6 +8,7 @@ import { computeCreditApplication, settleReferralCredit, InsufficientCreditError
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
 import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/competitionEnrollment";
 import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, CouponError } from "@/lib/coupon";
+import { sendCompetitionEntryConfirmationEmail } from "@/lib/email";
 
 export async function POST(
   request: Request,
@@ -88,7 +89,7 @@ export async function POST(
       // Covers both genuinely free entries (fee = 0) and credit-covered
       // ones — guarded so concurrent duplicate requests can't each pay the
       // referrer a second time for one entry.
-      const entry = await withEnrollmentNumber(existing?.enrollmentNumber, (enrollmentNumber) =>
+      const { entry, isFreshSettlement } = await withEnrollmentNumber(existing?.enrollmentNumber, (enrollmentNumber) =>
         prisma.$transaction(async (tx) => {
           const claimedExisting = await tx.competitionEntry.updateMany({
             where: { userId: session.user.id, competitionId: competition.id, status: { not: "SUCCESS" } },
@@ -150,9 +151,10 @@ export async function POST(
             }
           }
 
-          return tx.competitionEntry.findUniqueOrThrow({
+          const settled = await tx.competitionEntry.findUniqueOrThrow({
             where: { userId_competitionId: { userId: session.user.id, competitionId: competition.id } },
           });
+          return { entry: settled, isFreshSettlement };
         })
       );
 
@@ -161,6 +163,16 @@ export async function POST(
         email: session.user.email ?? "",
         enrollmentNumber: entry.enrollmentNumber!,
       });
+
+      if (isFreshSettlement) {
+        await sendCompetitionEntryConfirmationEmail(
+          session.user.email!,
+          session.user.name ?? "",
+          competition.title,
+          competition.submissionDeadline,
+          entry.enrollmentNumber
+        ).catch((err) => console.error("Failed to send competition entry confirmation email:", err));
+      }
 
       return NextResponse.json({
         paidWithCredit: true,
