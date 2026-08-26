@@ -71,6 +71,7 @@ export async function sendCertificateReadyEmail(
     const { error } = await resend.emails.send({
       from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
       to,
+      replyTo: process.env.CERTIFICATE_REPLY_TO_EMAIL ?? "scholaraura@gmail.com",
       subject: `Your certificate for ${eventTitle} is ready`,
       text: `Hi ${displayName},\n\nYour certificate for "${eventTitle}" is ready.\n\nCertificate number: ${certificateNumber}\n\nView and download it here: ${certificatesUrl}\n\nYou can verify it anytime at: ${verifyUrl}\n\nCongratulations!\nTeam ScholarAura`,
       html: `
