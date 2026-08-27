@@ -13,6 +13,9 @@ export default async function DashboardPage() {
   if (session.user.role === "ADMIN") {
     redirect("/dashboard/admin");
   }
+  if (session.user.role === "RECRUITER") {
+    redirect("/dashboard/recruiter");
+  }
   if (session.user.role === "STUDENT") {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },

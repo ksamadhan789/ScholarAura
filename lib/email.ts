@@ -253,6 +253,8 @@ export async function sendAdminDigestEmail(
     newCompetitionEntries: number;
     pendingColleges: number;
     failedCertificates: number;
+    pendingRecruiters: number;
+    pendingJobs: number;
   }
 ): Promise<boolean> {
   const resend = getClient();
@@ -272,6 +274,8 @@ export async function sendAdminDigestEmail(
     ["New competition entries", stats.newCompetitionEntries.toLocaleString("en-IN")],
     ["Colleges pending approval", stats.pendingColleges.toLocaleString("en-IN")],
     ["Certificates needing attention", stats.failedCertificates.toLocaleString("en-IN")],
+    ["Recruiter accounts pending review", stats.pendingRecruiters.toLocaleString("en-IN")],
+    ["Job postings pending review", stats.pendingJobs.toLocaleString("en-IN")],
   ];
 
   const textRows = rows.map(([label, value]) => `${label}: ${value}`).join("\n");
@@ -450,6 +454,170 @@ export async function sendJobApplicationReceivedEmail(
     }
   } catch (err) {
     console.error("Failed to send job application email:", err);
+    return false;
+  }
+
+  return true;
+}
+
+export async function sendRecruiterAccountApprovedEmail(to: string, name: string): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send recruiter approval email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const dashboardUrl = `${SITE_URL}/dashboard/recruiter`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: "Your ScholarAura recruiter account is approved",
+      text: `Hi ${displayName},\n\nYour recruiter account has been approved. You can now post jobs — each posting is still reviewed before it goes live.\n\nPost a job: ${dashboardUrl}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>Your recruiter account has been approved. You can now post jobs — each posting is still reviewed before it goes live.</p>
+        <p>
+          <a href="${dashboardUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Post a job</a>
+        </p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send recruiter approval email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send recruiter approval email:", err);
+    return false;
+  }
+
+  return true;
+}
+
+export async function sendRecruiterAccountRejectedEmail(
+  to: string,
+  name: string,
+  reason: string | null
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send recruiter rejection email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const reasonLine = reason ? `\n\nReason: ${reason}` : "";
+  const reasonHtml = reason ? `<p>Reason: ${reason}</p>` : "";
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: "Your ScholarAura recruiter account application",
+      text: `Hi ${displayName},\n\nWe weren't able to approve your recruiter account at this time.${reasonLine}\n\nIf you think this is a mistake, reply to this email.\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>We weren't able to approve your recruiter account at this time.</p>
+        ${reasonHtml}
+        <p>If you think this is a mistake, reply to this email.</p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send recruiter rejection email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send recruiter rejection email:", err);
+    return false;
+  }
+
+  return true;
+}
+
+export async function sendJobApprovedEmail(to: string, name: string, jobTitle: string): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send job approval email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const dashboardUrl = `${SITE_URL}/dashboard/recruiter`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Your job posting "${jobTitle}" is live`,
+      text: `Hi ${displayName},\n\nYour job posting "${jobTitle}" has been approved and is now live on ScholarAura.\n\nView it: ${dashboardUrl}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>Your job posting <strong>${jobTitle}</strong> has been approved and is now live on ScholarAura.</p>
+        <p>
+          <a href="${dashboardUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View your jobs</a>
+        </p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send job approval email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send job approval email:", err);
+    return false;
+  }
+
+  return true;
+}
+
+export async function sendJobRejectedEmail(
+  to: string,
+  name: string,
+  jobTitle: string,
+  reason: string | null
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send job rejection email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const dashboardUrl = `${SITE_URL}/dashboard/recruiter`;
+  const reasonLine = reason ? `\n\nReason: ${reason}` : "";
+  const reasonHtml = reason ? `<p>Reason: ${reason}</p>` : "";
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Your job posting "${jobTitle}" needs changes`,
+      text: `Hi ${displayName},\n\nYour job posting "${jobTitle}" wasn't approved as submitted.${reasonLine}\n\nYou can edit and resubmit it here: ${dashboardUrl}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>Your job posting <strong>${jobTitle}</strong> wasn't approved as submitted.</p>
+        ${reasonHtml}
+        <p>
+          <a href="${dashboardUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Edit and resubmit</a>
+        </p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send job rejection email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send job rejection email:", err);
     return false;
   }
 

@@ -86,7 +86,12 @@ export default async function JobsPage({
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">💼 Jobs</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">💼 Jobs</h1>
+        <Link href="/recruiter/register" className="text-sm text-brand-600 underline dark:text-brand-400">
+          Are you hiring? Post a job
+        </Link>
+      </div>
 
       <form className="mb-6 flex flex-wrap gap-2" action="/jobs">
         <input

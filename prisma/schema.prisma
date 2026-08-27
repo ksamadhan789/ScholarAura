@@ -129,6 +129,7 @@ model User {
   eventWaitlistEntries EventWaitlist[]
   postedJobs        Job[]               @relation("PostedJobs")
   jobApplications   JobApplication[]
+  recruiterProfile  RecruiterProfile?
 
   @@map("users")
 }
@@ -595,12 +596,45 @@ model Job {
   rejectionReason     String?
   postedByUserId      String
   postedByUser        User               @relation("PostedJobs", fields: [postedByUserId], references: [id])
+  recruiterProfileId  String?
+  recruiterProfile    RecruiterProfile?  @relation(fields: [recruiterProfileId], references: [id])
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
   applications        JobApplication[]
 
   @@map("jobs")
+}
+
+// ----------------------
+// RECRUITERS (Phase 2)
+// A separate, verified account type. Signing up only creates a PENDING
+// profile — admin approval is required before a recruiter can submit a
+// job, and every job they submit still goes through its own approval
+// (approvalStatus on Job) even after their account is approved.
+// ----------------------
+
+enum RecruiterStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model RecruiterProfile {
+  id              String          @id @default(uuid())
+  userId          String          @unique
+  user            User            @relation(fields: [userId], references: [id])
+  companyName     String
+  companyWebsite  String?
+  designation     String?
+  status          RecruiterStatus @default(PENDING)
+  rejectionReason String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  jobs            Job[]
+
+  @@map("recruiter_profiles")
 }
 
 enum JobApplicationStatus {
