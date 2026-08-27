@@ -412,3 +412,46 @@ export async function sendCompetitionEntryConfirmationEmail(
 
   return true;
 }
+
+export async function sendJobApplicationReceivedEmail(
+  to: string,
+  name: string,
+  jobTitle: string,
+  companyName: string
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send job application email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const applicationsUrl = `${SITE_URL}/dashboard/job-applications`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Application received: ${jobTitle} at ${companyName}`,
+      text: `Hi ${displayName},\n\nWe've received your application for "${jobTitle}" at ${companyName}.\n\nTrack your application: ${applicationsUrl}\n\nGood luck!\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>We've received your application for <strong>${jobTitle}</strong> at <strong>${companyName}</strong>.</p>
+        <p>
+          <a href="${applicationsUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Track Application</a>
+        </p>
+        <p>Good luck!<br>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send job application email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send job application email:", err);
+    return false;
+  }
+
+  return true;
+}

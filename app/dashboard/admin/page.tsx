@@ -32,6 +32,8 @@ export default async function AdminHomePage() {
     publishedCourseCount,
     publishedEventCount,
     publishedCompetitionCount,
+    publishedJobCount,
+    jobApplicationCount,
     courseRevenue,
     eventRevenue,
     competitionRevenue,
@@ -44,6 +46,8 @@ export default async function AdminHomePage() {
     prisma.course.count({ where: { isPublished: true } }),
     prisma.event.count({ where: { isPublished: true } }),
     prisma.competition.count({ where: { isPublished: true } }),
+    prisma.job.count({ where: { isPublished: true } }),
+    prisma.jobApplication.count(),
     prisma.coursePurchase.aggregate({
       where: { status: "SUCCESS" },
       _sum: { amount: true, creditApplied: true },
@@ -82,6 +86,8 @@ export default async function AdminHomePage() {
         <StatTile label="Published courses" value={publishedCourseCount.toLocaleString("en-IN")} />
         <StatTile label="Published events" value={publishedEventCount.toLocaleString("en-IN")} />
         <StatTile label="Published competitions" value={publishedCompetitionCount.toLocaleString("en-IN")} />
+        <StatTile label="Published jobs" value={publishedJobCount.toLocaleString("en-IN")} />
+        <StatTile label="Job applications" value={jobApplicationCount.toLocaleString("en-IN")} />
         <StatTile label="Onboarded" value={onboardedCount.toLocaleString("en-IN")} />
         <StatTile label="Opted into marketing" value={marketingOptInCount.toLocaleString("en-IN")} />
         <StatTile label="Colleges" value={collegeCount.toLocaleString("en-IN")} />
@@ -112,6 +118,12 @@ export default async function AdminHomePage() {
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
           Manage competitions
+        </Link>
+        <Link
+          href="/dashboard/jobs"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          Manage jobs
         </Link>
         <Link
           href="/dashboard/students"
