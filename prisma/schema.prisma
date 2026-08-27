@@ -23,6 +23,7 @@ enum Role {
   STUDENT
   INSTRUCTOR
   ADMIN
+  RECRUITER
 }
 
 enum EventType {
@@ -126,6 +127,8 @@ model User {
   passwordResetTokens PasswordResetToken[]
   competitionEntries CompetitionEntry[]
   eventWaitlistEntries EventWaitlist[]
+  postedJobs        Job[]               @relation("PostedJobs")
+  jobApplications   JobApplication[]
 
   @@map("users")
 }
@@ -549,4 +552,77 @@ model RateLimitBucket {
   count       Int      @default(1)
 
   @@map("rate_limit_buckets")
+}
+
+// ----------------------
+// JOBS
+// Phase 1: ScholarAura's own team posts jobs directly (isPublished toggle,
+// same pattern as courses/events/competitions). A recruiter self-serve tab
+// with its own account type and an admin approval queue for their postings
+// is a planned follow-up — postedByUserId/approvalStatus are already shaped
+// to support that without a schema change later.
+// ----------------------
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  INTERNSHIP
+  CONTRACT
+}
+
+enum JobApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Job {
+  id                  String             @id @default(uuid())
+  slug                String             @unique
+  title               String
+  companyName         String
+  companyLogoUrl      String?
+  location            String
+  isRemote            Boolean            @default(false)
+  employmentType      EmploymentType
+  description         String
+  requirements        String?
+  minExperienceYears  Int?
+  salaryRange         String?
+  applicationDeadline DateTime?
+  isPublished         Boolean            @default(false)
+  approvalStatus      JobApprovalStatus  @default(APPROVED)
+  rejectionReason     String?
+  postedByUserId      String
+  postedByUser        User               @relation("PostedJobs", fields: [postedByUserId], references: [id])
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  applications        JobApplication[]
+
+  @@map("jobs")
+}
+
+enum JobApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  REJECTED
+  HIRED
+}
+
+model JobApplication {
+  id           String               @id @default(uuid())
+  jobId        String
+  job          Job                  @relation(fields: [jobId], references: [id])
+  userId       String
+  user         User                 @relation(fields: [userId], references: [id])
+  resumeFileId String
+  resumeName   String
+  coverNote    String?
+  status       JobApplicationStatus @default(APPLIED)
+  appliedAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@unique([jobId, userId])
+  @@map("job_applications")
 }

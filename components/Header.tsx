@@ -46,6 +46,10 @@ export function Header() {
             🏆 Competitions
           </Link>
 
+          <Link href="/jobs" className="hover:text-brand-600 dark:hover:text-brand-400">
+            💼 Jobs
+          </Link>
+
           <div
             className="relative"
             onMouseEnter={openEventsMenu}

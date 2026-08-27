@@ -87,6 +87,18 @@ export default async function DashboardPage() {
           📜 My certificates
         </Link>
         <Link
+          href="/jobs"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          💼 Browse jobs
+        </Link>
+        <Link
+          href="/dashboard/job-applications"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          💼 My applications
+        </Link>
+        <Link
           href="/dashboard/referrals"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
