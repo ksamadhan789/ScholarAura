@@ -10,8 +10,8 @@ const updateStatusSchema = z.object({
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Not allowed" }, { status: 403 });
+  if (!session) {
+    return NextResponse.json({ error: "Not allowed" }, { status: 401 });
   }
 
   const body = await request.json();
@@ -23,9 +23,15 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     );
   }
 
-  const application = await prisma.jobApplication.findUnique({ where: { id: params.id } });
+  const application = await prisma.jobApplication.findUnique({
+    where: { id: params.id },
+    include: { job: true },
+  });
   if (!application) {
     return NextResponse.json({ error: "Application not found" }, { status: 404 });
+  }
+  if (session.user.role !== "ADMIN" && session.user.id !== application.job.postedByUserId) {
+    return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
 
   const updated = await prisma.jobApplication.update({

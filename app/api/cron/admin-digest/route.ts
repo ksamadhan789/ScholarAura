@@ -26,6 +26,8 @@ export async function GET(request: Request) {
     competitionEntries,
     pendingColleges,
     failedCertificates,
+    pendingRecruiters,
+    pendingJobs,
     admins,
   ] = await Promise.all([
     prisma.user.count({ where: { role: "STUDENT", createdAt: { gte: since } } }),
@@ -43,6 +45,8 @@ export async function GET(request: Request) {
     }),
     prisma.college.count({ where: { status: "PENDING" } }),
     prisma.certificate.count({ where: { status: "FAILED" } }),
+    prisma.recruiterProfile.count({ where: { status: "PENDING" } }),
+    prisma.job.count({ where: { approvalStatus: "PENDING" } }),
     prisma.user.findMany({ where: { role: "ADMIN" }, select: { name: true, email: true } }),
   ]);
 
@@ -59,6 +63,8 @@ export async function GET(request: Request) {
     newCompetitionEntries: competitionEntries.length,
     pendingColleges,
     failedCertificates,
+    pendingRecruiters,
+    pendingJobs,
   };
 
   let sent = 0;

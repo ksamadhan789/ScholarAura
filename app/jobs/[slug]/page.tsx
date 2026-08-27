@@ -99,6 +99,14 @@ export default async function JobDetailPage({ params }: { params: { slug: string
             Edit
           </Link>
         )}
+        {!isAdmin && session?.user.role === "RECRUITER" && session.user.id === job.postedByUserId && (
+          <Link
+            href={`/dashboard/recruiter/jobs/${job.slug}/edit`}
+            className="mr-3 rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          >
+            Edit
+          </Link>
+        )}
         {application ? (
           <Badge variant="success">You've applied — status: {application.status}</Badge>
         ) : !job.isPublished ? null : deadlinePassed ? (

@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EMPLOYMENT_TYPE_LABELS } from "@/lib/jobLabels";
 import { JobPublishToggle } from "./JobPublishToggle";
+import { JobApprovalActions } from "./JobApprovalActions";
 import { Badge } from "@/components/Badge";
 
 export default async function ManageJobsPage() {
@@ -18,7 +19,10 @@ export default async function ManageJobsPage() {
   }
 
   const [jobs, applicationCounts] = await Promise.all([
-    prisma.job.findMany({ orderBy: { createdAt: "desc" } }),
+    prisma.job.findMany({
+      include: { recruiterProfile: true },
+      orderBy: { createdAt: "desc" },
+    }),
     prisma.jobApplication.groupBy({ by: ["jobId"], _count: { _all: true } }),
   ]);
   const applicationCountByJobId = new Map(applicationCounts.map((a) => [a.jobId, a._count._all]));
@@ -51,27 +55,42 @@ export default async function ManageJobsPage() {
                 <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
                   {job.companyName} · {EMPLOYMENT_TYPE_LABELS[job.employmentType]}
                 </p>
+                <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+                  {job.recruiterProfile ? `Recruiter: ${job.recruiterProfile.companyName}` : "Posted by ScholarAura team"}
+                </p>
                 <div className="mt-1 flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
-                  <Badge variant={job.isPublished ? "success" : "warning"}>
-                    {job.isPublished ? "Published" : "Draft"}
-                  </Badge>
+                  {job.approvalStatus === "PENDING" ? (
+                    <Badge variant="warning">Pending review</Badge>
+                  ) : job.approvalStatus === "REJECTED" ? (
+                    <Badge variant="neutral">Rejected</Badge>
+                  ) : (
+                    <Badge variant={job.isPublished ? "success" : "warning"}>
+                      {job.isPublished ? "Published" : "Draft"}
+                    </Badge>
+                  )}
                   <span>{applicationCountByJobId.get(job.id) ?? 0} applicants</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Link
-                  href={`/dashboard/jobs/${job.slug}/edit`}
-                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                >
-                  Edit
-                </Link>
-                <Link
-                  href={`/dashboard/jobs/${job.slug}/applicants`}
-                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                >
-                  Applicants
-                </Link>
-                <JobPublishToggle slug={job.slug} isPublished={job.isPublished} />
+                {job.approvalStatus === "PENDING" ? (
+                  <JobApprovalActions slug={job.slug} />
+                ) : (
+                  <>
+                    <Link
+                      href={`/dashboard/jobs/${job.slug}/edit`}
+                      className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                    >
+                      Edit
+                    </Link>
+                    <Link
+                      href={`/dashboard/jobs/${job.slug}/applicants`}
+                      className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                    >
+                      Applicants
+                    </Link>
+                    <JobPublishToggle slug={job.slug} isPublished={job.isPublished} />
+                  </>
+                )}
               </div>
             </div>
           ))}

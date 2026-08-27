@@ -1,31 +1,22 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Turnstile } from "@/components/Turnstile";
-import { GoogleOneTap } from "@/components/GoogleOneTap";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
-export default function RegisterPage() {
-  return (
-    <Suspense>
-      <RegisterForm />
-    </Suspense>
-  );
-}
-
-function RegisterForm() {
+export default function RecruiterRegisterPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const ref = searchParams.get("ref");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [companyName, setCompanyName] = useState("");
+  const [companyWebsite, setCompanyWebsite] = useState("");
+  const [designation, setDesignation] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
@@ -36,14 +27,16 @@ function RegisterForm() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/recruiter/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
           email,
           password,
-          ref: ref ?? undefined,
+          companyName,
+          companyWebsite: companyWebsite || undefined,
+          designation: designation || undefined,
           turnstileToken: turnstileToken ?? undefined,
         }),
       });
@@ -65,7 +58,7 @@ function RegisterForm() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/dashboard/recruiter");
     } catch {
       setError("Couldn't reach the server. Please try again.");
     } finally {
@@ -74,34 +67,32 @@ function RegisterForm() {
   }
 
   return (
-    <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4">
-      {GOOGLE_CLIENT_ID && <GoogleOneTap clientId={GOOGLE_CLIENT_ID} />}
-      <h1 className="mb-2 text-2xl font-semibold">✨ Create your account</h1>
-      {ref && (
-        <p className="mb-4 rounded bg-green-50 dark:bg-green-900/40 px-3 py-2 text-sm text-green-800 dark:text-green-300">
-          🎉 You were invited by a friend
-        </p>
-      )}
+    <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4 py-16">
+      <h1 className="mb-2 text-2xl font-semibold">💼 Hire on ScholarAura</h1>
+      <p className="mb-6 text-sm text-gray-600 dark:text-slate-400">
+        Create a recruiter account to post jobs to our student and professional community. Your
+        account and each job posting are reviewed before going live.
+      </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
-          <label className="mb-1 block text-sm font-medium">Full name</label>
+          <label className="mb-1 block text-sm font-medium">Your name</label>
           <input
             type="text"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Email</label>
+          <label className="mb-1 block text-sm font-medium">Work email</label>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
         <div>
@@ -113,7 +104,7 @@ function RegisterForm() {
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 pr-16 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 pr-16 dark:bg-slate-800 dark:text-white"
             />
             <button
               type="button"
@@ -123,6 +114,42 @@ function RegisterForm() {
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Company name</label>
+          <input
+            type="text"
+            required
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            Company website{" "}
+            <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+          </label>
+          <input
+            type="url"
+            placeholder="https://..."
+            value={companyWebsite}
+            onChange={(e) => setCompanyWebsite(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            Your designation{" "}
+            <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. Talent Acquisition Manager"
+            value={designation}
+            onChange={(e) => setDesignation(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
         </div>
 
         {TURNSTILE_SITE_KEY && (
@@ -136,27 +163,20 @@ function RegisterForm() {
           disabled={loading || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
           className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
         >
-          {loading ? "Creating account…" : "Sign up"}
+          {loading ? "Creating account…" : "Create recruiter account"}
         </button>
       </form>
 
-      <button
-        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        className="mt-4 rounded border border-gray-300 dark:border-slate-600 px-4 py-2"
-      >
-        Continue with Google
-      </button>
-
       <p className="mt-6 text-sm text-gray-600 dark:text-slate-400">
-        Already have an account?{" "}
-        <Link href="/login" className="underline">
-          Log in
+        Looking for a job instead?{" "}
+        <Link href="/jobs" className="underline">
+          Browse jobs
         </Link>
       </p>
       <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-        Hiring talent?{" "}
-        <Link href="/recruiter/register" className="underline">
-          Post a job as a recruiter
+        Already have an account?{" "}
+        <Link href="/login" className="underline">
+          Log in
         </Link>
       </p>
     </main>

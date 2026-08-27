@@ -3,13 +3,9 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { sendJobApprovedEmail, sendJobRejectedEmail } from "@/lib/email";
 
 const updateJobSchema = z
   .object({
-    isPublished: z.boolean().optional(),
-    approvalStatus: z.enum(["APPROVED", "REJECTED"]).optional(),
-    rejectionReason: z.string().trim().nullable().optional(),
     title: z.string().min(3).optional(),
     companyName: z.string().min(1).optional(),
     companyLogoUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
@@ -30,17 +26,14 @@ const updateJobSchema = z
   });
 
 export async function GET(_request: Request, { params }: { params: { slug: string } }) {
-  const job = await prisma.job.findUnique({ where: { slug: params.slug } });
-  if (!job) {
-    return NextResponse.json({ error: "Job not found" }, { status: 404 });
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "RECRUITER") {
+    return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
 
-  if (!job.isPublished) {
-    const session = await getServerSession(authOptions);
-    const isOwner = session?.user.id === job.postedByUserId;
-    if (!session || (session.user.role !== "ADMIN" && !isOwner)) {
-      return NextResponse.json({ error: "Job not found" }, { status: 404 });
-    }
+  const job = await prisma.job.findUnique({ where: { slug: params.slug } });
+  if (!job || job.postedByUserId !== session.user.id) {
+    return NextResponse.json({ error: "Job not found" }, { status: 404 });
   }
 
   return NextResponse.json(job);
@@ -48,7 +41,7 @@ export async function GET(_request: Request, { params }: { params: { slug: strin
 
 export async function PATCH(request: Request, { params }: { params: { slug: string } }) {
   const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || session.user.role !== "RECRUITER") {
     return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
 
@@ -61,11 +54,8 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
     );
   }
 
-  const job = await prisma.job.findUnique({
-    where: { slug: params.slug },
-    include: { postedByUser: true },
-  });
-  if (!job) {
+  const job = await prisma.job.findUnique({ where: { slug: params.slug } });
+  if (!job || job.postedByUserId !== session.user.id) {
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
   }
 
@@ -73,11 +63,6 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
   const updated = await prisma.job.update({
     where: { slug: params.slug },
     data: {
-      ...(d.isPublished !== undefined && { isPublished: d.isPublished }),
-      ...(d.approvalStatus !== undefined && { approvalStatus: d.approvalStatus }),
-      ...(d.approvalStatus !== undefined && {
-        rejectionReason: d.approvalStatus === "REJECTED" ? d.rejectionReason || null : null,
-      }),
       ...(d.title !== undefined && { title: d.title }),
       ...(d.companyName !== undefined && { companyName: d.companyName }),
       ...(d.companyLogoUrl !== undefined && { companyLogoUrl: d.companyLogoUrl || null }),
@@ -89,25 +74,14 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
       ...(d.minExperienceYears !== undefined && { minExperienceYears: d.minExperienceYears }),
       ...(d.salaryRange !== undefined && { salaryRange: d.salaryRange || null }),
       ...(d.applicationDeadline !== undefined && { applicationDeadline: d.applicationDeadline }),
+      // Any edit to a recruiter-submitted job's content sends it back
+      // through moderation — otherwise an already-approved posting could
+      // be swapped for different content post-review.
+      approvalStatus: "PENDING",
+      isPublished: false,
+      rejectionReason: null,
     },
   });
-
-  // Only recruiter-submitted jobs need this notification — the team's own
-  // postings are pre-approved and never go through this transition.
-  if (d.approvalStatus && job.recruiterProfileId) {
-    if (d.approvalStatus === "APPROVED") {
-      await sendJobApprovedEmail(job.postedByUser.email, job.postedByUser.name, updated.title).catch(
-        (err) => console.error("Failed to send job approval email:", err)
-      );
-    } else {
-      await sendJobRejectedEmail(
-        job.postedByUser.email,
-        job.postedByUser.name,
-        updated.title,
-        updated.rejectionReason
-      ).catch((err) => console.error("Failed to send job rejection email:", err));
-    }
-  }
 
   return NextResponse.json(updated);
 }
