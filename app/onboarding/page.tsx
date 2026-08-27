@@ -193,7 +193,10 @@ export default function OnboardingPage() {
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Middle name (optional)</label>
+          <label className="mb-1 block text-sm font-medium">
+            Middle name{" "}
+            <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+          </label>
           <input
             type="text"
             value={middleName}
@@ -398,7 +401,9 @@ export default function OnboardingPage() {
 
         {showExpertise && (
           <div>
-            <label className="mb-1 block text-sm font-medium">Expert in (optional)</label>
+            <label className="mb-1 block text-sm font-medium">
+              Expert in <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+            </label>
             <input
               type="text"
               placeholder="e.g. Pharmaceutical Chemistry, Machine Learning..."
