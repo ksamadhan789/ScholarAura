@@ -66,14 +66,24 @@ function EventCard({
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: { type?: string };
+  searchParams: { type?: string; q?: string };
 }) {
   const activeType = searchParams.type;
+  const q = searchParams.q?.trim();
 
   const events = await prisma.event.findMany({
     where: {
       isPublished: true,
       ...(activeType ? { type: activeType as never } : {}),
+      ...(q
+        ? {
+            OR: [
+              { title: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },
+              { shortDescription: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     },
     orderBy: { startDate: "asc" },
   });
@@ -92,9 +102,26 @@ export default async function EventsPage({
         {activeLabel ?? "📅 Upcoming & ongoing events"}
       </h1>
 
+      <form className="mb-6 flex flex-wrap gap-2" action="/events">
+        {activeType && <input type="hidden" name="type" value={activeType} />}
+        <input
+          type="text"
+          name="q"
+          defaultValue={q}
+          placeholder="Search by title or description..."
+          className="min-w-[200px] flex-1 rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+        />
+        <button
+          type="submit"
+          className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
+        >
+          Search
+        </button>
+      </form>
+
       <div className="mb-8 flex flex-wrap gap-2">
         <Link
-          href="/events"
+          href={q ? `/events?q=${encodeURIComponent(q)}` : "/events"}
           className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
             !activeType
               ? "bg-brand-600 text-white"
@@ -106,7 +133,7 @@ export default async function EventsPage({
         {EVENT_TYPE_TABS.map(({ type, label }) => (
           <Link
             key={type}
-            href={`/events?type=${type}`}
+            href={q ? `/events?type=${type}&q=${encodeURIComponent(q)}` : `/events?type=${type}`}
             className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
               activeType === type
                 ? "bg-brand-600 text-white"
