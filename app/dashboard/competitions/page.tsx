@@ -5,8 +5,13 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { CompetitionPublishToggle } from "./CompetitionPublishToggle";
+import { CompetitionArchiveToggle } from "./CompetitionArchiveToggle";
 
-export default async function ManageCompetitionsPage() {
+export default async function ManageCompetitionsPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -16,10 +21,17 @@ export default async function ManageCompetitionsPage() {
     redirect("/dashboard");
   }
 
-  const competitions = await prisma.competition.findMany({
-    orderBy: { startDate: "asc" },
-    include: { _count: { select: { entries: { where: { status: "SUCCESS" } } } } },
-  });
+  const showArchived = searchParams.tab === "archived";
+
+  const [competitions, activeCount, archivedCount] = await Promise.all([
+    prisma.competition.findMany({
+      where: { isArchived: showArchived },
+      orderBy: { startDate: "asc" },
+      include: { _count: { select: { entries: { where: { status: "SUCCESS" } } } } },
+    }),
+    prisma.competition.count({ where: { isArchived: false } }),
+    prisma.competition.count({ where: { isArchived: true } }),
+  ]);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -33,8 +45,33 @@ export default async function ManageCompetitionsPage() {
         </Link>
       </div>
 
+      <div className="mb-6 flex gap-2">
+        <Link
+          href="/dashboard/competitions"
+          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
+            !showArchived
+              ? "bg-brand-600 text-white"
+              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+          }`}
+        >
+          Active ({activeCount})
+        </Link>
+        <Link
+          href="/dashboard/competitions?tab=archived"
+          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
+            showArchived
+              ? "bg-brand-600 text-white"
+              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+          }`}
+        >
+          Archived ({archivedCount})
+        </Link>
+      </div>
+
       {competitions.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">No competitions created yet.</p>
+        <p className="text-gray-500 dark:text-slate-400">
+          {showArchived ? "No archived competitions." : "No competitions created yet."}
+        </p>
       ) : (
         <div className="flex flex-col gap-3">
           {competitions.map((c) => (
@@ -87,6 +124,7 @@ export default async function ManageCompetitionsPage() {
                   Certificates
                 </Link>
                 <CompetitionPublishToggle slug={c.slug} isPublished={c.isPublished} />
+                <CompetitionArchiveToggle slug={c.slug} isArchived={c.isArchived} />
               </div>
             </div>
           ))}

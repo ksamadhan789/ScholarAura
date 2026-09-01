@@ -5,9 +5,14 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS, formatDateRange } from "@/lib/eventLabels";
 import { EventPublishToggle } from "./EventPublishToggle";
+import { EventArchiveToggle } from "./EventArchiveToggle";
 import { Badge } from "@/components/Badge";
 
-export default async function ManageEventsPage() {
+export default async function ManageEventsPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -17,9 +22,13 @@ export default async function ManageEventsPage() {
     redirect("/dashboard");
   }
 
-  const [events, waitlistCounts] = await Promise.all([
-    prisma.event.findMany({ orderBy: { startDate: "asc" } }),
+  const showArchived = searchParams.tab === "archived";
+
+  const [events, waitlistCounts, activeCount, archivedCount] = await Promise.all([
+    prisma.event.findMany({ where: { isArchived: showArchived }, orderBy: { startDate: "asc" } }),
     prisma.eventWaitlist.groupBy({ by: ["eventId"], _count: { _all: true } }),
+    prisma.event.count({ where: { isArchived: false } }),
+    prisma.event.count({ where: { isArchived: true } }),
   ]);
   const waitlistCountByEventId = new Map(waitlistCounts.map((w) => [w.eventId, w._count._all]));
 
@@ -35,8 +44,33 @@ export default async function ManageEventsPage() {
         </Link>
       </div>
 
+      <div className="mb-6 flex gap-2">
+        <Link
+          href="/dashboard/events"
+          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
+            !showArchived
+              ? "bg-brand-600 text-white"
+              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+          }`}
+        >
+          Active ({activeCount})
+        </Link>
+        <Link
+          href="/dashboard/events?tab=archived"
+          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
+            showArchived
+              ? "bg-brand-600 text-white"
+              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+          }`}
+        >
+          Archived ({archivedCount})
+        </Link>
+      </div>
+
       {events.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">No events created yet.</p>
+        <p className="text-gray-500 dark:text-slate-400">
+          {showArchived ? "No archived events." : "No events created yet."}
+        </p>
       ) : (
         <div className="flex flex-col gap-3">
           {events.map((event) => (
@@ -84,6 +118,7 @@ export default async function ManageEventsPage() {
                   Certificates
                 </Link>
                 <EventPublishToggle slug={event.slug} isPublished={event.isPublished} />
+                <EventArchiveToggle slug={event.slug} isArchived={event.isArchived} />
               </div>
             </div>
           ))}

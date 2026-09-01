@@ -14,6 +14,7 @@ const optionalDate = z.preprocess(
 const updateCompetitionSchema = z
   .object({
     isPublished: z.boolean().optional(),
+    isArchived: z.boolean().optional(),
     title: z.string().min(3).optional(),
     description: z.string().min(10).optional(),
     startDate: z.coerce.date().optional(),
@@ -112,6 +113,7 @@ export async function PATCH(
     where: { slug: params.slug },
     data: {
       ...(d.isPublished !== undefined && { isPublished: d.isPublished }),
+      ...(d.isArchived !== undefined && { isArchived: d.isArchived }),
       ...(d.title !== undefined && { title: d.title }),
       ...(d.description !== undefined && { description: d.description }),
       ...(d.startDate !== undefined && { startDate: d.startDate }),
