@@ -15,6 +15,12 @@ export function Footer() {
           <Link href="/events" className="hover:text-brand-600 dark:hover:text-brand-400">
             📅 Events
           </Link>
+          <Link href="/jobs" className="hover:text-brand-600 dark:hover:text-brand-400">
+            💼 Jobs
+          </Link>
+          <Link href="/recruiter/register" className="hover:text-brand-600 dark:hover:text-brand-400">
+            For employers
+          </Link>
           <Link href="/verify" className="hover:text-brand-600 dark:hover:text-brand-400">
             ✅ Verify a certificate
           </Link>

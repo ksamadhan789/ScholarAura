@@ -38,20 +38,20 @@ export default async function CoursesPage() {
 
       <CoursesExplorer courses={courses} />
 
-      <div className="mt-16 grid grid-cols-3 divide-x divide-slate-200 rounded-lg border border-slate-200 bg-slate-50 py-6 text-center dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800">
-        <div>
+      <div className="mt-16 grid grid-cols-1 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-slate-50 py-6 text-center dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <div className="py-3 first:pt-0 last:pb-0 sm:py-0">
           <p className="text-sm text-slate-500 dark:text-slate-400">Total Courses</p>
           <p className="mt-1 text-2xl font-bold text-brand-700 dark:text-brand-400">
             {courseCount}
           </p>
         </div>
-        <div>
+        <div className="py-3 first:pt-0 last:pb-0 sm:py-0">
           <p className="text-sm text-slate-500 dark:text-slate-400">Total Enrollments</p>
           <p className="mt-1 text-2xl font-bold text-brand-700 dark:text-brand-400">
             {enrollmentCount}
           </p>
         </div>
-        <div>
+        <div className="py-3 first:pt-0 last:pb-0 sm:py-0">
           <p className="text-sm text-slate-500 dark:text-slate-400">Certificates Issued</p>
           <p className="mt-1 text-2xl font-bold text-brand-700 dark:text-brand-400">
             {certificateCount}

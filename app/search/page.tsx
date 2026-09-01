@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { Badge } from "@/components/Badge";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
+import { EMPLOYMENT_TYPE_LABELS } from "@/lib/jobLabels";
 
 export const dynamic = "force-dynamic";
 
@@ -49,13 +50,13 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       <main className="mx-auto max-w-3xl px-4 py-16">
         <h1 className="mb-4 text-2xl font-semibold">Search</h1>
         <p className="text-gray-500 dark:text-slate-400">
-          Enter a search term to find courses, events, and competitions.
+          Enter a search term to find courses, events, competitions, and jobs.
         </p>
       </main>
     );
   }
 
-  const [courses, events, competitions] = await Promise.all([
+  const [courses, events, competitions, jobs] = await Promise.all([
     prisma.course.findMany({
       where: {
         isPublished: true,
@@ -88,9 +89,22 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       take: RESULT_LIMIT,
       orderBy: { startDate: "asc" },
     }),
+    prisma.job.findMany({
+      where: {
+        isPublished: true,
+        OR: [
+          { title: insensitive(q) },
+          { companyName: insensitive(q) },
+          { location: insensitive(q) },
+          { description: insensitive(q) },
+        ],
+      },
+      take: RESULT_LIMIT,
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
 
-  const totalResults = courses.length + events.length + competitions.length;
+  const totalResults = courses.length + events.length + competitions.length + jobs.length;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -101,7 +115,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
 
       {totalResults === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
-          No courses, events, or competitions matched your search. Try a different term.
+          No courses, events, competitions, or jobs matched your search. Try a different term.
         </p>
       ) : (
         <div className="flex flex-col gap-10">
@@ -150,6 +164,23 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
                     badge="Competition"
                     title={competition.title}
                     subtitle={competition.shortDescription ?? competition.description}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {jobs.length > 0 && (
+            <section>
+              <h2 className="mb-3 font-semibold">💼 Jobs</h2>
+              <div className="flex flex-col gap-3">
+                {jobs.map((job) => (
+                  <ResultRow
+                    key={job.id}
+                    href={`/jobs/${job.slug}`}
+                    badge={EMPLOYMENT_TYPE_LABELS[job.employmentType]}
+                    title={`${job.title} at ${job.companyName}`}
+                    subtitle={job.isRemote ? "Remote" : job.location}
                   />
                 ))}
               </div>
