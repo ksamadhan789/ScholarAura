@@ -14,6 +14,7 @@ const optionalDate = z.preprocess(
 const updateEventSchema = z
   .object({
     isPublished: z.boolean().optional(),
+    isArchived: z.boolean().optional(),
     thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
     brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
     title: z.string().min(3).optional(),
@@ -113,6 +114,7 @@ export async function PATCH(
     where: { slug: params.slug },
     data: {
       ...(d.isPublished !== undefined && { isPublished: d.isPublished }),
+      ...(d.isArchived !== undefined && { isArchived: d.isArchived }),
       ...(d.thumbnailUrl !== undefined && { thumbnailUrl: d.thumbnailUrl || null }),
       ...(d.brochureUrl !== undefined && { brochureUrl: d.brochureUrl || null }),
       ...(d.title !== undefined && { title: d.title }),
