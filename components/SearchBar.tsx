@@ -20,7 +20,7 @@ export function SearchBar() {
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search courses, events…"
+        placeholder="Search…"
         aria-label="Search"
         className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-400"
       />
