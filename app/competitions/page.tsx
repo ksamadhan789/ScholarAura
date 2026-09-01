@@ -49,9 +49,26 @@ function CompetitionCard({
   );
 }
 
-export default async function CompetitionsPage() {
+export default async function CompetitionsPage({
+  searchParams,
+}: {
+  searchParams: { q?: string };
+}) {
+  const q = searchParams.q?.trim();
+
   const competitions = await prisma.competition.findMany({
-    where: { isPublished: true },
+    where: {
+      isPublished: true,
+      ...(q
+        ? {
+            OR: [
+              { title: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },
+              { shortDescription: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    },
     orderBy: { startDate: "asc" },
   });
 
@@ -63,9 +80,25 @@ export default async function CompetitionsPage() {
     <main className="mx-auto max-w-4xl px-4 py-16">
       <h1 className="mb-6 text-2xl font-semibold">🏆 Competitions</h1>
 
+      <form className="mb-8 flex flex-wrap gap-2" action="/competitions">
+        <input
+          type="text"
+          name="q"
+          defaultValue={q}
+          placeholder="Search by title or description..."
+          className="min-w-[200px] flex-1 rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+        />
+        <button
+          type="submit"
+          className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
+        >
+          Search
+        </button>
+      </form>
+
       {competitions.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
-          👀 No competitions published yet — check back soon!
+          👀 No competitions {q ? "matched your search" : "published yet"} — check back soon!
         </p>
       ) : (
         <div className="flex flex-col gap-10">
