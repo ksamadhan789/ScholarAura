@@ -242,6 +242,56 @@ export async function sendWaitlistSeatAvailableEmail(
   return true;
 }
 
+const CONTENT_KIND_LABEL: Record<"course" | "event" | "competition", string> = {
+  course: "course",
+  event: "event",
+  competition: "competition",
+};
+
+export async function sendNewContentMatchingInterestEmail(
+  to: string,
+  name: string,
+  kind: "course" | "event" | "competition",
+  title: string,
+  url: string
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send new content interest email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const label = CONTENT_KIND_LABEL[kind];
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `New ${label} on ScholarAura: ${title}`,
+      text: `Hi ${displayName},\n\nA new ${label} just went live on ScholarAura that matches your field of study: "${title}".\n\nCheck it out: ${url}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>A new ${label} just went live on ScholarAura that matches your field of study: <strong>${title}</strong>.</p>
+        <p>
+          <a href="${url}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Check it out</a>
+        </p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send new content interest email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send new content interest email:", err);
+    return false;
+  }
+
+  return true;
+}
+
 export async function sendAdminDigestEmail(
   to: string,
   name: string,

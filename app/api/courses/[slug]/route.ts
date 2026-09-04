@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { notifyInterestedStudents } from "@/lib/interestNotify";
 
 const updateCourseSchema = z
   .object({
@@ -76,6 +77,14 @@ export async function PATCH(
       ...(d.thumbnailUrl !== undefined && { thumbnailUrl: d.thumbnailUrl || null }),
     },
   });
+
+  if (!course.isPublished && updated.isPublished) {
+    await notifyInterestedStudents("course", {
+      slug: updated.slug,
+      title: updated.title,
+      category: updated.category,
+    }).catch((err) => console.error("Failed to notify interested students:", err));
+  }
 
   return NextResponse.json(updated);
 }
