@@ -2,11 +2,14 @@ import { prisma } from "@/lib/prisma";
 
 export type NotificationType =
   | "QA_ANSWER"
+  | "QA_QUESTION"
   | "WAITLIST_SEAT"
   | "JOB_APPLICATION_STATUS"
+  | "JOB_APPLICATION_RECEIVED"
   | "RECRUITER_ACCOUNT_STATUS"
   | "JOB_APPROVAL_STATUS"
-  | "REFUND_REQUEST_STATUS";
+  | "REFUND_REQUEST_STATUS"
+  | "COMPETITION_RESULT";
 
 /**
  * Creates an in-app notification alongside (never instead of) the existing

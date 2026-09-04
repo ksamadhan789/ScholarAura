@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadResume } from "@/lib/jobResumeStorage";
 import { sendJobApplicationReceivedEmail } from "@/lib/email";
+import { createNotification } from "@/lib/notify";
 
 const MAX_RESUME_BYTES = 4 * 1024 * 1024; // stay under Vercel's serverless request body limit
 
@@ -67,6 +68,18 @@ export async function POST(request: Request, { params }: { params: { slug: strin
       job.title,
       job.companyName
     ).catch((err) => console.error("Failed to send job application email:", err));
+
+    if (job.postedByUserId !== session.user.id) {
+      const applicantsUrl = job.recruiterProfileId
+        ? `/dashboard/recruiter/jobs/${job.slug}/applicants`
+        : `/dashboard/jobs/${job.slug}/applicants`;
+      await createNotification({
+        userId: job.postedByUserId,
+        type: "JOB_APPLICATION_RECEIVED",
+        title: `${session.user.name} applied to ${job.title}`,
+        url: applicantsUrl,
+      }).catch((err) => console.error("Failed to create job application notification:", err));
+    }
 
     return NextResponse.json(application, { status: 201 });
   } catch (err) {

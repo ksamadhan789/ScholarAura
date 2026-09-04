@@ -754,3 +754,49 @@ export async function sendRefundRequestRejectedEmail(
 
   return true;
 }
+
+const RANK_LABEL: Record<number, string> = { 1: "🥇 1st place", 2: "🥈 2nd place", 3: "🥉 3rd place" };
+
+export async function sendCompetitionResultEmail(
+  to: string,
+  name: string,
+  competitionTitle: string,
+  rank: number,
+  competitionUrl: string
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send competition result email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const rankLabel = RANK_LABEL[rank] ?? `#${rank}`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Results are in for ${competitionTitle}`,
+      text: `Hi ${displayName},\n\nResults for "${competitionTitle}" are in — you placed ${rankLabel}!\n\nView the results: ${competitionUrl}\n\nCongratulations!\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>Results for <strong>${competitionTitle}</strong> are in — you placed <strong>${rankLabel}</strong>!</p>
+        <p>
+          <a href="${competitionUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View results</a>
+        </p>
+        <p>Congratulations!<br>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send competition result email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send competition result email:", err);
+    return false;
+  }
+
+  return true;
+}
