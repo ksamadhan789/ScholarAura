@@ -49,6 +49,7 @@ export default async function CompetitionWinnersPage({
         </p>
       ) : (
         <WinnerPicker
+          slug={competition.slug}
           entries={entries.map((e) => ({
             id: e.id,
             label: e.teamName ?? e.user.name,

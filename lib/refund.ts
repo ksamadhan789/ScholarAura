@@ -16,6 +16,21 @@ export class NotRefundableError extends Error {
 }
 
 /**
+ * A refunded purchase/registration/entry shouldn't leave behind a still-valid,
+ * publicly verifiable certificate — revoke one if it exists. updateMany so a
+ * purchase with no issued certificate (the common case) is just a no-op.
+ */
+async function revokeCertificateForRefund(
+  tx: Prisma.TransactionClient,
+  where: { userId: string; courseId?: string; eventId?: string; competitionId?: string }
+) {
+  await tx.certificate.updateMany({
+    where: { ...where, status: { not: "REVOKED" } },
+    data: { status: "REVOKED", revokedAt: new Date(), revokedReason: "Refunded" },
+  });
+}
+
+/**
  * Reverses the credit-side effects of a purchase inside the same transaction
  * that flips its status to REFUNDED: gives back any credit the buyer
  * applied, and claws back the referral reward paid to their referrer
@@ -97,6 +112,7 @@ export async function refundCoursePurchase(purchaseId: string) {
       Number(purchase.creditApplied),
       `Course: ${purchase.course.title}`
     );
+    await revokeCertificateForRefund(tx, { userId: purchase.userId, courseId: purchase.courseId });
     return tx.coursePurchase.findUniqueOrThrow({ where: { id: purchaseId } });
   });
 }
@@ -128,6 +144,7 @@ export async function refundEventRegistration(registrationId: string) {
       Number(registration.creditApplied),
       `Event: ${registration.event.title}`
     );
+    await revokeCertificateForRefund(tx, { userId: registration.userId, eventId: registration.eventId });
     return tx.eventRegistration.findUniqueOrThrow({ where: { id: registrationId } });
   });
 
@@ -161,6 +178,7 @@ export async function refundCompetitionEntry(entryId: string) {
       Number(entry.creditApplied),
       `Competition: ${entry.competition.title}`
     );
+    await revokeCertificateForRefund(tx, { userId: entry.userId, competitionId: entry.competitionId });
     return tx.competitionEntry.findUniqueOrThrow({ where: { id: entryId } });
   });
 }

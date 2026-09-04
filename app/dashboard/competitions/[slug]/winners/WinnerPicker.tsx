@@ -11,7 +11,7 @@ const RANKS = [
   { rank: 3, medal: "🥉", label: "3rd place" },
 ] as const;
 
-export function WinnerPicker({ entries }: { entries: Entry[] }) {
+export function WinnerPicker({ slug, entries }: { slug: string; entries: Entry[] }) {
   const router = useRouter();
   const initial: Record<number, string> = {};
   for (const r of RANKS) {
@@ -22,32 +22,19 @@ export function WinnerPicker({ entries }: { entries: Entry[] }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function setRank(entryId: string, rank: number | null) {
-    const res = await fetch(`/api/admin/competition-entries/${entryId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rank }),
-    });
-    if (!res.ok) {
-      throw new Error("Couldn't save that winner. Please try again.");
-    }
-  }
-
   async function handleSave() {
     setSaving(true);
     setError(null);
     try {
-      // Clear every entry that previously held a rank, then re-apply the
-      // current selection — avoids two entries ending up with the same rank.
-      const previousHolders = entries.filter((e) => e.rank !== null);
-      for (const holder of previousHolders) {
-        await setRank(holder.id, null);
-      }
-      for (const r of RANKS) {
-        const entryId = selection[r.rank];
-        if (entryId) {
-          await setRank(entryId, r.rank);
-        }
+      const selections = RANKS.map((r) => ({ rank: r.rank, entryId: selection[r.rank] || null }));
+      const res = await fetch(`/api/admin/competitions/${slug}/winners`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selections }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Couldn't save winners. Please try again.");
       }
       router.refresh();
     } catch (err) {
