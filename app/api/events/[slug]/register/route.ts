@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
 import { sendEventRegistrationConfirmationEmail } from "@/lib/email";
+import { notifyNextWaitlisted } from "@/lib/waitlist";
 
 export async function POST(
   request: Request,
@@ -91,4 +92,48 @@ export async function POST(
       { status: 500 }
     );
   }
+}
+
+export async function DELETE(_request: Request, { params }: { params: { slug: string } }) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "You must be logged in" }, { status: 401 });
+  }
+
+  const event = await prisma.event.findUnique({ where: { slug: params.slug } });
+  if (!event) {
+    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  }
+  if (Number(event.fee) > 0) {
+    return NextResponse.json(
+      { error: "Paid registrations can't be cancelled here — contact us for a refund" },
+      { status: 400 }
+    );
+  }
+
+  const registration = await prisma.eventRegistration.findUnique({
+    where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
+  });
+  if (!registration || registration.status !== "CONFIRMED") {
+    return NextResponse.json({ error: "You're not registered for this event" }, { status: 404 });
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.eventRegistration.update({
+      where: { id: registration.id },
+      data: { status: "CANCELLED" },
+    });
+    // Frees the seat back up — guarded so it can never go negative.
+    await tx.event.updateMany({
+      where: { id: event.id, seatsFilled: { gt: 0 } },
+      data: { seatsFilled: { decrement: 1 } },
+    });
+  });
+
+  // Best-effort — a waitlist notification failure shouldn't undo the cancellation.
+  await notifyNextWaitlisted(event.id).catch((err) =>
+    console.error(`Failed to notify next waitlisted user for event ${event.id}:`, err)
+  );
+
+  return NextResponse.json({ ok: true });
 }

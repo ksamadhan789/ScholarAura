@@ -7,6 +7,7 @@ import { EVENT_TYPE_LABELS, formatDateRange, formatDateTime } from "@/lib/eventL
 import { RegisterButton } from "./RegisterButton";
 import { PeopleList } from "@/components/PeopleList";
 import { WaitlistButton } from "@/components/events/WaitlistButton";
+import { CancelRegistrationButton } from "@/components/events/CancelRegistrationButton";
 import type { EventPerson } from "@/lib/eventPeople";
 
 export async function generateMetadata({
@@ -155,9 +156,14 @@ export default async function EventDetailPage({
             Log in to register
           </a>
         ) : isRegistered ? (
-          <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
-            🎉 You&apos;re registered for this event!
-          </p>
+          <div className="flex flex-col items-start gap-2">
+            <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
+              🎉 You&apos;re registered for this event!
+            </p>
+            {Number(event.fee) === 0 && event.startDate > new Date() && (
+              <CancelRegistrationButton slug={event.slug} />
+            )}
+          </div>
         ) : seatsLeft <= 0 ? (
           <WaitlistButton slug={event.slug} isWaitlisted={!!waitlistEntry} />
         ) : (
