@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { RequestRefundButton } from "@/components/RequestRefundButton";
 
 export default async function MyLearningPage() {
   const session = await getServerSession(authOptions);
@@ -15,6 +16,15 @@ export default async function MyLearningPage() {
     include: { course: true },
     orderBy: { purchasedAt: "desc" },
   });
+
+  const pendingRequests = await prisma.refundRequest.findMany({
+    where: {
+      status: "PENDING",
+      coursePurchaseId: { in: purchases.map((p) => p.id) },
+    },
+    select: { coursePurchaseId: true },
+  });
+  const pendingPurchaseIds = new Set(pendingRequests.map((r) => r.coursePurchaseId));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -38,14 +48,23 @@ export default async function MyLearningPage() {
                 <h2 className="font-medium">{purchase.course.title}</h2>
                 <p className="text-sm text-gray-500 dark:text-slate-400">{purchase.course.category}</p>
               </Link>
-              <a
-                href={`/api/receipts/course/${purchase.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-              >
-                🧾 Receipt
-              </a>
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href={`/api/receipts/course/${purchase.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                >
+                  🧾 Receipt
+                </a>
+                {Number(purchase.amount) > 0 && (
+                  <RequestRefundButton
+                    kind="course"
+                    itemId={purchase.id}
+                    isPending={pendingPurchaseIds.has(purchase.id)}
+                  />
+                )}
+              </div>
             </div>
           ))}
         </div>
