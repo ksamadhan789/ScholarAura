@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getInstructorCommissionRatePercent } from "@/lib/instructorPayout";
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
@@ -30,9 +31,20 @@ export default async function InstructorAnalyticsPage() {
 
   const courses = await prisma.course.findMany({
     where: isAdmin ? {} : { instructorId: session.user.id },
-    include: { videos: { select: { id: true } } },
+    include: {
+      videos: { select: { id: true } },
+      instructor: { select: { instructorCommissionRatePercent: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
+
+  // Every course here shares the same instructor when viewed as an
+  // instructor (not admin), so the rate is uniform — only meaningful to
+  // surface as a single "your rate" line in that case.
+  const singleInstructorRate =
+    !isAdmin && courses.length > 0
+      ? getInstructorCommissionRatePercent(courses[0].instructor)
+      : null;
 
   const courseStats = await Promise.all(
     courses.map(async (course) => {
@@ -59,6 +71,8 @@ export default async function InstructorAnalyticsPage() {
       const revenue = purchases.reduce((sum, p) => sum + netAmount(p.amount, p.creditApplied), 0);
       const completedCount = completions.length;
       const completionRate = enrollments > 0 ? Math.round((completedCount / enrollments) * 100) : 0;
+      const commissionRate = getInstructorCommissionRatePercent(course.instructor);
+      const netEarnings = Math.round(revenue * (commissionRate / 100) * 100) / 100;
 
       return {
         course,
@@ -67,6 +81,8 @@ export default async function InstructorAnalyticsPage() {
         completedCount,
         completionRate,
         certificatesIssued,
+        commissionRate,
+        netEarnings,
       };
     })
   );
@@ -74,6 +90,7 @@ export default async function InstructorAnalyticsPage() {
   const totalEnrollments = courseStats.reduce((sum, c) => sum + c.enrollments, 0);
   const totalRevenue = courseStats.reduce((sum, c) => sum + c.revenue, 0);
   const totalCertificates = courseStats.reduce((sum, c) => sum + c.certificatesIssued, 0);
+  const totalNetEarnings = courseStats.reduce((sum, c) => sum + c.netEarnings, 0);
   const maxRevenue = Math.max(1, ...courseStats.map((c) => c.revenue));
 
   return (
@@ -81,16 +98,24 @@ export default async function InstructorAnalyticsPage() {
       <Link href="/dashboard/courses" className="text-sm text-gray-500 hover:underline dark:text-slate-400">
         ← My courses
       </Link>
-      <h1 className="mt-2 mb-8 text-2xl font-semibold">Course analytics</h1>
+      <h1 className="mt-2 mb-2 text-2xl font-semibold">Course analytics</h1>
+      {singleInstructorRate != null && (
+        <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
+          Your net earnings below are calculated at your commission rate of{" "}
+          <strong>{singleInstructorRate}%</strong> of course revenue. This is informational only —
+          it doesn&apos;t represent a payout that has been made.
+        </p>
+      )}
 
       {courses.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">No courses yet.</p>
       ) : (
         <>
-          <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-5">
             <StatTile label="Courses" value={courses.length.toLocaleString("en-IN")} />
             <StatTile label="Total enrollments" value={totalEnrollments.toLocaleString("en-IN")} />
             <StatTile label="Revenue" value={`₹${totalRevenue.toLocaleString("en-IN")}`} />
+            <StatTile label="Net earnings" value={`₹${totalNetEarnings.toLocaleString("en-IN")}`} />
             <StatTile label="Certificates issued" value={totalCertificates.toLocaleString("en-IN")} />
           </div>
 
@@ -120,12 +145,23 @@ export default async function InstructorAnalyticsPage() {
                   <th className="px-4 py-2.5 font-medium">Course</th>
                   <th className="px-4 py-2.5 font-medium">Enrollments</th>
                   <th className="px-4 py-2.5 font-medium">Revenue</th>
+                  <th className="px-4 py-2.5 font-medium">Net earnings</th>
                   <th className="px-4 py-2.5 font-medium">Completed</th>
                   <th className="px-4 py-2.5 font-medium">Certificates</th>
                 </tr>
               </thead>
               <tbody>
-                {courseStats.map(({ course, enrollments, revenue, completedCount, completionRate, certificatesIssued }) => (
+                {courseStats.map(
+                  ({
+                    course,
+                    enrollments,
+                    revenue,
+                    completedCount,
+                    completionRate,
+                    certificatesIssued,
+                    commissionRate,
+                    netEarnings,
+                  }) => (
                   <tr key={course.id} className="border-t border-gray-200 dark:border-slate-700">
                     <td className="px-4 py-2.5">
                       <Link href={`/dashboard/courses/${course.slug}/students`} className="hover:underline">
@@ -134,6 +170,10 @@ export default async function InstructorAnalyticsPage() {
                     </td>
                     <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">{enrollments}</td>
                     <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">₹{revenue.toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                      ₹{netEarnings.toLocaleString("en-IN")}
+                      {isAdmin && <span className="text-xs"> ({commissionRate}%)</span>}
+                    </td>
                     <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
                       {completedCount} ({completionRate}%)
                     </td>
