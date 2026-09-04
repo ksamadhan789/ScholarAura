@@ -23,6 +23,7 @@ export async function GET(request: Request) {
       role: true,
       isAffiliate: true,
       affiliateRatePercent: true,
+      instructorCommissionRatePercent: true,
       creditBalance: true,
       referralCode: true,
     },

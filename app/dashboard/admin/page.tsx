@@ -156,6 +156,12 @@ export default async function AdminHomePage() {
           Manage affiliates
         </Link>
         <Link
+          href="/dashboard/admin/instructor-commission"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          Instructor commission rates
+        </Link>
+        <Link
           href="/dashboard/currencies"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >

@@ -117,6 +117,7 @@ model User {
   creditBalance       Decimal  @default(0) @db.Decimal(10, 2)
   isAffiliate         Boolean  @default(false)
   affiliateRatePercent Int?
+  instructorCommissionRatePercent Int?
 
   coursesOwned      Course[]            @relation("InstructorCourses")
   coursePurchases   CoursePurchase[]
