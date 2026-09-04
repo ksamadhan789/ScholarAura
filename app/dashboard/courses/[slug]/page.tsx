@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AddVideoForm } from "./AddVideoForm";
+import { LectureRow } from "./LectureRow";
 
 export default async function ManageCoursePage({
   params,
@@ -60,20 +61,14 @@ export default async function ManageCoursePage({
           <p className="text-gray-500 dark:text-slate-400">No lectures added yet.</p>
         ) : (
           course.videos.map((video, i) => (
-            <div
+            <LectureRow
               key={video.id}
-              className="flex items-center justify-between rounded border border-gray-200 dark:border-slate-700 p-3"
-            >
-              <div>
-                <p className="font-medium">
-                  {i + 1}. {video.title}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-slate-400">
-                  {Math.round(video.durationSeconds / 60)} min
-                  {video.isPreview ? " · Free preview" : ""}
-                </p>
-              </div>
-            </div>
+              slug={course.slug}
+              video={video}
+              index={i}
+              prev={i > 0 ? course.videos[i - 1] : null}
+              next={i < course.videos.length - 1 ? course.videos[i + 1] : null}
+            />
           ))
         )}
       </div>
