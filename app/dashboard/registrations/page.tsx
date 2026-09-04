@@ -7,6 +7,7 @@ import { EVENT_TYPE_LABELS, formatDateRange } from "@/lib/eventLabels";
 import { issueEventCertificateIfEligible } from "@/lib/certificate";
 import { buildGoogleFormUrl } from "@/lib/enrollment";
 import { Badge } from "@/components/Badge";
+import { CancelRegistrationButton } from "@/components/events/CancelRegistrationButton";
 
 const CERT_STATUS_LABEL: Record<string, string> = {
   ELIGIBLE: "Processing",
@@ -127,6 +128,9 @@ export default async function MyEventsPage() {
                         🎓 {CERT_STATUS_LABEL[cert.status] ?? cert.status}
                       </Badge>
                     )
+                  )}
+                  {Number(event.fee) === 0 && event.startDate > new Date() && (
+                    <CancelRegistrationButton slug={event.slug} />
                   )}
                 </div>
               </div>
