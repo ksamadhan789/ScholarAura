@@ -7,8 +7,13 @@ import { EMPLOYMENT_TYPE_LABELS } from "@/lib/jobLabels";
 import { JobPublishToggle } from "./JobPublishToggle";
 import { JobApprovalActions } from "./JobApprovalActions";
 import { Badge } from "@/components/Badge";
+import { Pagination, PAGE_SIZE } from "@/components/Pagination";
 
-export default async function ManageJobsPage() {
+export default async function ManageJobsPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -18,11 +23,16 @@ export default async function ManageJobsPage() {
     redirect("/dashboard");
   }
 
-  const [jobs, applicationCounts] = await Promise.all([
+  const page = Math.max(1, Number(searchParams.page) || 1);
+
+  const [jobs, totalCount, applicationCounts] = await Promise.all([
     prisma.job.findMany({
       include: { recruiterProfile: true },
       orderBy: { createdAt: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
     }),
+    prisma.job.count(),
     prisma.jobApplication.groupBy({ by: ["jobId"], _count: { _all: true } }),
   ]);
   const applicationCountByJobId = new Map(applicationCounts.map((a) => [a.jobId, a._count._all]));
@@ -96,6 +106,8 @@ export default async function ManageJobsPage() {
           ))}
         </div>
       )}
+
+      <Pagination page={page} totalCount={totalCount} basePath="/dashboard/jobs" />
     </main>
   );
 }

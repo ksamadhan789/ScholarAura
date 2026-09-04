@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { RefundButton } from "@/components/RefundButton";
+import { Pagination, PAGE_SIZE } from "@/components/Pagination";
 
 const STATUS_VARIANT = {
   CONFIRMED: "success",
@@ -16,8 +17,10 @@ const STATUS_VARIANT = {
 
 export default async function EventStudentsPage({
   params,
+  searchParams,
 }: {
   params: { slug: string };
+  searchParams: { page?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -32,11 +35,18 @@ export default async function EventStudentsPage({
     notFound();
   }
 
-  const registrations = await prisma.eventRegistration.findMany({
-    where: { eventId: event.id },
-    include: { user: { select: { name: true, email: true } } },
-    orderBy: { registeredAt: "desc" },
-  });
+  const page = Math.max(1, Number(searchParams.page) || 1);
+
+  const [registrations, totalCount] = await Promise.all([
+    prisma.eventRegistration.findMany({
+      where: { eventId: event.id },
+      include: { user: { select: { name: true, email: true } } },
+      orderBy: { registeredAt: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.eventRegistration.count({ where: { eventId: event.id } }),
+  ]);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
@@ -89,6 +99,8 @@ export default async function EventStudentsPage({
           </table>
         </div>
       )}
+
+      <Pagination page={page} totalCount={totalCount} basePath={`/dashboard/events/${event.slug}/students`} />
     </main>
   );
 }

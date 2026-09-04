@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { RefundButton } from "@/components/RefundButton";
 import { RankInput } from "./RankInput";
+import { Pagination, PAGE_SIZE } from "@/components/Pagination";
 
 const STATUS_VARIANT = {
   SUCCESS: "success",
@@ -16,8 +17,10 @@ const STATUS_VARIANT = {
 
 export default async function CompetitionEntriesPage({
   params,
+  searchParams,
 }: {
   params: { slug: string };
+  searchParams: { page?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -32,11 +35,18 @@ export default async function CompetitionEntriesPage({
     notFound();
   }
 
-  const entries = await prisma.competitionEntry.findMany({
-    where: { competitionId: competition.id },
-    include: { user: { select: { name: true, email: true } } },
-    orderBy: [{ rank: "asc" }, { registeredAt: "desc" }],
-  });
+  const page = Math.max(1, Number(searchParams.page) || 1);
+
+  const [entries, totalCount] = await Promise.all([
+    prisma.competitionEntry.findMany({
+      where: { competitionId: competition.id },
+      include: { user: { select: { name: true, email: true } } },
+      orderBy: [{ rank: "asc" }, { registeredAt: "desc" }],
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.competitionEntry.count({ where: { competitionId: competition.id } }),
+  ]);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-16">
@@ -110,6 +120,8 @@ export default async function CompetitionEntriesPage({
           </table>
         </div>
       )}
+
+      <Pagination page={page} totalCount={totalCount} basePath={`/dashboard/competitions/${competition.slug}/entries`} />
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Pagination, PAGE_SIZE } from "@/components/Pagination";
 
 const USER_TYPE_LABELS: Record<string, string> = {
   COLLEGE_STUDENT: "College Student",
@@ -12,7 +13,7 @@ const USER_TYPE_LABELS: Record<string, string> = {
 export default async function StudentsAdminPage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: { q?: string; page?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -23,19 +24,25 @@ export default async function StudentsAdminPage({
   }
 
   const query = searchParams.q?.trim() ?? "";
+  const page = Math.max(1, Number(searchParams.page) || 1);
 
-  const students = await prisma.user.findMany({
-    where: {
-      role: "STUDENT",
-      ...(query
-        ? {
-            OR: [
-              { name: { contains: query, mode: "insensitive" } },
-              { email: { contains: query, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
+  const where = {
+    role: "STUDENT" as const,
+    ...(query
+      ? {
+          OR: [
+            { name: { contains: query, mode: "insensitive" as const } },
+            { email: { contains: query, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+  };
+
+  const [students, totalCount] = await Promise.all([
+    prisma.user.findMany({
+    where,
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
     select: {
       id: true,
       name: true,
@@ -59,7 +66,9 @@ export default async function StudentsAdminPage({
       },
     },
     orderBy: { createdAt: "desc" },
-  });
+    }),
+    prisma.user.count({ where }),
+  ]);
 
   const collegeNames = [...new Set(students.map((s) => s.organization).filter((v): v is string => !!v))];
   const colleges = collegeNames.length
@@ -76,7 +85,7 @@ export default async function StudentsAdminPage({
         <div>
           <h1 className="text-2xl font-semibold">Students</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
-            {students.length} student{students.length === 1 ? "" : "s"}
+            {totalCount} student{totalCount === 1 ? "" : "s"}
             {query ? ` matching "${query}"` : ""}
           </p>
         </div>
@@ -191,6 +200,13 @@ export default async function StudentsAdminPage({
           </table>
         </div>
       )}
+
+      <Pagination
+        page={page}
+        totalCount={totalCount}
+        basePath="/dashboard/students"
+        searchParams={{ q: query }}
+      />
     </main>
   );
 }

@@ -26,33 +26,48 @@ async function applyAttendanceRows(
   competition: { attendanceRequired: boolean; minAttendancePercent: number | null },
   rows: { email: string; attendancePercent: number }[]
 ) {
+  if (rows.length === 0) return { matched: 0, unmatched: 0 };
+
+  // One query to resolve every row against its entry, instead of a
+  // findFirst per row — matters once a competition has a few hundred entrants.
+  const entries = await prisma.competitionEntry.findMany({
+    where: { competitionId },
+    include: { user: { select: { email: true } } },
+  });
+  const byEmail = new Map(entries.map((e) => [e.user.email.toLowerCase(), e]));
+
   let matched = 0;
   let unmatched = 0;
+  const updates: ReturnType<typeof prisma.competitionEntry.update>[] = [];
 
   for (const row of rows) {
-    const entry = await prisma.competitionEntry.findFirst({
-      where: { competitionId, user: { email: { equals: row.email, mode: "insensitive" } } },
-    });
+    const entry = byEmail.get(row.email.toLowerCase());
     if (!entry) {
       unmatched++;
       continue;
     }
+    matched++;
 
     const eligibleForCertificate = computeCompetitionEligibility(
       { status: entry.status, attendancePercent: row.attendancePercent },
       competition
     );
 
-    await prisma.competitionEntry.update({
-      where: { id: entry.id },
-      data: {
-        attendancePercent: row.attendancePercent,
-        attendanceVerifiedAt: new Date(),
-        eligibleForCertificate,
-      },
-    });
-    matched++;
+    updates.push(
+      prisma.competitionEntry.update({
+        where: { id: entry.id },
+        data: {
+          attendancePercent: row.attendancePercent,
+          attendanceVerifiedAt: new Date(),
+          eligibleForCertificate,
+        },
+      })
+    );
   }
+
+  // Concurrent rather than one giant transaction — a single bad row
+  // shouldn't be able to roll back every other already-applied update.
+  await Promise.all(updates);
 
   return { matched, unmatched };
 }

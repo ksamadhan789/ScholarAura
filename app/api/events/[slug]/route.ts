@@ -101,6 +101,15 @@ export async function PATCH(
 
   const d = parsed.data;
 
+  if (d.seatsTotal !== undefined && d.seatsTotal < event.seatsFilled) {
+    return NextResponse.json(
+      {
+        error: `Total seats can't be set below the ${event.seatsFilled} already filled`,
+      },
+      { status: 400 }
+    );
+  }
+
   const effectiveAttendanceRequired = d.attendanceRequired ?? event.attendanceRequired;
   const effectiveMinAttendancePercent =
     d.minAttendancePercent !== undefined ? d.minAttendancePercent : event.minAttendancePercent;
