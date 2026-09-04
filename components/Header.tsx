@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
 import { SearchBar } from "./SearchBar";
+import { NotificationBell } from "./NotificationBell";
 import { EVENT_TYPE_TABS } from "@/lib/eventLabels";
 
 export function Header() {
@@ -102,6 +103,7 @@ export function Header() {
 
         <div className="hidden items-center gap-3 text-sm md:flex">
           <ThemeToggle />
+          <NotificationBell />
           {status === "loading" ? null : session ? (
             <>
               <Link
@@ -140,6 +142,7 @@ export function Header() {
 
         <div className="flex items-center gap-2 md:hidden">
           <ThemeToggle />
+          <NotificationBell />
           <button
             type="button"
             onClick={() => setMobileOpen((v) => !v)}
