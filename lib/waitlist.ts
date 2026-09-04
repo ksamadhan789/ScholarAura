@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendWaitlistSeatAvailableEmail } from "@/lib/email";
+import { createNotification } from "@/lib/notify";
 import { SITE_URL } from "@/lib/siteUrl";
 
 export class NotFullError extends Error {
@@ -63,4 +64,12 @@ export async function notifyNextWaitlisted(eventId: string): Promise<void> {
     next.event.title,
     `${SITE_URL}/events/${next.event.slug}`
   );
+
+  await createNotification({
+    userId: next.userId,
+    type: "WAITLIST_SEAT",
+    title: `A seat opened up for ${next.event.title}`,
+    body: "Seats are first-come, first-served — register soon.",
+    url: `/events/${next.event.slug}`,
+  }).catch((err) => console.error("Failed to create waitlist notification:", err));
 }

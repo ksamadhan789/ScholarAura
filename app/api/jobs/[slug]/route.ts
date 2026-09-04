@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendJobApprovedEmail, sendJobRejectedEmail } from "@/lib/email";
+import { createNotification } from "@/lib/notify";
 
 const updateJobSchema = z
   .object({
@@ -99,6 +100,12 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
       await sendJobApprovedEmail(job.postedByUser.email, job.postedByUser.name, updated.title).catch(
         (err) => console.error("Failed to send job approval email:", err)
       );
+      await createNotification({
+        userId: job.postedByUserId,
+        type: "JOB_APPROVAL_STATUS",
+        title: `Your job posting "${updated.title}" was approved`,
+        url: "/dashboard/recruiter",
+      }).catch((err) => console.error("Failed to create job approval notification:", err));
     } else {
       await sendJobRejectedEmail(
         job.postedByUser.email,
@@ -106,6 +113,13 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
         updated.title,
         updated.rejectionReason
       ).catch((err) => console.error("Failed to send job rejection email:", err));
+      await createNotification({
+        userId: job.postedByUserId,
+        type: "JOB_APPROVAL_STATUS",
+        title: `Your job posting "${updated.title}" was rejected`,
+        body: updated.rejectionReason ?? undefined,
+        url: "/dashboard/recruiter",
+      }).catch((err) => console.error("Failed to create job rejection notification:", err));
     }
   }
 

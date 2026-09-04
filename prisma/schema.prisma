@@ -135,6 +135,7 @@ model User {
   courseWishlist    CourseWishlist[]
   courseQuestions   CourseQuestion[]
   courseAnswers     CourseAnswer[]
+  notifications     Notification[]
 
   @@map("users")
 }
@@ -738,4 +739,26 @@ model CourseAnswer {
   updatedAt  DateTime       @updatedAt
 
   @@map("course_answers")
+}
+
+// ----------------------
+// IN-APP NOTIFICATIONS
+// A lightweight, generic notification row created alongside (not instead
+// of) the existing transactional emails for the same event, so a user
+// still sees it even if they never open their inbox.
+// ----------------------
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String?
+  url       String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
