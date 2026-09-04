@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { issueCompetitionCertificateIfEligible } from "@/lib/certificate";
 import { buildGoogleFormUrl } from "@/lib/competitionEnrollment";
 import { Badge } from "@/components/Badge";
+import { RequestRefundButton } from "@/components/RequestRefundButton";
 
 const CERT_STATUS_LABEL: Record<string, string> = {
   ELIGIBLE: "Processing",
@@ -50,6 +51,15 @@ export default async function MyCompetitionsPage() {
     where: { userId: session.user.id, competitionId: { in: entries.map((e) => e.competitionId) } },
   });
   const certByCompetitionId = new Map(certificates.map((c) => [c.competitionId, c]));
+
+  const pendingRequests = await prisma.refundRequest.findMany({
+    where: {
+      status: "PENDING",
+      competitionEntryId: { in: entries.map((e) => e.id) },
+    },
+    select: { competitionEntryId: true },
+  });
+  const pendingEntryIds = new Set(pendingRequests.map((r) => r.competitionEntryId));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -131,6 +141,13 @@ export default async function MyCompetitionsPage() {
                         🎓 {CERT_STATUS_LABEL[cert.status] ?? cert.status}
                       </Badge>
                     )
+                  )}
+                  {Number(e.amount) > 0 && (
+                    <RequestRefundButton
+                      kind="competition"
+                      itemId={e.id}
+                      isPending={pendingEntryIds.has(e.id)}
+                    />
                   )}
                 </div>
               </div>

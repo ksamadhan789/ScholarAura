@@ -72,6 +72,12 @@ enum CollegeStatus {
   REJECTED
 }
 
+enum RefundRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum CertificateStatus {
   NOT_ELIGIBLE
   ELIGIBLE
@@ -136,6 +142,7 @@ model User {
   courseQuestions   CourseQuestion[]
   courseAnswers     CourseAnswer[]
   notifications     Notification[]
+  refundRequests    RefundRequest[]
 
   @@map("users")
 }
@@ -272,6 +279,8 @@ model CoursePurchase {
   discountAmount   Decimal       @default(0) @db.Decimal(10, 2)
   purchasedAt      DateTime      @default(now())
 
+  refundRequests   RefundRequest[]
+
   @@unique([userId, courseId])
   @@map("course_purchases")
 }
@@ -386,6 +395,8 @@ model EventRegistration {
   reminderSentAt         DateTime?
   registeredAt      DateTime            @default(now())
 
+  refundRequests    RefundRequest[]
+
   @@unique([userId, eventId])
   @@map("event_registrations")
 }
@@ -474,6 +485,8 @@ model CompetitionEntry {
   eligibleForCertificate Boolean   @default(false)
   reminderSentAt         DateTime?
   registeredAt      DateTime      @default(now())
+
+  refundRequests    RefundRequest[]
 
   @@unique([userId, competitionId])
   @@map("competition_entries")
@@ -761,4 +774,31 @@ model Notification {
 
   @@index([userId, createdAt])
   @@map("notifications")
+}
+
+// ----------------------
+// SELF-SERVE REFUND REQUESTS
+// Exactly one of coursePurchaseId/eventRegistrationId/competitionEntryId is
+// set, same polymorphic-FK shape as Certificate above. Approving a request
+// calls the existing admin refund* functions in lib/refund.ts — this model
+// only tracks the request/review step in front of them.
+// ----------------------
+
+model RefundRequest {
+  id                  String              @id @default(uuid())
+  userId              String
+  user                User                @relation(fields: [userId], references: [id])
+  coursePurchaseId    String?
+  coursePurchase      CoursePurchase?     @relation(fields: [coursePurchaseId], references: [id])
+  eventRegistrationId String?
+  eventRegistration   EventRegistration?  @relation(fields: [eventRegistrationId], references: [id])
+  competitionEntryId  String?
+  competitionEntry    CompetitionEntry?   @relation(fields: [competitionEntryId], references: [id])
+  reason              String
+  status              RefundRequestStatus @default(PENDING)
+  rejectionReason     String?
+  createdAt           DateTime            @default(now())
+  resolvedAt          DateTime?
+
+  @@map("refund_requests")
 }

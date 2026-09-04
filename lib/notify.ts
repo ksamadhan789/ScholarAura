@@ -5,7 +5,8 @@ export type NotificationType =
   | "WAITLIST_SEAT"
   | "JOB_APPLICATION_STATUS"
   | "RECRUITER_ACCOUNT_STATUS"
-  | "JOB_APPROVAL_STATUS";
+  | "JOB_APPROVAL_STATUS"
+  | "REFUND_REQUEST_STATUS";
 
 /**
  * Creates an in-app notification alongside (never instead of) the existing

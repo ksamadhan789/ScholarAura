@@ -8,6 +8,7 @@ import { issueEventCertificateIfEligible } from "@/lib/certificate";
 import { buildGoogleFormUrl } from "@/lib/enrollment";
 import { Badge } from "@/components/Badge";
 import { CancelRegistrationButton } from "@/components/events/CancelRegistrationButton";
+import { RequestRefundButton } from "@/components/RequestRefundButton";
 
 const CERT_STATUS_LABEL: Record<string, string> = {
   ELIGIBLE: "Processing",
@@ -51,6 +52,15 @@ export default async function MyEventsPage() {
     where: { userId: session.user.id, eventId: { in: registrations.map((r) => r.eventId) } },
   });
   const certByEventId = new Map(certificates.map((c) => [c.eventId, c]));
+
+  const pendingRequests = await prisma.refundRequest.findMany({
+    where: {
+      status: "PENDING",
+      eventRegistrationId: { in: registrations.map((r) => r.id) },
+    },
+    select: { eventRegistrationId: true },
+  });
+  const pendingRegistrationIds = new Set(pendingRequests.map((r) => r.eventRegistrationId));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -131,6 +141,13 @@ export default async function MyEventsPage() {
                   )}
                   {Number(event.fee) === 0 && event.startDate > new Date() && (
                     <CancelRegistrationButton slug={event.slug} />
+                  )}
+                  {Number(r.amount) > 0 && (
+                    <RequestRefundButton
+                      kind="event"
+                      itemId={r.id}
+                      isPending={pendingRegistrationIds.has(r.id)}
+                    />
                   )}
                 </div>
               </div>

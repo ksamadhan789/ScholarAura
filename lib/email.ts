@@ -673,3 +673,84 @@ export async function sendJobRejectedEmail(
 
   return true;
 }
+
+export async function sendRefundRequestApprovedEmail(
+  to: string,
+  name: string,
+  itemTitle: string
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send refund request approved email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Your refund for ${itemTitle} has been approved`,
+      text: `Hi ${displayName},\n\nYour refund request for "${itemTitle}" has been approved and processed. It should reflect on your original payment method within a few business days.\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>Your refund request for <strong>${itemTitle}</strong> has been approved and processed. It should reflect on your original payment method within a few business days.</p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send refund request approved email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send refund request approved email:", err);
+    return false;
+  }
+
+  return true;
+}
+
+export async function sendRefundRequestRejectedEmail(
+  to: string,
+  name: string,
+  itemTitle: string,
+  reason: string | null
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send refund request rejected email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const reasonLine = reason ? `\n\nReason: ${reason}` : "";
+  const reasonHtml = reason ? `<p>Reason: ${reason}</p>` : "";
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Your refund request for ${itemTitle} was not approved`,
+      text: `Hi ${displayName},\n\nYour refund request for "${itemTitle}" was reviewed and not approved.${reasonLine}\n\nIf you have questions, just reply to this email.\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${displayName},</p>
+        <p>Your refund request for <strong>${itemTitle}</strong> was reviewed and not approved.</p>
+        ${reasonHtml}
+        <p>If you have questions, just reply to this email.</p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send refund request rejected email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send refund request rejected email:", err);
+    return false;
+  }
+
+  return true;
+}
