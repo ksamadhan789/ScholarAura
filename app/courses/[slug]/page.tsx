@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EnrollButton } from "./EnrollButton";
 import { CourseReviewSection } from "./CourseReviewSection";
+import { CourseQASection } from "./CourseQASection";
 import { StarRating } from "@/components/StarRating";
 import { WishlistButton } from "@/components/courses/WishlistButton";
 
@@ -78,6 +79,15 @@ export default async function CourseDetailPage({
   ]);
   const reviewCount = reviewAggregate._count._all;
   const reviewAverage = reviewAggregate._avg.rating ?? 0;
+
+  const questions = await prisma.courseQuestion.findMany({
+    where: { courseId: course.id },
+    include: {
+      user: { select: { name: true } },
+      answers: { include: { user: { select: { name: true } } }, orderBy: { createdAt: "asc" } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   const serializedRates = rates.map((r) => ({
     currencyCode: r.currencyCode,
@@ -205,6 +215,20 @@ export default async function CourseDetailPage({
           </div>
         )}
       </div>
+
+      <CourseQASection
+        slug={course.slug}
+        questions={questions.map((q) => ({
+          ...q,
+          createdAt: q.createdAt.toISOString(),
+          answers: q.answers.map((a) => ({ ...a, createdAt: a.createdAt.toISOString() })),
+        }))}
+        instructorId={course.instructorId}
+        isEnrolled={isEnrolled}
+        currentUserId={session?.user.id ?? null}
+        isAdmin={isAdmin}
+        isOwner={isOwner}
+      />
 
       <CourseReviewSection
         slug={course.slug}

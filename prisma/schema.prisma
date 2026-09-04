@@ -132,6 +132,8 @@ model User {
   recruiterProfile  RecruiterProfile?
   courseReviews     CourseReview[]
   courseWishlist    CourseWishlist[]
+  courseQuestions   CourseQuestion[]
+  courseAnswers     CourseAnswer[]
 
   @@map("users")
 }
@@ -218,6 +220,7 @@ model Course {
   certificates  Certificate[]
   reviews       CourseReview[]
   wishlistedBy  CourseWishlist[]
+  questions     CourseQuestion[]
 
   @@map("courses")
 }
@@ -699,4 +702,39 @@ model CourseReview {
 
   @@unique([courseId, userId])
   @@map("course_reviews")
+}
+
+// ----------------------
+// COURSE Q&A
+// Any enrolled student can ask; any enrolled student, the course's
+// instructor, or an admin can answer. Enrollment is checked at write time,
+// same tradeoff as CourseReview above.
+// ----------------------
+
+model CourseQuestion {
+  id        String   @id @default(uuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  answers   CourseAnswer[]
+
+  @@map("course_questions")
+}
+
+model CourseAnswer {
+  id         String         @id @default(uuid())
+  questionId String
+  question   CourseQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User           @relation(fields: [userId], references: [id])
+  body       String
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@map("course_answers")
 }
