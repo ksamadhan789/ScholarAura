@@ -9,7 +9,7 @@ export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
   const now = new Date();
-  const [courses, events, competitions, jobs] = await Promise.all([
+  const [courses, events, competitions, jobs, ratingGroups] = await Promise.all([
     prisma.course.findMany({
       where: { isPublished: true },
       include: { instructor: { select: { name: true } } },
@@ -30,7 +30,15 @@ export default async function HomePage() {
       orderBy: { createdAt: "desc" },
       take: 4,
     }),
+    prisma.courseReview.groupBy({ by: ["courseId"], _avg: { rating: true }, _count: { _all: true } }),
   ]);
+  const ratingByCourseId = new Map(
+    ratingGroups.map((g) => [g.courseId, { average: g._avg.rating ?? 0, count: g._count._all }])
+  );
+  const coursesWithRatings = courses.map((c) => ({
+    ...c,
+    rating: ratingByCourseId.get(c.id) ?? null,
+  }));
 
   return (
     <main className="flex flex-1 flex-col">
@@ -99,7 +107,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <HomeExploreTabs courses={courses} events={events} competitions={competitions} jobs={jobs} />
+      <HomeExploreTabs courses={coursesWithRatings} events={events} competitions={competitions} jobs={jobs} />
     </main>
   );
 }

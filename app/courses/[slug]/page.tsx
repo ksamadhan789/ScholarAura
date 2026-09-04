@@ -5,6 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EnrollButton } from "./EnrollButton";
+import { CourseReviewSection } from "./CourseReviewSection";
+import { StarRating } from "@/components/StarRating";
 
 export async function generateMetadata({
   params,
@@ -58,6 +60,21 @@ export default async function CourseDetailPage({
       ])
     : [null, null, await prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } })];
 
+  const [reviews, reviewAggregate] = await Promise.all([
+    prisma.courseReview.findMany({
+      where: { courseId: course.id },
+      include: { user: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.courseReview.aggregate({
+      where: { courseId: course.id },
+      _avg: { rating: true },
+      _count: { _all: true },
+    }),
+  ]);
+  const reviewCount = reviewAggregate._count._all;
+  const reviewAverage = reviewAggregate._avg.rating ?? 0;
+
   const serializedRates = rates.map((r) => ({
     currencyCode: r.currencyCode,
     symbol: r.symbol,
@@ -95,6 +112,15 @@ export default async function CourseDetailPage({
       <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
         {course.category} · By {course.instructor.name}
       </p>
+      {reviewCount > 0 && (
+        <div className="mt-2 flex items-center gap-2">
+          <StarRating value={reviewAverage} />
+          <span className="text-sm font-medium">{reviewAverage.toFixed(1)}</span>
+          <span className="text-sm text-gray-500 dark:text-slate-400">
+            ({reviewCount} review{reviewCount === 1 ? "" : "s"})
+          </span>
+        </div>
+      )}
       <p className="mt-4 text-gray-700">{course.description}</p>
       <p className="mt-4 text-lg font-semibold">
         {Number(course.price) === 0 ? "Free" : `₹${course.price}`}
@@ -172,6 +198,16 @@ export default async function CourseDetailPage({
           </div>
         )}
       </div>
+
+      <CourseReviewSection
+        slug={course.slug}
+        reviews={reviews.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
+        average={reviewAverage}
+        count={reviewCount}
+        isEnrolled={isEnrolled}
+        currentUserId={session?.user.id ?? null}
+        isAdmin={isAdmin}
+      />
     </main>
   );
 }

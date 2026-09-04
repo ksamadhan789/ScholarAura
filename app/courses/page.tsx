@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function CoursesPage() {
-  const [courses, courseCount, enrollmentCount, certificateCount, externalCourses] =
+  const [courses, courseCount, enrollmentCount, certificateCount, externalCourses, ratingGroups] =
     await Promise.all([
       prisma.course.findMany({
         where: { isPublished: true },
@@ -30,13 +30,22 @@ export default async function CoursesPage() {
         where: { isPublished: true },
         orderBy: { createdAt: "desc" },
       }),
+      prisma.courseReview.groupBy({ by: ["courseId"], _avg: { rating: true }, _count: { _all: true } }),
     ]);
+
+  const ratingByCourseId = new Map(
+    ratingGroups.map((g) => [g.courseId, { average: g._avg.rating ?? 0, count: g._count._all }])
+  );
+  const coursesWithRatings = courses.map((c) => ({
+    ...c,
+    rating: ratingByCourseId.get(c.id) ?? null,
+  }));
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
       <h1 className="mb-8 text-center text-2xl font-semibold">📚 Browse courses</h1>
 
-      <CoursesExplorer courses={courses} />
+      <CoursesExplorer courses={coursesWithRatings} />
 
       <div className="mt-16 grid grid-cols-1 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-slate-50 py-6 text-center dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         <div className="py-3 first:pt-0 last:pb-0 sm:py-0">
