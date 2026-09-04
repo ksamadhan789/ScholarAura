@@ -102,6 +102,32 @@ describe("refundCoursePurchase", () => {
     );
   });
 
+  it("revokes an issued certificate for the refunded course", async () => {
+    const purchase = {
+      id: "p1",
+      userId: "buyer-1",
+      courseId: "course-1",
+      status: "SUCCESS",
+      amount: 1000 as unknown as CoursePurchase["amount"],
+      creditApplied: 0 as unknown as CoursePurchase["creditApplied"],
+      razorpayPaymentId: null,
+      course: { title: "Test Course" },
+    };
+    prismaMock.coursePurchase.findUnique.mockResolvedValue(purchase as never);
+    prismaMock.coursePurchase.findUniqueOrThrow.mockResolvedValue({
+      ...purchase,
+      status: "REFUNDED",
+    } as never);
+    prismaMock.user.findUnique.mockResolvedValueOnce(makeUser({ referredById: null }));
+
+    await refundCoursePurchase("p1");
+
+    expect(prismaMock.certificate.updateMany).toHaveBeenCalledWith({
+      where: { userId: "buyer-1", courseId: "course-1", status: { not: "REVOKED" } },
+      data: { status: "REVOKED", revokedAt: expect.any(Date), revokedReason: "Refunded" },
+    });
+  });
+
   it("claws back the referrer's reward when their balance covers it", async () => {
     const purchase = {
       id: "p1",
@@ -207,6 +233,10 @@ describe("refundEventRegistration", () => {
       where: { id: "r1" },
       data: { status: "REFUNDED" },
     });
+    expect(prismaMock.certificate.updateMany).toHaveBeenCalledWith({
+      where: { userId: "buyer-1", eventId: "event-1", status: { not: "REVOKED" } },
+      data: { status: "REVOKED", revokedAt: expect.any(Date), revokedReason: "Refunded" },
+    });
   });
 });
 
@@ -225,6 +255,7 @@ describe("refundCompetitionEntry", () => {
     const entry = {
       id: "e1",
       userId: "buyer-1",
+      competitionId: "comp-1",
       status: "SUCCESS",
       amount: 300 as unknown as CompetitionEntry["amount"],
       creditApplied: 0 as unknown as CompetitionEntry["creditApplied"],
@@ -243,6 +274,10 @@ describe("refundCompetitionEntry", () => {
     expect(prismaMock.competitionEntry.update).toHaveBeenCalledWith({
       where: { id: "e1" },
       data: { status: "REFUNDED" },
+    });
+    expect(prismaMock.certificate.updateMany).toHaveBeenCalledWith({
+      where: { userId: "buyer-1", competitionId: "comp-1", status: { not: "REVOKED" } },
+      data: { status: "REVOKED", revokedAt: expect.any(Date), revokedReason: "Refunded" },
     });
   });
 });

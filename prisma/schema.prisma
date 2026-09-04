@@ -243,6 +243,7 @@ model CourseWishlist {
   createdAt DateTime @default(now())
 
   @@unique([userId, courseId])
+  @@index([courseId])
   @@map("course_wishlist")
 }
 
@@ -282,6 +283,7 @@ model CoursePurchase {
   refundRequests   RefundRequest[]
 
   @@unique([userId, courseId])
+  @@index([courseId])
   @@map("course_purchases")
 }
 
@@ -398,6 +400,7 @@ model EventRegistration {
   refundRequests    RefundRequest[]
 
   @@unique([userId, eventId])
+  @@index([eventId])
   @@map("event_registrations")
 }
 
@@ -489,6 +492,7 @@ model CompetitionEntry {
   refundRequests    RefundRequest[]
 
   @@unique([userId, competitionId])
+  @@index([competitionId])
   @@map("competition_entries")
 }
 
@@ -523,6 +527,9 @@ model Certificate {
   @@unique([userId, courseId])
   @@unique([userId, eventId])
   @@unique([userId, competitionId])
+  @@index([courseId])
+  @@index([eventId])
+  @@index([competitionId])
   @@map("certificates")
 }
 
@@ -694,6 +701,7 @@ model JobApplication {
   updatedAt    DateTime             @updatedAt
 
   @@unique([jobId, userId])
+  @@index([userId])
   @@map("job_applications")
 }
 
