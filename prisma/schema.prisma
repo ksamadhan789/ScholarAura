@@ -130,6 +130,7 @@ model User {
   postedJobs        Job[]               @relation("PostedJobs")
   jobApplications   JobApplication[]
   recruiterProfile  RecruiterProfile?
+  courseReviews     CourseReview[]
 
   @@map("users")
 }
@@ -214,6 +215,7 @@ model Course {
   videos        CourseVideo[]
   purchases     CoursePurchase[]
   certificates  Certificate[]
+  reviews       CourseReview[]
 
   @@map("courses")
 }
@@ -661,4 +663,26 @@ model JobApplication {
 
   @@unique([jobId, userId])
   @@map("job_applications")
+}
+
+// ----------------------
+// COURSE REVIEWS
+// One review per verified enrollment (a CoursePurchase with status SUCCESS)
+// — checked at write time, not enforced by a DB constraint, since a
+// purchase could in principle be refunded after a review is left.
+// ----------------------
+
+model CourseReview {
+  id        String   @id @default(uuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([courseId, userId])
+  @@map("course_reviews")
 }

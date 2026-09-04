@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Decimal } from "@prisma/client/runtime/library";
 import { Badge } from "@/components/Badge";
+import { StarRating } from "@/components/StarRating";
 import { EVENT_TYPE_LABELS, EVENT_TYPE_TABS, formatDateRange } from "@/lib/eventLabels";
 import { EMPLOYMENT_TYPE_LABELS } from "@/lib/jobLabels";
 
@@ -14,6 +15,7 @@ type CourseItem = {
   category: string;
   price: Decimal | string | number;
   instructor: { name: string };
+  rating: { average: number; count: number } | null;
 };
 
 type EventItem = {
@@ -223,6 +225,14 @@ export function HomeExploreTabs({
                 <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
                   By {course.instructor.name}
                 </p>
+                {course.rating && course.rating.count > 0 && (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <StarRating value={course.rating.average} />
+                    <span className="text-xs text-gray-500 dark:text-slate-400">
+                      {course.rating.average.toFixed(1)} ({course.rating.count})
+                    </span>
+                  </div>
+                )}
                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                   {Number(course.price) === 0 ? "Free" : `₹${course.price}`}
                 </p>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Decimal } from "@prisma/client/runtime/library";
 import { Badge } from "@/components/Badge";
 import { Thumbnail } from "@/components/Thumbnail";
+import { StarRating } from "@/components/StarRating";
 import { COURSE_CATEGORIES, COURSE_CATEGORY_ICONS } from "@/lib/courseCategories";
 
 type CourseItem = {
@@ -15,6 +16,7 @@ type CourseItem = {
   price: Decimal | string | number;
   thumbnailUrl: string | null;
   instructor: { name: string };
+  rating: { average: number; count: number } | null;
 };
 
 export function CoursesExplorer({ courses }: { courses: CourseItem[] }) {
@@ -127,6 +129,14 @@ export function CoursesExplorer({ courses }: { courses: CourseItem[] }) {
                 <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
                   By {course.instructor.name}
                 </p>
+                {course.rating && course.rating.count > 0 && (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <StarRating value={course.rating.average} />
+                    <span className="text-xs text-gray-500 dark:text-slate-400">
+                      {course.rating.average.toFixed(1)} ({course.rating.count})
+                    </span>
+                  </div>
+                )}
                 <p className="mt-2 font-semibold text-slate-900 dark:text-white">
                   {Number(course.price) === 0 ? "Free" : `₹${course.price}`}
                 </p>
