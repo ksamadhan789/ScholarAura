@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { EnrollButton } from "./EnrollButton";
 import { CourseReviewSection } from "./CourseReviewSection";
 import { StarRating } from "@/components/StarRating";
+import { WishlistButton } from "@/components/courses/WishlistButton";
 
 export async function generateMetadata({
   params,
@@ -50,15 +51,18 @@ export default async function CourseDetailPage({
     notFound();
   }
 
-  const [purchase, currentUser, rates] = session
+  const [purchase, currentUser, rates, wishlistEntry] = session
     ? await Promise.all([
         prisma.coursePurchase.findUnique({
           where: { userId_courseId: { userId: session.user.id, courseId: course.id } },
         }),
         prisma.user.findUnique({ where: { id: session.user.id } }),
         prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } }),
+        prisma.courseWishlist.findUnique({
+          where: { userId_courseId: { userId: session.user.id, courseId: course.id } },
+        }),
       ])
-    : [null, null, await prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } })];
+    : [null, null, await prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } }), null];
 
   const [reviews, reviewAggregate] = await Promise.all([
     prisma.courseReview.findMany({
@@ -126,7 +130,7 @@ export default async function CourseDetailPage({
         {Number(course.price) === 0 ? "Free" : `₹${course.price}`}
       </p>
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         {!session ? (
           <Link href="/login" className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-5 py-2.5 text-white">
             Log in to enroll
@@ -138,7 +142,7 @@ export default async function CourseDetailPage({
         ) : (
           <>
             {Number(course.price) > 0 && currentUser && Number(currentUser.creditBalance) > 0 && (
-              <p className="mb-2 text-sm text-green-700 dark:text-green-400">
+              <p className="mb-2 w-full text-sm text-green-700 dark:text-green-400">
                 You have ₹{Number(currentUser.creditBalance).toFixed(2)} credit — applied
                 automatically when paying in INR.
               </p>
@@ -152,6 +156,9 @@ export default async function CourseDetailPage({
               userEmail={session.user.email}
             />
           </>
+        )}
+        {session && !isEnrolled && (
+          <WishlistButton slug={course.slug} isWishlisted={!!wishlistEntry} />
         )}
       </div>
 

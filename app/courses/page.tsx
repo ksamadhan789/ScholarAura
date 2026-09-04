@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CoursesExplorer } from "@/components/CoursesExplorer";
 import { Badge } from "@/components/Badge";
@@ -16,7 +18,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function CoursesPage() {
-  const [courses, courseCount, enrollmentCount, certificateCount, externalCourses, ratingGroups] =
+  const session = await getServerSession(authOptions);
+
+  const [courses, courseCount, enrollmentCount, certificateCount, externalCourses, ratingGroups, wishlistEntries] =
     await Promise.all([
       prisma.course.findMany({
         where: { isPublished: true },
@@ -31,6 +35,12 @@ export default async function CoursesPage() {
         orderBy: { createdAt: "desc" },
       }),
       prisma.courseReview.groupBy({ by: ["courseId"], _avg: { rating: true }, _count: { _all: true } }),
+      session
+        ? prisma.courseWishlist.findMany({
+            where: { userId: session.user.id },
+            select: { courseId: true },
+          })
+        : Promise.resolve([]),
     ]);
 
   const ratingByCourseId = new Map(
@@ -40,12 +50,17 @@ export default async function CoursesPage() {
     ...c,
     rating: ratingByCourseId.get(c.id) ?? null,
   }));
+  const wishlistedCourseIds = wishlistEntries.map((w) => w.courseId);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
       <h1 className="mb-8 text-center text-2xl font-semibold">📚 Browse courses</h1>
 
-      <CoursesExplorer courses={coursesWithRatings} />
+      <CoursesExplorer
+        courses={coursesWithRatings}
+        isLoggedIn={!!session}
+        wishlistedCourseIds={wishlistedCourseIds}
+      />
 
       <div className="mt-16 grid grid-cols-1 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-slate-50 py-6 text-center dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         <div className="py-3 first:pt-0 last:pb-0 sm:py-0">

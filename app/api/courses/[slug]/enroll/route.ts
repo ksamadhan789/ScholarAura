@@ -41,5 +41,10 @@ export async function POST(
     },
   });
 
+  // A purchased course no longer needs to be "saved for later".
+  await prisma.courseWishlist.deleteMany({
+    where: { userId: session.user.id, courseId: course.id },
+  });
+
   return NextResponse.json(purchase, { status: 201 });
 }

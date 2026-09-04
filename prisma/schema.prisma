@@ -131,6 +131,7 @@ model User {
   jobApplications   JobApplication[]
   recruiterProfile  RecruiterProfile?
   courseReviews     CourseReview[]
+  courseWishlist    CourseWishlist[]
 
   @@map("users")
 }
@@ -216,8 +217,21 @@ model Course {
   purchases     CoursePurchase[]
   certificates  Certificate[]
   reviews       CourseReview[]
+  wishlistedBy  CourseWishlist[]
 
   @@map("courses")
+}
+
+model CourseWishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+  @@map("course_wishlist")
 }
 
 model CourseVideo {
