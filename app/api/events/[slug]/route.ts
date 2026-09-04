@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { eventPeopleSchema } from "@/lib/eventPeople";
+import { notifyInterestedStudents } from "@/lib/interestNotify";
 
 const optionalDate = z.preprocess(
   (val) => (val === "" || val == null ? undefined : val),
@@ -167,6 +168,13 @@ export async function PATCH(
       }),
     },
   });
+
+  if (!event.isPublished && updated.isPublished) {
+    await notifyInterestedStudents("event", {
+      slug: updated.slug,
+      title: updated.title,
+    }).catch((err) => console.error("Failed to notify interested students:", err));
+  }
 
   return NextResponse.json(updated);
 }
