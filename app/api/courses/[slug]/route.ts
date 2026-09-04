@@ -8,6 +8,10 @@ import { notifyInterestedStudents } from "@/lib/interestNotify";
 const updateCourseSchema = z
   .object({
     isPublished: z.boolean().optional(),
+    title: z.string().trim().min(3).optional(),
+    description: z.string().trim().min(10).optional(),
+    category: z.string().trim().min(1).optional(),
+    price: z.coerce.number().min(0).optional(),
     certificateLogoUrl: z
       .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
       .nullable()
@@ -71,6 +75,10 @@ export async function PATCH(
     where: { slug: params.slug },
     data: {
       ...(d.isPublished !== undefined && { isPublished: d.isPublished }),
+      ...(d.title !== undefined && { title: d.title }),
+      ...(d.description !== undefined && { description: d.description }),
+      ...(d.category !== undefined && { category: d.category }),
+      ...(d.price !== undefined && { price: d.price }),
       ...(d.certificateLogoUrl !== undefined && {
         certificateLogoUrl: d.certificateLogoUrl || null,
       }),

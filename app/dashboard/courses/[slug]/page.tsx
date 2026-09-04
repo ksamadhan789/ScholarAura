@@ -4,8 +4,6 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AddVideoForm } from "./AddVideoForm";
-import { CertificateLogoEditor } from "./CertificateLogoEditor";
-import { ThumbnailUrlEditor } from "./ThumbnailUrlEditor";
 
 export default async function ManageCoursePage({
   params,
@@ -41,12 +39,20 @@ export default async function ManageCoursePage({
             {course.isPublished ? "Published" : "Draft"} · Manage lectures
           </p>
         </div>
-        <Link
-          href={`/dashboard/courses/${course.slug}/students`}
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Students
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href={`/dashboard/courses/${course.slug}/edit`}
+            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          >
+            Edit details
+          </Link>
+          <Link
+            href={`/dashboard/courses/${course.slug}/students`}
+            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          >
+            Students
+          </Link>
+        </div>
       </div>
 
       <div className="mt-8 flex flex-col gap-3">
@@ -75,9 +81,6 @@ export default async function ManageCoursePage({
       <div className="mt-8">
         <AddVideoForm slug={course.slug} />
       </div>
-
-      <ThumbnailUrlEditor slug={course.slug} thumbnailUrl={course.thumbnailUrl} />
-      <CertificateLogoEditor slug={course.slug} certificateLogoUrl={course.certificateLogoUrl} />
     </main>
   );
 }
