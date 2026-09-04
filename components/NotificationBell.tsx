@@ -34,6 +34,7 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   async function load() {
     const res = await fetch("/api/notifications");
@@ -61,6 +62,18 @@ export function NotificationBell() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
 
   if (!session) return null;
 
@@ -95,9 +108,11 @@ export function NotificationBell() {
   return (
     <div ref={containerRef} className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={toggleOpen}
         aria-label="Notifications"
+        aria-haspopup="true"
         aria-expanded={open}
         className="relative rounded border border-slate-300 p-2 text-slate-700 dark:border-slate-600 dark:text-slate-200"
       >
@@ -110,7 +125,11 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-20 mt-1 w-80 max-w-[90vw] rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
+        <div
+          role="menu"
+          aria-label="Notifications"
+          className="absolute right-0 top-full z-20 mt-1 w-80 max-w-[90vw] rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800"
+        >
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5 dark:border-slate-700">
             <p className="text-sm font-medium">Notifications</p>
             {unreadCount > 0 && (

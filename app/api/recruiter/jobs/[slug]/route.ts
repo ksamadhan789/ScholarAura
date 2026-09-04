@@ -20,6 +20,7 @@ const updateJobSchema = z
       (val) => (val === "" ? null : val),
       z.coerce.date().nullable().optional()
     ),
+    isPublished: z.boolean().optional(),
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined), {
     message: "Nothing to update",
@@ -59,29 +60,47 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
   }
 
-  const d = parsed.data;
+  const { isPublished, ...content } = parsed.data;
+  const isContentEdit = Object.values(content).some((v) => v !== undefined);
+
+  if (isContentEdit) {
+    const updated = await prisma.job.update({
+      where: { slug: params.slug },
+      data: {
+        ...(content.title !== undefined && { title: content.title }),
+        ...(content.companyName !== undefined && { companyName: content.companyName }),
+        ...(content.companyLogoUrl !== undefined && { companyLogoUrl: content.companyLogoUrl || null }),
+        ...(content.location !== undefined && { location: content.location }),
+        ...(content.isRemote !== undefined && { isRemote: content.isRemote }),
+        ...(content.employmentType !== undefined && { employmentType: content.employmentType }),
+        ...(content.description !== undefined && { description: content.description }),
+        ...(content.requirements !== undefined && { requirements: content.requirements || null }),
+        ...(content.minExperienceYears !== undefined && { minExperienceYears: content.minExperienceYears }),
+        ...(content.salaryRange !== undefined && { salaryRange: content.salaryRange || null }),
+        ...(content.applicationDeadline !== undefined && { applicationDeadline: content.applicationDeadline }),
+        // Any edit to a recruiter-submitted job's content sends it back
+        // through moderation — otherwise an already-approved posting could
+        // be swapped for different content post-review.
+        approvalStatus: "PENDING",
+        isPublished: false,
+        rejectionReason: null,
+      },
+    });
+    return NextResponse.json(updated);
+  }
+
+  // A pure publish/pause toggle — doesn't touch content, so it doesn't need
+  // to go back through moderation. Only an already-approved job can be
+  // published; a pending/rejected one has nothing to toggle yet.
+  if (job.approvalStatus !== "APPROVED") {
+    return NextResponse.json(
+      { error: "This job hasn't been approved yet" },
+      { status: 400 }
+    );
+  }
   const updated = await prisma.job.update({
     where: { slug: params.slug },
-    data: {
-      ...(d.title !== undefined && { title: d.title }),
-      ...(d.companyName !== undefined && { companyName: d.companyName }),
-      ...(d.companyLogoUrl !== undefined && { companyLogoUrl: d.companyLogoUrl || null }),
-      ...(d.location !== undefined && { location: d.location }),
-      ...(d.isRemote !== undefined && { isRemote: d.isRemote }),
-      ...(d.employmentType !== undefined && { employmentType: d.employmentType }),
-      ...(d.description !== undefined && { description: d.description }),
-      ...(d.requirements !== undefined && { requirements: d.requirements || null }),
-      ...(d.minExperienceYears !== undefined && { minExperienceYears: d.minExperienceYears }),
-      ...(d.salaryRange !== undefined && { salaryRange: d.salaryRange || null }),
-      ...(d.applicationDeadline !== undefined && { applicationDeadline: d.applicationDeadline }),
-      // Any edit to a recruiter-submitted job's content sends it back
-      // through moderation — otherwise an already-approved posting could
-      // be swapped for different content post-review.
-      approvalStatus: "PENDING",
-      isPublished: false,
-      rejectionReason: null,
-    },
+    data: { isPublished },
   });
-
   return NextResponse.json(updated);
 }

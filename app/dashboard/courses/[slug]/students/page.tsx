@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { RefundButton } from "@/components/RefundButton";
+import { Pagination, PAGE_SIZE } from "@/components/Pagination";
 
 const STATUS_VARIANT = {
   SUCCESS: "success",
@@ -15,8 +16,10 @@ const STATUS_VARIANT = {
 
 export default async function CourseStudentsPage({
   params,
+  searchParams,
 }: {
   params: { slug: string };
+  searchParams: { page?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -38,13 +41,17 @@ export default async function CourseStudentsPage({
   }
 
   const totalVideos = course.videos.length;
+  const page = Math.max(1, Number(searchParams.page) || 1);
 
-  const [purchases, progressCounts] = await Promise.all([
+  const [purchases, totalCount, progressCounts] = await Promise.all([
     prisma.coursePurchase.findMany({
       where: { courseId: course.id },
       include: { user: { select: { name: true, email: true } } },
       orderBy: { purchasedAt: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
     }),
+    prisma.coursePurchase.count({ where: { courseId: course.id } }),
     prisma.courseProgress.groupBy({
       by: ["userId"],
       where: { completedAt: { not: null }, courseVideo: { courseId: course.id } },
@@ -120,6 +127,8 @@ export default async function CourseStudentsPage({
           </table>
         </div>
       )}
+
+      <Pagination page={page} totalCount={totalCount} basePath={`/dashboard/courses/${course.slug}/students`} />
     </main>
   );
 }

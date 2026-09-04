@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EMPLOYMENT_TYPE_LABELS } from "@/lib/jobLabels";
 import { Badge } from "@/components/Badge";
+import { RecruiterJobPublishToggle } from "./RecruiterJobPublishToggle";
 
 const APPROVAL_BADGE_VARIANT: Record<string, "success" | "warning" | "neutral"> = {
   APPROVED: "success",
@@ -121,6 +122,9 @@ export default async function RecruiterHomePage() {
                 >
                   Applicants
                 </Link>
+                {job.approvalStatus === "APPROVED" && (
+                  <RecruiterJobPublishToggle slug={job.slug} isPublished={job.isPublished} />
+                )}
               </div>
             </div>
           ))}
