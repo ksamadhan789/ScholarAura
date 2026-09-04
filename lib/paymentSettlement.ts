@@ -65,6 +65,10 @@ export async function settleCoursePurchase(purchaseId: string, paymentId: string
         description: `Course: ${course.title}`,
       });
       await bumpCouponRedemption(tx, purchase.couponId);
+      // A purchased course no longer needs to be "saved for later".
+      await tx.courseWishlist.deleteMany({
+        where: { userId: purchase.userId, courseId: purchase.courseId },
+      });
     }
 
     return tx.coursePurchase.findUniqueOrThrow({ where: { id: purchase.id } });

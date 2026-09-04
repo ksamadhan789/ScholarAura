@@ -142,6 +142,7 @@ export default async function DashboardPage() {
             <NavLink href="/dashboard/courses">🧑‍🏫 My courses (instructor)</NavLink>
           )}
           <NavLink href="/dashboard/certificates">📜 My certificates</NavLink>
+          <NavLink href="/dashboard/wishlist">❤️ My wishlist</NavLink>
         </NavGroup>
 
         <NavGroup title="Events & competitions">
