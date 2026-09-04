@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/lib/notify";
 
 const questionSchema = z.object({
   body: z.string().trim().min(5).max(2000),
@@ -40,7 +41,7 @@ export async function POST(request: Request, { params }: { params: { slug: strin
 
   const course = await prisma.course.findUnique({
     where: { slug: params.slug },
-    select: { id: true },
+    select: { id: true, title: true, instructorId: true },
   });
   if (!course) {
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
@@ -69,6 +70,16 @@ export async function POST(request: Request, { params }: { params: { slug: strin
     data: { courseId: course.id, userId: session.user.id, body: parsed.data.body },
     include: { user: { select: { name: true } }, answers: true },
   });
+
+  if (course.instructorId !== session.user.id) {
+    await createNotification({
+      userId: course.instructorId,
+      type: "QA_QUESTION",
+      title: `${question.user.name} asked a question on ${course.title}`,
+      body: parsed.data.body,
+      url: `/courses/${params.slug}`,
+    }).catch((err) => console.error("Failed to create Q&A question notification:", err));
+  }
 
   return NextResponse.json(question, { status: 201 });
 }
