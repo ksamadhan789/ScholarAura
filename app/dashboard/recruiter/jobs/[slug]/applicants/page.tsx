@@ -21,7 +21,17 @@ export default async function RecruiterJobApplicantsPage({ params }: { params: {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="text-2xl font-semibold">Applicants for {job.title}</h1>
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="text-2xl font-semibold">Applicants for {job.title}</h1>
+        {applications.length > 0 && (
+          <a
+            href={`/api/jobs/${job.slug}/applicants/export`}
+            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          >
+            Export CSV
+          </a>
+        )}
+      </div>
 
       {applications.length === 0 ? (
         <p className="mt-8 text-gray-500 dark:text-slate-400">No applications yet.</p>

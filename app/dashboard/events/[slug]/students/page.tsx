@@ -53,7 +53,15 @@ export default async function EventStudentsPage({
       <Link href="/dashboard/events" className="text-sm text-gray-500 hover:underline dark:text-slate-400">
         ← Manage events
       </Link>
-      <h1 className="mt-2 mb-6 text-2xl font-semibold">{event.title} — Registrations</h1>
+      <div className="mt-2 mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">{event.title} — Registrations</h1>
+        <a
+          href={`/api/admin/events/${event.slug}/students/export`}
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          Export CSV
+        </a>
+      </div>
 
       {registrations.length === 0 ? (
         <p className="text-sm text-gray-500 dark:text-slate-400">No one has registered for this event yet.</p>
