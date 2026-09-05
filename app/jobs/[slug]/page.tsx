@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EMPLOYMENT_TYPE_LABELS, formatJobDate } from "@/lib/jobLabels";
 import { Badge } from "@/components/Badge";
+import { WithdrawApplicationButton } from "@/components/WithdrawApplicationButton";
 
 export async function generateMetadata({
   params,
@@ -108,7 +109,10 @@ export default async function JobDetailPage({ params }: { params: { slug: string
           </Link>
         )}
         {application ? (
-          <Badge variant="success">You've applied — status: {application.status}</Badge>
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge variant="success">You've applied — status: {application.status}</Badge>
+            {application.status !== "HIRED" && <WithdrawApplicationButton jobSlug={job.slug} />}
+          </div>
         ) : !job.isPublished ? null : deadlinePassed ? (
           <Badge variant="warning">Applications closed</Badge>
         ) : session ? (
