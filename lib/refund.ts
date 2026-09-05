@@ -99,12 +99,30 @@ export async function refundCoursePurchase(purchaseId: string) {
   if (purchase.status === "REFUNDED") throw new AlreadyRefundedError();
   if (purchase.status !== "SUCCESS") throw new NotRefundableError();
 
+  // Atomic claim before touching Razorpay — this is what stops two callers
+  // (e.g. the admin refund button and an approved refund request) racing on
+  // the same purchase from both issuing a real refund. Whichever caller's
+  // updateMany actually flips the row wins; the loser sees count === 0.
+  const claimed = await prisma.coursePurchase.updateMany({
+    where: { id: purchaseId, status: "SUCCESS" },
+    data: { status: "REFUNDED" },
+  });
+  if (claimed.count === 0) throw new AlreadyRefundedError();
+
   if (purchase.razorpayPaymentId) {
-    await createRefund(purchase.razorpayPaymentId);
+    try {
+      await createRefund(purchase.razorpayPaymentId);
+    } catch (err) {
+      // The refund never actually happened — release the claim so this can be retried.
+      await prisma.coursePurchase.updateMany({
+        where: { id: purchaseId, status: "REFUNDED" },
+        data: { status: "SUCCESS" },
+      });
+      throw err;
+    }
   }
 
   return prisma.$transaction(async (tx) => {
-    await tx.coursePurchase.update({ where: { id: purchaseId }, data: { status: "REFUNDED" } });
     await reverseCreditAndReferral(
       tx,
       purchase.userId,
@@ -126,12 +144,25 @@ export async function refundEventRegistration(registrationId: string) {
   if (registration.status === "REFUNDED") throw new AlreadyRefundedError();
   if (registration.status !== "CONFIRMED") throw new NotRefundableError();
 
+  const claimed = await prisma.eventRegistration.updateMany({
+    where: { id: registrationId, status: "CONFIRMED" },
+    data: { status: "REFUNDED" },
+  });
+  if (claimed.count === 0) throw new AlreadyRefundedError();
+
   if (registration.razorpayPaymentId) {
-    await createRefund(registration.razorpayPaymentId);
+    try {
+      await createRefund(registration.razorpayPaymentId);
+    } catch (err) {
+      await prisma.eventRegistration.updateMany({
+        where: { id: registrationId, status: "REFUNDED" },
+        data: { status: "CONFIRMED" },
+      });
+      throw err;
+    }
   }
 
   const result = await prisma.$transaction(async (tx) => {
-    await tx.eventRegistration.update({ where: { id: registrationId }, data: { status: "REFUNDED" } });
     // Frees the seat back up — guarded so it can never go negative.
     await tx.event.updateMany({
       where: { id: registration.eventId, seatsFilled: { gt: 0 } },
@@ -165,12 +196,25 @@ export async function refundCompetitionEntry(entryId: string) {
   if (entry.status === "REFUNDED") throw new AlreadyRefundedError();
   if (entry.status !== "SUCCESS") throw new NotRefundableError();
 
+  const claimed = await prisma.competitionEntry.updateMany({
+    where: { id: entryId, status: "SUCCESS" },
+    data: { status: "REFUNDED" },
+  });
+  if (claimed.count === 0) throw new AlreadyRefundedError();
+
   if (entry.razorpayPaymentId) {
-    await createRefund(entry.razorpayPaymentId);
+    try {
+      await createRefund(entry.razorpayPaymentId);
+    } catch (err) {
+      await prisma.competitionEntry.updateMany({
+        where: { id: entryId, status: "REFUNDED" },
+        data: { status: "SUCCESS" },
+      });
+      throw err;
+    }
   }
 
   return prisma.$transaction(async (tx) => {
-    await tx.competitionEntry.update({ where: { id: entryId }, data: { status: "REFUNDED" } });
     await reverseCreditAndReferral(
       tx,
       entry.userId,
