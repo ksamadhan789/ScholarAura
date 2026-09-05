@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { getIstYear } from "@/lib/istDate";
 
 /**
  * Runs `attempt` with a freshly generated enrollment number, retrying with a
@@ -35,7 +36,7 @@ export async function withEnrollmentNumber<T>(
 }
 
 export async function generateEnrollmentNumber(): Promise<string> {
-  const year = new Date().getFullYear();
+  const year = getIstYear();
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const count = await prisma.competitionEntry.count({

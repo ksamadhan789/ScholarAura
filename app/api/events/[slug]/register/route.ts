@@ -6,6 +6,7 @@ import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
 import { sendEventRegistrationConfirmationEmail } from "@/lib/email";
 import { notifyNextWaitlisted, leaveEventWaitlist } from "@/lib/waitlist";
 import { hasCompletedOnboarding } from "@/lib/onboarding";
+import { registrationWindowError } from "@/lib/registrationWindow";
 
 export async function POST(
   request: Request,
@@ -37,6 +38,14 @@ export async function POST(
       { error: "This event requires payment — use checkout instead" },
       { status: 400 }
     );
+  }
+  const windowError = registrationWindowError("event", {
+    registrationStartDate: event.registrationStartDate,
+    registrationDeadline: event.registrationDeadline,
+    endDate: event.endDate,
+  });
+  if (windowError) {
+    return NextResponse.json({ error: windowError }, { status: 400 });
   }
 
   const existing = await prisma.eventRegistration.findUnique({

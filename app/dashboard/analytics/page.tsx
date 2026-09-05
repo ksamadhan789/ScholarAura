@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getIstMonthKey } from "@/lib/istDate";
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
@@ -18,7 +19,7 @@ function netAmount(amount: unknown, creditApplied: unknown): number {
 }
 
 function monthKey(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  return getIstMonthKey(date);
 }
 
 function monthLabel(key: string): string {

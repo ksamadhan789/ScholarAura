@@ -1,9 +1,10 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendCertificateReadyEmail } from "@/lib/email";
+import { getIstYear } from "@/lib/istDate";
 
 async function generateCertificateNumber(): Promise<string> {
-  const year = new Date().getFullYear();
+  const year = getIstYear();
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const count = await prisma.certificate.count({
