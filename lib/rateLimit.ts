@@ -23,6 +23,14 @@ export const REGISTER_WINDOW_MS = 15 * 60 * 1000;
 export const FORGOT_PASSWORD_ATTEMPT_LIMIT = 5;
 export const FORGOT_PASSWORD_WINDOW_MS = 15 * 60 * 1000;
 
+// Keyed by IP — certificate numbers are sequential, so without this a
+// script could walk every issued number from one source and scrape every
+// holder's name, course/event, and institution off the public verify page.
+// Generous enough not to bother a recruiter checking a handful of
+// candidates' certificates from the same office network.
+export const CERTIFICATE_VERIFY_ATTEMPT_LIMIT = 30;
+export const CERTIFICATE_VERIFY_WINDOW_MS = 10 * 60 * 1000;
+
 /**
  * Fixed-window rate limiter backed by Postgres so it's correct across every
  * serverless instance (unlike an in-memory counter, which each cold start

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
+import { checkRateLimit, CERTIFICATE_VERIFY_ATTEMPT_LIMIT, CERTIFICATE_VERIFY_WINDOW_MS } from "@/lib/rateLimit";
 
 // No dynamic API (cookies/searchParams/getServerSession) here to naturally
 // opt this out of caching, so without this a certificate code checked before
@@ -12,10 +14,22 @@ export default async function VerifyCertificatePage({
 }: {
   params: { code: string };
 }) {
-  const certificate = await prisma.certificate.findUnique({
-    where: { certificateNumber: params.code },
-    include: { user: true, course: true, event: true, competition: true },
-  });
+  // Certificate numbers are sequential — without this, a script could walk
+  // every issued number from one IP and scrape every holder's name,
+  // course/event, and institution off this page.
+  const remoteIp = headers().get("x-forwarded-for")?.split(",")[0]?.trim();
+  const withinLimit = await checkRateLimit(
+    `verify-cert:${remoteIp ?? "unknown"}`,
+    CERTIFICATE_VERIFY_ATTEMPT_LIMIT,
+    CERTIFICATE_VERIFY_WINDOW_MS
+  );
+
+  const certificate = withinLimit
+    ? await prisma.certificate.findUnique({
+        where: { certificateNumber: params.code },
+        include: { user: true, course: true, event: true, competition: true },
+      })
+    : null;
   const isRevoked = certificate?.status === "REVOKED";
 
   return (
@@ -82,10 +96,12 @@ export default async function VerifyCertificatePage({
       ) : (
         <div className="rounded border border-red-300 bg-red-50 p-5 dark:border-red-700 dark:bg-red-900/30">
           <p className="text-lg font-semibold text-red-800 dark:text-red-300">
-            ✗ {isRevoked ? "Revoked" : "Not found"}
+            ✗ {!withinLimit ? "Too many lookups" : isRevoked ? "Revoked" : "Not found"}
           </p>
           <p className="mt-1 text-sm text-red-700 dark:text-red-400">
-            {isRevoked
+            {!withinLimit
+              ? "Too many certificate lookups from this network. Please wait a while and try again."
+              : isRevoked
               ? "This certificate has been revoked and is no longer valid."
               : "No certificate matches this number. Double-check it was typed correctly."}
           </p>
