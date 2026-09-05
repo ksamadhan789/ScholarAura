@@ -143,6 +143,7 @@ model User {
   courseAnswers     CourseAnswer[]
   notifications     Notification[]
   refundRequests    RefundRequest[]
+  auditLogs         AuditLog[]
 
   @@map("users")
 }
@@ -791,6 +792,21 @@ model Notification {
 // calls the existing admin refund* functions in lib/refund.ts — this model
 // only tracks the request/review step in front of them.
 // ----------------------
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id])
+  action     String
+  targetType String
+  targetId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}
 
 model RefundRequest {
   id                  String              @id @default(uuid())

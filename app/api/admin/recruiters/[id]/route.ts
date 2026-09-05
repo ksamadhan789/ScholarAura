@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendRecruiterAccountApprovedEmail, sendRecruiterAccountRejectedEmail } from "@/lib/email";
 import { createNotification } from "@/lib/notify";
+import { logAdminAction } from "@/lib/auditLog";
 
 const updateSchema = z.object({
   status: z.enum(["APPROVED", "REJECTED"]),
@@ -44,6 +45,13 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   });
 
   if (status === "APPROVED") {
+    await logAdminAction({
+      actorId: session.user.id,
+      action: "RECRUITER_APPROVED",
+      targetType: "RecruiterProfile",
+      targetId: params.id,
+      metadata: { companyName: recruiter.companyName },
+    });
     await sendRecruiterAccountApprovedEmail(recruiter.user.email, recruiter.user.name).catch((err) =>
       console.error("Failed to send recruiter approval email:", err)
     );
@@ -54,6 +62,13 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       url: "/dashboard/recruiter",
     }).catch((err) => console.error("Failed to create recruiter approval notification:", err));
   } else {
+    await logAdminAction({
+      actorId: session.user.id,
+      action: "RECRUITER_REJECTED",
+      targetType: "RecruiterProfile",
+      targetId: params.id,
+      metadata: { companyName: recruiter.companyName, rejectionReason: rejectionReason || null },
+    });
     await sendRecruiterAccountRejectedEmail(
       recruiter.user.email,
       recruiter.user.name,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { refundCoursePurchase, AlreadyRefundedError, NotRefundableError } from "@/lib/refund";
+import { logAdminAction } from "@/lib/auditLog";
 
 export async function POST(_request: Request, { params }: { params: { purchaseId: string } }) {
   const session = await getServerSession(authOptions);
@@ -11,6 +12,12 @@ export async function POST(_request: Request, { params }: { params: { purchaseId
 
   try {
     const updated = await refundCoursePurchase(params.purchaseId);
+    await logAdminAction({
+      actorId: session.user.id,
+      action: "REFUND_ISSUED",
+      targetType: "CoursePurchase",
+      targetId: params.purchaseId,
+    });
     return NextResponse.json(updated);
   } catch (err) {
     if (err instanceof AlreadyRefundedError) {

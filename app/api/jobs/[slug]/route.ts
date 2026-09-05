@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendJobApprovedEmail, sendJobRejectedEmail } from "@/lib/email";
 import { createNotification } from "@/lib/notify";
+import { logAdminAction } from "@/lib/auditLog";
 
 const updateJobSchema = z
   .object({
@@ -97,6 +98,13 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
   // postings are pre-approved and never go through this transition.
   if (d.approvalStatus && job.recruiterProfileId) {
     if (d.approvalStatus === "APPROVED") {
+      await logAdminAction({
+        actorId: session.user.id,
+        action: "JOB_APPROVED",
+        targetType: "Job",
+        targetId: job.id,
+        metadata: { title: updated.title },
+      });
       await sendJobApprovedEmail(job.postedByUser.email, job.postedByUser.name, updated.title).catch(
         (err) => console.error("Failed to send job approval email:", err)
       );
@@ -107,6 +115,13 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
         url: "/dashboard/recruiter",
       }).catch((err) => console.error("Failed to create job approval notification:", err));
     } else {
+      await logAdminAction({
+        actorId: session.user.id,
+        action: "JOB_REJECTED",
+        targetType: "Job",
+        targetId: job.id,
+        metadata: { title: updated.title, rejectionReason: updated.rejectionReason },
+      });
       await sendJobRejectedEmail(
         job.postedByUser.email,
         job.postedByUser.name,
