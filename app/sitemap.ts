@@ -9,7 +9,7 @@ import { SITE_URL } from "@/lib/siteUrl";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [courses, events, competitions] = await Promise.all([
+  const [courses, events, competitions, jobs] = await Promise.all([
     prisma.course.findMany({
       where: { isPublished: true },
       select: { slug: true, updatedAt: true },
@@ -22,6 +22,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       where: { isPublished: true },
       select: { slug: true, updatedAt: true },
     }),
+    prisma.job.findMany({
+      where: { isPublished: true },
+      select: { slug: true, updatedAt: true },
+    }),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -29,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/courses`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE_URL}/events`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE_URL}/competitions`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE_URL}/jobs`, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE_URL}/terms`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/refund-policy`, changeFrequency: "yearly", priority: 0.3 },
@@ -55,5 +60,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...courseRoutes, ...eventRoutes, ...competitionRoutes];
+  const jobRoutes: MetadataRoute.Sitemap = jobs.map((job) => ({
+    url: `${SITE_URL}/jobs/${job.slug}`,
+    lastModified: job.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
+
+  return [...staticRoutes, ...courseRoutes, ...eventRoutes, ...competitionRoutes, ...jobRoutes];
 }
