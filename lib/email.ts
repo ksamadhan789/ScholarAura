@@ -7,6 +7,23 @@ function getClient(): Resend | null {
   return new Resend(apiKey);
 }
 
+// Every email below embeds values a lower-trust role controls (a student's
+// own display name, a recruiter's job title/company name, an instructor's
+// course title, an admin's free-text rejection reason) directly into an
+// HTML email body. Without escaping, any of those could carry markup that
+// an email client renders for whoever receives that email — not just the
+// account that set the value. Only for the html: body; the text: body needs
+// no escaping (and must keep the raw value, or entities like &amp; would
+// show up literally).
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function sendPasswordResetEmail(
   to: string,
   name: string,
@@ -19,6 +36,7 @@ export async function sendPasswordResetEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
 
   try {
     const { error } = await resend.emails.send({
@@ -27,7 +45,7 @@ export async function sendPasswordResetEmail(
       subject: "Reset your ScholarAura password",
       text: `Hi ${displayName},\n\nWe received a request to reset your ScholarAura account password.\n\nIf this was you, use the link below to set a new password:\n\n${resetUrl}\n\nThis link will expire in 30 minutes for your security.\n\nIf you didn't request this, please ignore this email; your password will remain unchanged.\n\nStay safe,\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
+        <p>Hi ${safeDisplayName},</p>
         <p>We received a request to reset your ScholarAura account password.</p>
         <p>If this was you, click the button below to set a new password:</p>
         <p>
@@ -64,6 +82,8 @@ export async function sendCertificateReadyEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeEventTitle = escapeHtml(eventTitle);
   const certificatesUrl = `${SITE_URL}/dashboard/certificates`;
   const verifyUrl = `${SITE_URL}/verify/${certificateNumber}`;
 
@@ -75,8 +95,8 @@ export async function sendCertificateReadyEmail(
       subject: `Your certificate for ${eventTitle} is ready`,
       text: `Hi ${displayName},\n\nYour certificate for "${eventTitle}" is ready.\n\nCertificate number: ${certificateNumber}\n\nView and download it here: ${certificatesUrl}\n\nYou can verify it anytime at: ${verifyUrl}\n\nCongratulations!\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>Your certificate for <strong>${eventTitle}</strong> is ready.</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>Your certificate for <strong>${safeEventTitle}</strong> is ready.</p>
         <p>
           <a href="${certificatesUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Certificate</a>
         </p>
@@ -123,6 +143,9 @@ export async function sendEventReminderEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeEventTitle = escapeHtml(eventTitle);
+  const safeVenueOrLink = escapeHtml(venueOrLink);
   const when = formatDateTime(startDate);
   const eventsUrl = `${SITE_URL}/dashboard/registrations`;
 
@@ -133,9 +156,9 @@ export async function sendEventReminderEmail(
       subject: `Reminder: ${eventTitle} starts soon`,
       text: `Hi ${displayName},\n\nThis is a reminder that "${eventTitle}" starts on ${when}.\n\nVenue/link: ${venueOrLink}\n\nView your registration: ${eventsUrl}\n\nSee you there!\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>This is a reminder that <strong>${eventTitle}</strong> starts on <strong>${when}</strong>.</p>
-        <p>Venue/link: ${venueOrLink}</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>This is a reminder that <strong>${safeEventTitle}</strong> starts on <strong>${when}</strong>.</p>
+        <p>Venue/link: ${safeVenueOrLink}</p>
         <p>
           <a href="${eventsUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Registration</a>
         </p>
@@ -168,6 +191,8 @@ export async function sendCompetitionReminderEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeCompetitionTitle = escapeHtml(competitionTitle);
   const when = formatDateTime(submissionDeadline);
   const entriesUrl = `${SITE_URL}/dashboard/entries`;
 
@@ -178,8 +203,8 @@ export async function sendCompetitionReminderEmail(
       subject: `Reminder: submission deadline for ${competitionTitle} is approaching`,
       text: `Hi ${displayName},\n\nThis is a reminder that the submission deadline for "${competitionTitle}" is ${when}.\n\nView your entry: ${entriesUrl}\n\nGood luck!\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>This is a reminder that the submission deadline for <strong>${competitionTitle}</strong> is <strong>${when}</strong>.</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>This is a reminder that the submission deadline for <strong>${safeCompetitionTitle}</strong> is <strong>${when}</strong>.</p>
         <p>
           <a href="${entriesUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Entry</a>
         </p>
@@ -212,6 +237,8 @@ export async function sendWaitlistSeatAvailableEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeEventTitle = escapeHtml(eventTitle);
 
   try {
     const { error } = await resend.emails.send({
@@ -220,8 +247,8 @@ export async function sendWaitlistSeatAvailableEmail(
       subject: `A seat just opened up for ${eventTitle}`,
       text: `Hi ${displayName},\n\nA seat just opened up for "${eventTitle}", which you're on the waitlist for.\n\nSeats are first-come, first-served, so register soon before it fills up again: ${eventUrl}\n\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>A seat just opened up for <strong>${eventTitle}</strong>, which you're on the waitlist for.</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>A seat just opened up for <strong>${safeEventTitle}</strong>, which you're on the waitlist for.</p>
         <p>Seats are first-come, first-served, so register soon before it fills up again:</p>
         <p>
           <a href="${eventUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Register now</a>
@@ -262,6 +289,8 @@ export async function sendNewContentMatchingInterestEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeTitle = escapeHtml(title);
   const label = CONTENT_KIND_LABEL[kind];
 
   try {
@@ -271,8 +300,8 @@ export async function sendNewContentMatchingInterestEmail(
       subject: `New ${label} on ScholarAura: ${title}`,
       text: `Hi ${displayName},\n\nA new ${label} just went live on ScholarAura that matches your field of study: "${title}".\n\nCheck it out: ${url}\n\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>A new ${label} just went live on ScholarAura that matches your field of study: <strong>${title}</strong>.</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>A new ${label} just went live on ScholarAura that matches your field of study: <strong>${safeTitle}</strong>.</p>
         <p>
           <a href="${url}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Check it out</a>
         </p>
@@ -314,6 +343,7 @@ export async function sendAdminDigestEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
   const adminUrl = `${SITE_URL}/dashboard/admin`;
 
   const rows: [string, string][] = [
@@ -343,7 +373,7 @@ export async function sendAdminDigestEmail(
       subject: "ScholarAura — daily admin digest",
       text: `Hi ${displayName},\n\nHere's what happened on ScholarAura in the last 24 hours:\n\n${textRows}\n\nFull dashboard: ${adminUrl}\n\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
+        <p>Hi ${safeDisplayName},</p>
         <p>Here's what happened on ScholarAura in the last 24 hours:</p>
         <table cellspacing="0" cellpadding="0">${htmlRows}</table>
         <p style="margin-top:16px;">
@@ -380,6 +410,9 @@ export async function sendEventRegistrationConfirmationEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeEventTitle = escapeHtml(eventTitle);
+  const safeVenueOrLink = escapeHtml(venueOrLink);
   const when = formatDateTime(startDate);
   const registrationsUrl = `${SITE_URL}/dashboard/registrations`;
   const enrollmentLine = enrollmentNumber ? `\n\nEnrollment number: ${enrollmentNumber}` : "";
@@ -394,9 +427,9 @@ export async function sendEventRegistrationConfirmationEmail(
       subject: `You're registered for ${eventTitle}`,
       text: `Hi ${displayName},\n\nYou're confirmed for "${eventTitle}" on ${when}.\n\nVenue/link: ${venueOrLink}${enrollmentLine}\n\nView your registration: ${registrationsUrl}\n\nSee you there!\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>You're confirmed for <strong>${eventTitle}</strong> on <strong>${when}</strong>.</p>
-        <p>Venue/link: ${venueOrLink}</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>You're confirmed for <strong>${safeEventTitle}</strong> on <strong>${when}</strong>.</p>
+        <p>Venue/link: ${safeVenueOrLink}</p>
         ${enrollmentHtml}
         <p>
           <a href="${registrationsUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Registration</a>
@@ -431,6 +464,8 @@ export async function sendCompetitionEntryConfirmationEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeCompetitionTitle = escapeHtml(competitionTitle);
   const when = formatDateTime(submissionDeadline);
   const entriesUrl = `${SITE_URL}/dashboard/entries`;
   const enrollmentLine = enrollmentNumber ? `\n\nEnrollment number: ${enrollmentNumber}` : "";
@@ -445,8 +480,8 @@ export async function sendCompetitionEntryConfirmationEmail(
       subject: `You're entered in ${competitionTitle}`,
       text: `Hi ${displayName},\n\nYou're confirmed for "${competitionTitle}". Submission deadline: ${when}.${enrollmentLine}\n\nView your entry: ${entriesUrl}\n\nGood luck!\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>You're confirmed for <strong>${competitionTitle}</strong>. Submission deadline: <strong>${when}</strong>.</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>You're confirmed for <strong>${safeCompetitionTitle}</strong>. Submission deadline: <strong>${when}</strong>.</p>
         ${enrollmentHtml}
         <p>
           <a href="${entriesUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Entry</a>
@@ -480,6 +515,9 @@ export async function sendJobApplicationReceivedEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeJobTitle = escapeHtml(jobTitle);
+  const safeCompanyName = escapeHtml(companyName);
   const applicationsUrl = `${SITE_URL}/dashboard/job-applications`;
 
   try {
@@ -489,8 +527,8 @@ export async function sendJobApplicationReceivedEmail(
       subject: `Application received: ${jobTitle} at ${companyName}`,
       text: `Hi ${displayName},\n\nWe've received your application for "${jobTitle}" at ${companyName}.\n\nTrack your application: ${applicationsUrl}\n\nGood luck!\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>We've received your application for <strong>${jobTitle}</strong> at <strong>${companyName}</strong>.</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>We've received your application for <strong>${safeJobTitle}</strong> at <strong>${safeCompanyName}</strong>.</p>
         <p>
           <a href="${applicationsUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Track Application</a>
         </p>
@@ -518,6 +556,7 @@ export async function sendRecruiterAccountApprovedEmail(to: string, name: string
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
   const dashboardUrl = `${SITE_URL}/dashboard/recruiter`;
 
   try {
@@ -527,7 +566,7 @@ export async function sendRecruiterAccountApprovedEmail(to: string, name: string
       subject: "Your ScholarAura recruiter account is approved",
       text: `Hi ${displayName},\n\nYour recruiter account has been approved. You can now post jobs — each posting is still reviewed before it goes live.\n\nPost a job: ${dashboardUrl}\n\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
+        <p>Hi ${safeDisplayName},</p>
         <p>Your recruiter account has been approved. You can now post jobs — each posting is still reviewed before it goes live.</p>
         <p>
           <a href="${dashboardUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Post a job</a>
@@ -560,8 +599,9 @@ export async function sendRecruiterAccountRejectedEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
   const reasonLine = reason ? `\n\nReason: ${reason}` : "";
-  const reasonHtml = reason ? `<p>Reason: ${reason}</p>` : "";
+  const reasonHtml = reason ? `<p>Reason: ${escapeHtml(reason)}</p>` : "";
 
   try {
     const { error } = await resend.emails.send({
@@ -570,7 +610,7 @@ export async function sendRecruiterAccountRejectedEmail(
       subject: "Your ScholarAura recruiter account application",
       text: `Hi ${displayName},\n\nWe weren't able to approve your recruiter account at this time.${reasonLine}\n\nIf you think this is a mistake, reply to this email.\n\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
+        <p>Hi ${safeDisplayName},</p>
         <p>We weren't able to approve your recruiter account at this time.</p>
         ${reasonHtml}
         <p>If you think this is a mistake, reply to this email.</p>
@@ -598,6 +638,8 @@ export async function sendJobApprovedEmail(to: string, name: string, jobTitle: s
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeJobTitle = escapeHtml(jobTitle);
   const dashboardUrl = `${SITE_URL}/dashboard/recruiter`;
 
   try {
@@ -607,8 +649,8 @@ export async function sendJobApprovedEmail(to: string, name: string, jobTitle: s
       subject: `Your job posting "${jobTitle}" is live`,
       text: `Hi ${displayName},\n\nYour job posting "${jobTitle}" has been approved and is now live on ScholarAura.\n\nView it: ${dashboardUrl}\n\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>Your job posting <strong>${jobTitle}</strong> has been approved and is now live on ScholarAura.</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>Your job posting <strong>${safeJobTitle}</strong> has been approved and is now live on ScholarAura.</p>
         <p>
           <a href="${dashboardUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View your jobs</a>
         </p>
@@ -641,9 +683,11 @@ export async function sendJobRejectedEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeJobTitle = escapeHtml(jobTitle);
   const dashboardUrl = `${SITE_URL}/dashboard/recruiter`;
   const reasonLine = reason ? `\n\nReason: ${reason}` : "";
-  const reasonHtml = reason ? `<p>Reason: ${reason}</p>` : "";
+  const reasonHtml = reason ? `<p>Reason: ${escapeHtml(reason)}</p>` : "";
 
   try {
     const { error } = await resend.emails.send({
@@ -652,8 +696,8 @@ export async function sendJobRejectedEmail(
       subject: `Your job posting "${jobTitle}" needs changes`,
       text: `Hi ${displayName},\n\nYour job posting "${jobTitle}" wasn't approved as submitted.${reasonLine}\n\nYou can edit and resubmit it here: ${dashboardUrl}\n\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>Your job posting <strong>${jobTitle}</strong> wasn't approved as submitted.</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>Your job posting <strong>${safeJobTitle}</strong> wasn't approved as submitted.</p>
         ${reasonHtml}
         <p>
           <a href="${dashboardUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Edit and resubmit</a>
@@ -686,6 +730,8 @@ export async function sendRefundRequestApprovedEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeItemTitle = escapeHtml(itemTitle);
 
   try {
     const { error } = await resend.emails.send({
@@ -694,8 +740,8 @@ export async function sendRefundRequestApprovedEmail(
       subject: `Your refund for ${itemTitle} has been approved`,
       text: `Hi ${displayName},\n\nYour refund request for "${itemTitle}" has been approved and processed. It should reflect on your original payment method within a few business days.\n\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>Your refund request for <strong>${itemTitle}</strong> has been approved and processed. It should reflect on your original payment method within a few business days.</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>Your refund request for <strong>${safeItemTitle}</strong> has been approved and processed. It should reflect on your original payment method within a few business days.</p>
         <p>Team ScholarAura</p>
       `,
     });
@@ -725,8 +771,10 @@ export async function sendRefundRequestRejectedEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeItemTitle = escapeHtml(itemTitle);
   const reasonLine = reason ? `\n\nReason: ${reason}` : "";
-  const reasonHtml = reason ? `<p>Reason: ${reason}</p>` : "";
+  const reasonHtml = reason ? `<p>Reason: ${escapeHtml(reason)}</p>` : "";
 
   try {
     const { error } = await resend.emails.send({
@@ -735,8 +783,8 @@ export async function sendRefundRequestRejectedEmail(
       subject: `Your refund request for ${itemTitle} was not approved`,
       text: `Hi ${displayName},\n\nYour refund request for "${itemTitle}" was reviewed and not approved.${reasonLine}\n\nIf you have questions, just reply to this email.\n\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>Your refund request for <strong>${itemTitle}</strong> was reviewed and not approved.</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>Your refund request for <strong>${safeItemTitle}</strong> was reviewed and not approved.</p>
         ${reasonHtml}
         <p>If you have questions, just reply to this email.</p>
         <p>Team ScholarAura</p>
@@ -771,6 +819,8 @@ export async function sendCompetitionResultEmail(
   }
 
   const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeCompetitionTitle = escapeHtml(competitionTitle);
   const rankLabel = RANK_LABEL[rank] ?? `#${rank}`;
 
   try {
@@ -780,8 +830,8 @@ export async function sendCompetitionResultEmail(
       subject: `Results are in for ${competitionTitle}`,
       text: `Hi ${displayName},\n\nResults for "${competitionTitle}" are in — you placed ${rankLabel}!\n\nView the results: ${competitionUrl}\n\nCongratulations!\nTeam ScholarAura`,
       html: `
-        <p>Hi ${displayName},</p>
-        <p>Results for <strong>${competitionTitle}</strong> are in — you placed <strong>${rankLabel}</strong>!</p>
+        <p>Hi ${safeDisplayName},</p>
+        <p>Results for <strong>${safeCompetitionTitle}</strong> are in — you placed <strong>${rankLabel}</strong>!</p>
         <p>
           <a href="${competitionUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View results</a>
         </p>
