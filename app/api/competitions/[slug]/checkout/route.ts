@@ -7,7 +7,7 @@ import { getRazorpayClient } from "@/lib/razorpay";
 import { computeCreditApplication, settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
 import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/competitionEnrollment";
-import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, CouponError } from "@/lib/coupon";
+import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, claimCouponRedemption, CouponError } from "@/lib/coupon";
 import { sendCompetitionEntryConfirmationEmail } from "@/lib/email";
 import {
   checkRateLimit,
@@ -176,9 +176,7 @@ export async function POST(
               creditApplied,
               description: `Competition: ${competition.title}`,
             });
-            if (couponId) {
-              await tx.coupon.update({ where: { id: couponId }, data: { redemptionCount: { increment: 1 } } });
-            }
+            await claimCouponRedemption(tx, couponId);
           }
 
           const settled = await tx.competitionEntry.findUniqueOrThrow({

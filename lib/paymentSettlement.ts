@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
+import { claimCouponRedemption } from "@/lib/coupon";
 import { withEnrollmentNumber } from "@/lib/enrollment";
 import { withEnrollmentNumber as withCompetitionEnrollmentNumber } from "@/lib/competitionEnrollment";
 import { sendEventRegistrationConfirmationEmail, sendCompetitionEntryConfirmationEmail } from "@/lib/email";
@@ -33,11 +34,6 @@ export class EventFullError extends Error {
   }
 }
 
-async function bumpCouponRedemption(tx: Parameters<typeof settleReferralCredit>[0], couponId: string | null) {
-  if (!couponId) return;
-  await tx.coupon.update({ where: { id: couponId }, data: { redemptionCount: { increment: 1 } } });
-}
-
 /**
  * Marks a course purchase SUCCESS and settles referral credit, guarded so
  * this can be called more than once for the same purchase (browser
@@ -64,7 +60,7 @@ export async function settleCoursePurchase(purchaseId: string, paymentId: string
         creditApplied: Number(purchase.creditApplied),
         description: `Course: ${course.title}`,
       });
-      await bumpCouponRedemption(tx, purchase.couponId);
+      await claimCouponRedemption(tx, purchase.couponId);
       // A purchased course no longer needs to be "saved for later".
       await tx.courseWishlist.deleteMany({
         where: { userId: purchase.userId, courseId: purchase.courseId },
@@ -116,7 +112,7 @@ export async function settleEventRegistration(registrationId: string, paymentId:
             creditApplied: Number(registration.creditApplied),
             description: `Event: ${event.title}`,
           });
-          await bumpCouponRedemption(tx, registration.couponId);
+          await claimCouponRedemption(tx, registration.couponId);
         }
 
         const result = await tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
@@ -168,7 +164,7 @@ export async function settleCompetitionEntry(entryId: string, paymentId: string)
             creditApplied: Number(entry.creditApplied),
             description: `Competition: ${competition.title}`,
           });
-          await bumpCouponRedemption(tx, entry.couponId);
+          await claimCouponRedemption(tx, entry.couponId);
         }
 
         const result = await tx.competitionEntry.findUniqueOrThrow({ where: { id: entry.id } });

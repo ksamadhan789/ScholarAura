@@ -1,4 +1,4 @@
-import { Coupon, CouponScope } from "@prisma/client";
+import { Coupon, CouponScope, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export class CouponError extends Error {}
@@ -47,4 +47,37 @@ export function computeDiscount(coupon: Pick<Coupon, "discountType" | "discountV
   const value = Number(coupon.discountValue);
   const raw = coupon.discountType === "PERCENT" ? (amount * value) / 100 : value;
   return Math.min(Math.round(raw * 100) / 100, amount);
+}
+
+/**
+ * Bumps redemptionCount at settlement time — the only point a purchase is
+ * known to have actually succeeded. findValidCoupon's maxRedemptions check
+ * at checkout only rules out a coupon that was already exhausted before
+ * this purchase started; it can't stop two checkouts that both passed that
+ * check from both reaching settlement afterward. This atomic updateMany is
+ * what actually caps redemptionCount at maxRedemptions when that race
+ * happens — the loser still keeps the discount it already charged (the
+ * payment is already captured by settlement time), but the count itself
+ * never overshoots the limit.
+ */
+export async function claimCouponRedemption(tx: Prisma.TransactionClient, couponId: string | null): Promise<void> {
+  if (!couponId) return;
+
+  const coupon = await tx.coupon.findUnique({ where: { id: couponId }, select: { maxRedemptions: true } });
+  if (!coupon) return;
+
+  if (coupon.maxRedemptions == null) {
+    await tx.coupon.update({ where: { id: couponId }, data: { redemptionCount: { increment: 1 } } });
+    return;
+  }
+
+  const claimed = await tx.coupon.updateMany({
+    where: { id: couponId, redemptionCount: { lt: coupon.maxRedemptions } },
+    data: { redemptionCount: { increment: 1 } },
+  });
+  if (claimed.count === 0) {
+    console.error(
+      `Coupon ${couponId} redemption count already at its limit — a concurrent checkout raced past it. The discount was still honored for this already-captured payment.`
+    );
+  }
 }
