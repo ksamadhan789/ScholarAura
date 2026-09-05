@@ -62,12 +62,27 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       url: "/dashboard/recruiter",
     }).catch((err) => console.error("Failed to create recruiter approval notification:", err));
   } else {
+    // A rejected recruiter's own PATCH route already refuses to publish/edit
+    // their jobs going forward, but that alone leaves anything they already
+    // published live and appliable indefinitely — candidates could keep
+    // applying to a company an admin just flagged as fraudulent. Unpublish
+    // everything they've posted; approvalStatus is left alone so a
+    // reinstated recruiter's jobs don't need to go back through review, just
+    // a manual re-publish via the same toggle.
+    const unpublished = await prisma.job.updateMany({
+      where: { recruiterProfileId: params.id, isPublished: true },
+      data: { isPublished: false },
+    });
     await logAdminAction({
       actorId: session.user.id,
       action: "RECRUITER_REJECTED",
       targetType: "RecruiterProfile",
       targetId: params.id,
-      metadata: { companyName: recruiter.companyName, rejectionReason: rejectionReason || null },
+      metadata: {
+        companyName: recruiter.companyName,
+        rejectionReason: rejectionReason || null,
+        unpublishedJobCount: unpublished.count,
+      },
     });
     await sendRecruiterAccountRejectedEmail(
       recruiter.user.email,
