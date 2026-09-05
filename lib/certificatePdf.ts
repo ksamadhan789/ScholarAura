@@ -5,6 +5,10 @@ import { generateCertificatePdf } from "@/lib/generateCertificatePdf";
 import { downloadFile } from "@/lib/google/driveService";
 import { prisma } from "@/lib/prisma";
 import { SITE_URL } from "@/lib/siteUrl";
+import { assertSafeExternalUrl } from "@/lib/ssrfGuard";
+
+const MAX_LOGO_BYTES = 5 * 1024 * 1024;
+const LOGO_FETCH_TIMEOUT_MS = 10_000;
 
 export type CertificateWithRelations = Certificate & {
   user: User;
@@ -13,11 +17,30 @@ export type CertificateWithRelations = Certificate & {
   competition: Competition | null;
 };
 
+// The URL comes from an instructor/admin-set course/event/competition field —
+// an untrusted, external input fetched on the platform's behalf, and this
+// path is reachable from the public, unauthenticated certificate PDF route.
+// Without the SSRF guard, this would be a way to make the server issue
+// requests to internal services or cloud metadata endpoints.
 async function fetchImageBytes(url: string): Promise<Uint8Array | null> {
   try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    return new Uint8Array(await res.arrayBuffer());
+    await assertSafeExternalUrl(url);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), LOGO_FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) return null;
+
+      const contentLength = Number(res.headers.get("content-length"));
+      if (contentLength && contentLength > MAX_LOGO_BYTES) return null;
+
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      if (bytes.byteLength > MAX_LOGO_BYTES) return null;
+      return bytes;
+    } finally {
+      clearTimeout(timeout);
+    }
   } catch {
     return null;
   }
