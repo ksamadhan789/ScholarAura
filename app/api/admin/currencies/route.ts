@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAdminAction } from "@/lib/auditLog";
 
 const upsertSchema = z.object({
   currencyCode: z
@@ -47,6 +48,14 @@ export async function POST(request: Request) {
     where: { currencyCode },
     update: { symbol, rateFromInr },
     create: { currencyCode, symbol, rateFromInr },
+  });
+
+  await logAdminAction({
+    actorId: session.user.id,
+    action: "CURRENCY_RATE_SET",
+    targetType: "ExchangeRate",
+    targetId: rate.id,
+    metadata: { currencyCode, symbol, rateFromInr: Number(rateFromInr) },
   });
 
   return NextResponse.json(rate, { status: 201 });

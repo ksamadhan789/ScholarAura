@@ -14,6 +14,13 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   RECRUITER_REJECTED: "Recruiter account rejected",
   JOB_APPROVED: "Job posting approved",
   JOB_REJECTED: "Job posting rejected",
+  COUPON_CREATED: "Coupon created",
+  COUPON_UPDATED: "Coupon updated",
+  COUPON_DELETED: "Coupon deleted",
+  CURRENCY_RATE_SET: "Currency rate set",
+  CURRENCY_RATE_DELETED: "Currency rate deleted",
+  AFFILIATE_RATE_SET: "Affiliate status/rate set",
+  INSTRUCTOR_COMMISSION_SET: "Instructor commission rate set",
 };
 
 function formatMetadata(metadata: unknown): string | null {

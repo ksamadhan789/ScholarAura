@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAdminAction } from "@/lib/auditLog";
 
 const updateSchema = z.object({
   instructorCommissionRatePercent: z.coerce.number().int().min(0).max(100).nullable(),
@@ -35,6 +36,14 @@ export async function PATCH(
     where: { id: params.userId },
     data: { instructorCommissionRatePercent: parsed.data.instructorCommissionRatePercent },
     select: { id: true, name: true, email: true, instructorCommissionRatePercent: true },
+  });
+
+  await logAdminAction({
+    actorId: session.user.id,
+    action: "INSTRUCTOR_COMMISSION_SET",
+    targetType: "User",
+    targetId: user.id,
+    metadata: { email: user.email, instructorCommissionRatePercent: user.instructorCommissionRatePercent },
   });
 
   return NextResponse.json(user);
