@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getRazorpayClient } from "@/lib/razorpay";
 import { computeCreditApplication, settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
-import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, CouponError } from "@/lib/coupon";
+import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, claimCouponRedemption, CouponError } from "@/lib/coupon";
 import {
   checkRateLimit,
   CHECKOUT_ATTEMPT_LIMIT,
@@ -161,9 +161,7 @@ export async function POST(
             creditApplied,
             description: `Course: ${course.title}`,
           });
-          if (couponId) {
-            await tx.coupon.update({ where: { id: couponId }, data: { redemptionCount: { increment: 1 } } });
-          }
+          await claimCouponRedemption(tx, couponId);
         }
       });
 
