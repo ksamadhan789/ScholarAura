@@ -5,6 +5,7 @@ import { generateResetToken, RESET_TOKEN_TTL_MS } from "@/lib/passwordReset";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { SITE_URL } from "@/lib/siteUrl";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import { checkRateLimit, FORGOT_PASSWORD_ATTEMPT_LIMIT, FORGOT_PASSWORD_WINDOW_MS } from "@/lib/rateLimit";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Enter a valid email"),
@@ -24,6 +25,19 @@ export async function POST(request: Request) {
   }
 
   const { email, turnstileToken } = parsed.data;
+
+  // Keyed by the target email, not the caller — bounds how many reset
+  // emails one victim's inbox can be bombed with, regardless of how many
+  // different IPs the requests come from. Still returns the same generic
+  // message so this can't be used to enumerate accounts.
+  const withinResetLimit = await checkRateLimit(
+    `forgot-password:${email.trim().toLowerCase()}`,
+    FORGOT_PASSWORD_ATTEMPT_LIMIT,
+    FORGOT_PASSWORD_WINDOW_MS
+  );
+  if (!withinResetLimit) {
+    return NextResponse.json({ message: GENERIC_MESSAGE });
+  }
 
   if (process.env.TURNSTILE_SECRET_KEY) {
     if (!turnstileToken) {

@@ -7,6 +7,7 @@ import { getRazorpayClient } from "@/lib/razorpay";
 import { computeCreditApplication, settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
 import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, claimCouponRedemption, CouponError } from "@/lib/coupon";
+import { hasCompletedOnboarding } from "@/lib/onboarding";
 import {
   checkRateLimit,
   CHECKOUT_ATTEMPT_LIMIT,
@@ -22,6 +23,12 @@ export async function POST(
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "You must be logged in" }, { status: 401 });
+  }
+  if (!(await hasCompletedOnboarding(session.user.id, session.user.role))) {
+    return NextResponse.json(
+      { error: "Please complete your profile before checking out.", code: "ONBOARDING_REQUIRED" },
+      { status: 403 }
+    );
   }
 
   const withinCheckoutLimit = await checkRateLimit(

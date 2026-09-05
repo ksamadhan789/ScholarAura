@@ -67,6 +67,10 @@ export function EntryButton({
       });
       if (!checkoutRes.ok) {
         const data = await checkoutRes.json().catch(() => null);
+        if (data?.code === "ONBOARDING_REQUIRED") {
+          router.push("/onboarding");
+          return;
+        }
         setError(data?.error ?? "Couldn't start checkout. Please try again.");
         return;
       }

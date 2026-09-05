@@ -11,6 +11,18 @@ export const CHECKOUT_WINDOW_MS = 5 * 60 * 1000;
 export const COUPON_ATTEMPT_LIMIT = 10;
 export const COUPON_WINDOW_MS = 10 * 60 * 1000;
 
+// Keyed by IP (no account exists yet to key by) — bounds automated mass
+// account creation. Turnstile already gates this when configured, but that's
+// optional; this applies regardless.
+export const REGISTER_ATTEMPT_LIMIT = 10;
+export const REGISTER_WINDOW_MS = 15 * 60 * 1000;
+
+// Keyed by the target email, not IP — the threat here is a victim's inbox
+// getting bombed with reset emails, which an attacker can do from any
+// number of IPs but only by naming the same victim address each time.
+export const FORGOT_PASSWORD_ATTEMPT_LIMIT = 5;
+export const FORGOT_PASSWORD_WINDOW_MS = 15 * 60 * 1000;
+
 /**
  * Fixed-window rate limiter backed by Postgres so it's correct across every
  * serverless instance (unlike an in-memory counter, which each cold start
