@@ -70,10 +70,18 @@ export default async function EventsPage({
 }) {
   const activeType = searchParams.type;
   const q = searchParams.q?.trim();
+  const now = new Date();
 
+  // This page is scoped to "Upcoming & ongoing" (its own title) — excluding
+  // already-ended events here, rather than just not rendering them, keeps
+  // `events` and the ongoing/upcoming split in sync. Without this, a search
+  // that only matched a past event left `events` non-empty while both
+  // buckets were empty, silently rendering a blank results area instead of
+  // the "no events" message.
   const events = await prisma.event.findMany({
     where: {
       isPublished: true,
+      endDate: { gte: now },
       ...(activeType ? { type: activeType as never } : {}),
       ...(q
         ? {
@@ -88,7 +96,6 @@ export default async function EventsPage({
     orderBy: { startDate: "asc" },
   });
 
-  const now = new Date();
   const ongoing = events.filter((e) => e.startDate <= now && e.endDate >= now);
   const upcoming = events.filter((e) => e.startDate > now);
 
