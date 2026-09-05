@@ -95,8 +95,17 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === "google" && user.email) {
+        // Google's raw OAuth profile (unlike the mapped one on `user`) carries
+        // email_verified — without checking it, someone who controls a
+        // Google account with an unverified alias matching an existing
+        // ScholarAura user's email could link that Google identity to the
+        // victim's account and sign in as them from then on. The One Tap
+        // sign-in path already enforces this same check.
+        const emailVerified = (profile as { email_verified?: boolean } | undefined)?.email_verified;
+        if (!emailVerified) return false;
+
         await findOrCreateGoogleUser({
           email: user.email,
           name: user.name ?? user.email,

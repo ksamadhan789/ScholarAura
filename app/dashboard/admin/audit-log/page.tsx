@@ -22,6 +22,8 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   AFFILIATE_RATE_SET: "Affiliate status/rate set",
   INSTRUCTOR_COMMISSION_SET: "Instructor commission rate set",
   JOB_APPLICATION_STATUS_CHANGED: "Job application status changed",
+  COLLEGE_APPROVED: "College approved",
+  COLLEGE_REJECTED: "College rejected",
 };
 
 function formatMetadata(metadata: unknown): string | null {
