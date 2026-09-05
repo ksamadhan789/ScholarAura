@@ -34,6 +34,25 @@ export async function POST(
     return NextResponse.json({ error: "Not enrolled in this course" }, { status: 403 });
   }
 
+  // A student can only mark a lecture complete after the lecture page has
+  // genuinely been open for a while — startedAt is set once, server-side, by
+  // the /start ping and never moves, so this can't be satisfied by simply
+  // resubmitting. Without it, "mark complete" alone let a script claim every
+  // video in a course (and the certificate it unlocks) in seconds.
+  const existingProgress = await prisma.courseProgress.findUnique({
+    where: {
+      userId_courseVideoId: { userId: session.user.id, courseVideoId: video.id },
+    },
+  });
+  const minWatchMs = (video.durationSeconds * 1000) / 2;
+  const elapsedMs = existingProgress?.startedAt ? Date.now() - existingProgress.startedAt.getTime() : 0;
+  if (elapsedMs < minWatchMs) {
+    return NextResponse.json(
+      { error: "Please spend more time on this lecture before marking it complete." },
+      { status: 400 }
+    );
+  }
+
   const progress = await prisma.courseProgress.upsert({
     where: {
       userId_courseVideoId: { userId: session.user.id, courseVideoId: video.id },

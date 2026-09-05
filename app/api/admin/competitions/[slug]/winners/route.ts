@@ -40,6 +40,21 @@ export async function POST(request: Request, { params }: { params: { slug: strin
     return NextResponse.json({ error: "The same entry can't hold two ranks" }, { status: 400 });
   }
 
+  // Every selected entry must actually belong to this competition — without
+  // this, an entryId typo or copy-paste from another competition's export
+  // would silently rank (and email a "you won" notice to) an unrelated entry.
+  if (entryIds.length > 0) {
+    const ownedCount = await prisma.competitionEntry.count({
+      where: { id: { in: entryIds }, competitionId: competition.id },
+    });
+    if (ownedCount !== entryIds.length) {
+      return NextResponse.json(
+        { error: "One or more selected entries don't belong to this competition" },
+        { status: 400 }
+      );
+    }
+  }
+
   // Snapshot who already held a rank so the notification below only fires
   // for entries newly awarded one by this save, not everyone re-selected.
   const previouslyRanked = new Set(

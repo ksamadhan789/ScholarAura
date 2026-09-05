@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getSignedEmbedUrl } from "@/lib/bunny";
 import { MarkCompleteButton } from "./MarkCompleteButton";
+import { LectureStartPing } from "./LectureStartPing";
 
 export default async function LecturePage({
   params,
@@ -71,11 +72,14 @@ export default async function LecturePage({
 
       <div className="mt-6">
         {session ? (
-          <MarkCompleteButton
-            slug={params.slug}
-            videoId={video.id}
-            initiallyCompleted={Boolean(progress?.completedAt)}
-          />
+          <>
+            <LectureStartPing slug={params.slug} videoId={video.id} />
+            <MarkCompleteButton
+              slug={params.slug}
+              videoId={video.id}
+              initiallyCompleted={Boolean(progress?.completedAt)}
+            />
+          </>
         ) : (
           <div className="rounded border border-gray-200 dark:border-slate-700 p-4">
             <p className="text-sm text-gray-600 dark:text-slate-400">
