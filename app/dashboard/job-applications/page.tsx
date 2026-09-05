@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { JOB_APPLICATION_STATUS_LABELS, formatJobDate } from "@/lib/jobLabels";
 import { Badge } from "@/components/Badge";
+import { WithdrawApplicationButton } from "@/components/WithdrawApplicationButton";
 
 const STATUS_BADGE_VARIANT: Record<string, "success" | "warning" | "neutral" | "brand"> = {
   APPLIED: "brand",
@@ -37,21 +38,23 @@ export default async function MyJobApplicationsPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {applications.map((app) => (
-            <Link
+            <div
               key={app.id}
-              href={`/jobs/${app.job.slug}`}
-              className="flex items-center justify-between rounded border border-gray-200 dark:border-slate-700 p-4 hover:border-brand-300 dark:hover:border-brand-700"
+              className="flex items-center justify-between gap-3 rounded border border-gray-200 dark:border-slate-700 p-4 hover:border-brand-300 dark:hover:border-brand-700"
             >
-              <div>
+              <Link href={`/jobs/${app.job.slug}`} className="min-w-0 flex-1">
                 <p className="font-medium">{app.job.title}</p>
                 <p className="text-sm text-gray-500 dark:text-slate-400">
                   {app.job.companyName} · Applied {formatJobDate(app.appliedAt)}
                 </p>
+              </Link>
+              <div className="flex flex-col items-end gap-2">
+                <Badge variant={STATUS_BADGE_VARIANT[app.status]}>
+                  {JOB_APPLICATION_STATUS_LABELS[app.status]}
+                </Badge>
+                {app.status !== "HIRED" && <WithdrawApplicationButton jobSlug={app.job.slug} />}
               </div>
-              <Badge variant={STATUS_BADGE_VARIANT[app.status]}>
-                {JOB_APPLICATION_STATUS_LABELS[app.status]}
-              </Badge>
-            </Link>
+            </div>
           ))}
         </div>
       )}
