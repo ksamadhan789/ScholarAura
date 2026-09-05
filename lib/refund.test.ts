@@ -168,6 +168,33 @@ describe("refundCoursePurchase", () => {
     );
   });
 
+  it("claws back the reward based on cash paid, not the sticker price, when credit covered part of the purchase", async () => {
+    const purchase = {
+      id: "p1",
+      userId: "buyer-1",
+      status: "SUCCESS",
+      amount: 1000 as unknown as CoursePurchase["amount"],
+      creditApplied: 400 as unknown as CoursePurchase["creditApplied"],
+      razorpayPaymentId: null,
+      course: { title: "Test Course" },
+    };
+    prismaMock.coursePurchase.findUnique.mockResolvedValue(purchase as never);
+    prismaMock.coursePurchase.updateMany.mockResolvedValue({ count: 1 });
+    prismaMock.coursePurchase.findUniqueOrThrow.mockResolvedValue({ ...purchase, status: "REFUNDED" } as never);
+    prismaMock.user.findUnique
+      .mockResolvedValueOnce(makeUser({ id: "buyer-1", referredById: "referrer-1" }))
+      .mockResolvedValueOnce(makeUser({ id: "referrer-1" }));
+    prismaMock.user.updateMany.mockResolvedValue({ count: 1 });
+
+    await refundCoursePurchase("p1");
+
+    // 10% of the 600 actually paid in cash (1000 - 400 credit), not 10% of 1000.
+    expect(prismaMock.user.updateMany).toHaveBeenCalledWith({
+      where: { id: "referrer-1", creditBalance: { gte: 60 } },
+      data: { creditBalance: { decrement: 60 } },
+    });
+  });
+
   it("skips the clawback without throwing when the referrer already spent the reward", async () => {
     const purchase = {
       id: "p1",

@@ -164,6 +164,47 @@ describe("settleReferralCredit", () => {
     );
   });
 
+  it("bases the reward on cash actually paid, not the sticker price, when credit covers part of it", async () => {
+    const buyer = makeUser({ id: "buyer-1", referredById: "referrer-1", creditBalance: 400 as unknown as User["creditBalance"] });
+    const referrer = makeUser({ id: "referrer-1", isAffiliate: true, affiliateRatePercent: 10 });
+
+    prismaMock.user.findUnique.mockResolvedValueOnce(buyer).mockResolvedValueOnce(referrer);
+    prismaMock.user.updateMany.mockResolvedValue({ count: 1 });
+
+    await settleReferralCredit(prismaMock, {
+      buyerId: "buyer-1",
+      originalAmount: 1000,
+      creditApplied: 400,
+      description: "Course: Test",
+    });
+
+    // 10% of the 600 actually paid in cash, not 10% of the 1000 sticker price.
+    expect(prismaMock.user.update).toHaveBeenCalledWith({
+      where: { id: "referrer-1" },
+      data: { creditBalance: { increment: 60 } },
+    });
+  });
+
+  it("pays no reward when credit fully covers the purchase — no cash changed hands", async () => {
+    const buyer = makeUser({ id: "buyer-1", referredById: "referrer-1", creditBalance: 1000 as unknown as User["creditBalance"] });
+    const referrer = makeUser({ id: "referrer-1", isAffiliate: true, affiliateRatePercent: 10 });
+
+    prismaMock.user.findUnique.mockResolvedValueOnce(buyer).mockResolvedValueOnce(referrer);
+    prismaMock.user.updateMany.mockResolvedValue({ count: 1 });
+
+    await settleReferralCredit(prismaMock, {
+      buyerId: "buyer-1",
+      originalAmount: 1000,
+      creditApplied: 1000,
+      description: "Course: Test",
+    });
+
+    expect(prismaMock.user.update).not.toHaveBeenCalled();
+    expect(prismaMock.creditTransaction.create).not.toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ userId: "referrer-1" }) })
+    );
+  });
+
   it("pays no reward when the buyer has no referrer", async () => {
     prismaMock.user.findUnique.mockResolvedValueOnce(makeUser({ id: "buyer-1", referredById: null }));
 
