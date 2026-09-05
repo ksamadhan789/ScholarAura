@@ -21,6 +21,7 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   CURRENCY_RATE_DELETED: "Currency rate deleted",
   AFFILIATE_RATE_SET: "Affiliate status/rate set",
   INSTRUCTOR_COMMISSION_SET: "Instructor commission rate set",
+  JOB_APPLICATION_STATUS_CHANGED: "Job application status changed",
 };
 
 function formatMetadata(metadata: unknown): string | null {

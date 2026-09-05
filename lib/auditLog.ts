@@ -15,7 +15,8 @@ export type AuditAction =
   | "CURRENCY_RATE_SET"
   | "CURRENCY_RATE_DELETED"
   | "AFFILIATE_RATE_SET"
-  | "INSTRUCTOR_COMMISSION_SET";
+  | "INSTRUCTOR_COMMISSION_SET"
+  | "JOB_APPLICATION_STATUS_CHANGED";
 
 export type AuditTargetType =
   | "CoursePurchase"
@@ -26,7 +27,8 @@ export type AuditTargetType =
   | "Job"
   | "Coupon"
   | "ExchangeRate"
-  | "User";
+  | "User"
+  | "JobApplication";
 
 /**
  * Best-effort, like the email/notification side effects it sits alongside —
