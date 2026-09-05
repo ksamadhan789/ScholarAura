@@ -60,6 +60,16 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
   }
 
+  const recruiterProfile = await prisma.recruiterProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+  if (!recruiterProfile || recruiterProfile.status !== "APPROVED") {
+    return NextResponse.json(
+      { error: "Your recruiter account must be approved to manage jobs" },
+      { status: 403 }
+    );
+  }
+
   const { isPublished, ...content } = parsed.data;
   const isContentEdit = Object.values(content).some((v) => v !== undefined);
 

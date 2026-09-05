@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prismaMock } from "../test/prismaMock";
 import {
   refundCoursePurchase,
@@ -15,6 +15,13 @@ vi.mock("@/lib/razorpay", () => ({
 vi.mock("@/lib/waitlist", () => ({
   notifyNextWaitlisted: vi.fn().mockResolvedValue(undefined),
 }));
+
+// prismaMock is reset per-test by test/prismaMock.ts, but mocks from vi.mock()
+// above (createRefund, notifyNextWaitlisted) keep their call history across
+// tests unless cleared here.
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 function makeUser(overrides: Partial<User> = {}): User {
   return {
@@ -81,6 +88,7 @@ describe("refundCoursePurchase", () => {
       course: { title: "Test Course" },
     };
     prismaMock.coursePurchase.findUnique.mockResolvedValue(purchase as never);
+    prismaMock.coursePurchase.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.coursePurchase.findUniqueOrThrow.mockResolvedValue({
       ...purchase,
       status: "REFUNDED",
@@ -89,8 +97,8 @@ describe("refundCoursePurchase", () => {
 
     await refundCoursePurchase("p1");
 
-    expect(prismaMock.coursePurchase.update).toHaveBeenCalledWith({
-      where: { id: "p1" },
+    expect(prismaMock.coursePurchase.updateMany).toHaveBeenCalledWith({
+      where: { id: "p1", status: "SUCCESS" },
       data: { status: "REFUNDED" },
     });
     expect(prismaMock.user.update).toHaveBeenCalledWith({
@@ -114,6 +122,7 @@ describe("refundCoursePurchase", () => {
       course: { title: "Test Course" },
     };
     prismaMock.coursePurchase.findUnique.mockResolvedValue(purchase as never);
+    prismaMock.coursePurchase.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.coursePurchase.findUniqueOrThrow.mockResolvedValue({
       ...purchase,
       status: "REFUNDED",
@@ -139,6 +148,7 @@ describe("refundCoursePurchase", () => {
       course: { title: "Test Course" },
     };
     prismaMock.coursePurchase.findUnique.mockResolvedValue(purchase as never);
+    prismaMock.coursePurchase.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.coursePurchase.findUniqueOrThrow.mockResolvedValue({ ...purchase, status: "REFUNDED" } as never);
     prismaMock.user.findUnique
       .mockResolvedValueOnce(makeUser({ id: "buyer-1", referredById: "referrer-1" }))
@@ -169,6 +179,7 @@ describe("refundCoursePurchase", () => {
       course: { title: "Test Course" },
     };
     prismaMock.coursePurchase.findUnique.mockResolvedValue(purchase as never);
+    prismaMock.coursePurchase.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.coursePurchase.findUniqueOrThrow.mockResolvedValue({ ...purchase, status: "REFUNDED" } as never);
     prismaMock.user.findUnique
       .mockResolvedValueOnce(makeUser({ id: "buyer-1", referredById: "referrer-1" }))
@@ -180,6 +191,50 @@ describe("refundCoursePurchase", () => {
     expect(prismaMock.creditTransaction.create).not.toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ type: "REDEEMED" }) })
     );
+  });
+
+  it("throws AlreadyRefundedError instead of double-refunding when another caller wins the race", async () => {
+    const purchase = {
+      id: "p1",
+      userId: "buyer-1",
+      status: "SUCCESS",
+      amount: 1000 as unknown as CoursePurchase["amount"],
+      creditApplied: 0 as unknown as CoursePurchase["creditApplied"],
+      razorpayPaymentId: "pay_1",
+      course: { title: "Test Course" },
+    };
+    prismaMock.coursePurchase.findUnique.mockResolvedValue(purchase as never);
+    // Both callers read status SUCCESS, but only one's atomic claim actually flips the row.
+    prismaMock.coursePurchase.updateMany.mockResolvedValue({ count: 0 });
+
+    const { createRefund } = await import("@/lib/razorpay");
+
+    await expect(refundCoursePurchase("p1")).rejects.toThrow(AlreadyRefundedError);
+    expect(createRefund).not.toHaveBeenCalled();
+  });
+
+  it("releases the claim so the purchase can be retried when the Razorpay refund fails", async () => {
+    const purchase = {
+      id: "p1",
+      userId: "buyer-1",
+      status: "SUCCESS",
+      amount: 1000 as unknown as CoursePurchase["amount"],
+      creditApplied: 0 as unknown as CoursePurchase["creditApplied"],
+      razorpayPaymentId: "pay_1",
+      course: { title: "Test Course" },
+    };
+    prismaMock.coursePurchase.findUnique.mockResolvedValue(purchase as never);
+    prismaMock.coursePurchase.updateMany.mockResolvedValue({ count: 1 });
+
+    const { createRefund } = await import("@/lib/razorpay");
+    vi.mocked(createRefund).mockRejectedValueOnce(new Error("razorpay down"));
+
+    await expect(refundCoursePurchase("p1")).rejects.toThrow("razorpay down");
+
+    expect(prismaMock.coursePurchase.updateMany).toHaveBeenCalledWith({
+      where: { id: "p1", status: "REFUNDED" },
+      data: { status: "SUCCESS" },
+    });
   });
 });
 
@@ -216,6 +271,7 @@ describe("refundEventRegistration", () => {
       event: { title: "Test Event" },
     };
     prismaMock.eventRegistration.findUnique.mockResolvedValue(registration as never);
+    prismaMock.eventRegistration.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.eventRegistration.findUniqueOrThrow.mockResolvedValue({
       ...registration,
       status: "REFUNDED",
@@ -229,8 +285,8 @@ describe("refundEventRegistration", () => {
       where: { id: "event-1", seatsFilled: { gt: 0 } },
       data: { seatsFilled: { decrement: 1 } },
     });
-    expect(prismaMock.eventRegistration.update).toHaveBeenCalledWith({
-      where: { id: "r1" },
+    expect(prismaMock.eventRegistration.updateMany).toHaveBeenCalledWith({
+      where: { id: "r1", status: "CONFIRMED" },
       data: { status: "REFUNDED" },
     });
     expect(prismaMock.certificate.updateMany).toHaveBeenCalledWith({
@@ -263,6 +319,7 @@ describe("refundCompetitionEntry", () => {
       competition: { title: "Test Competition" },
     };
     prismaMock.competitionEntry.findUnique.mockResolvedValue(entry as never);
+    prismaMock.competitionEntry.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.competitionEntry.findUniqueOrThrow.mockResolvedValue({
       ...entry,
       status: "REFUNDED",
@@ -271,8 +328,8 @@ describe("refundCompetitionEntry", () => {
 
     await refundCompetitionEntry("e1");
 
-    expect(prismaMock.competitionEntry.update).toHaveBeenCalledWith({
-      where: { id: "e1" },
+    expect(prismaMock.competitionEntry.updateMany).toHaveBeenCalledWith({
+      where: { id: "e1", status: "SUCCESS" },
       data: { status: "REFUNDED" },
     });
     expect(prismaMock.certificate.updateMany).toHaveBeenCalledWith({
