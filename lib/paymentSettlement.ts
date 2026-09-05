@@ -4,6 +4,7 @@ import { claimCouponRedemption } from "@/lib/coupon";
 import { withEnrollmentNumber } from "@/lib/enrollment";
 import { withEnrollmentNumber as withCompetitionEnrollmentNumber } from "@/lib/competitionEnrollment";
 import { sendEventRegistrationConfirmationEmail, sendCompetitionEntryConfirmationEmail } from "@/lib/email";
+import { leaveEventWaitlist } from "@/lib/waitlist";
 
 /**
  * Settles referral credit but never lets an already-captured payment fail to
@@ -121,6 +122,11 @@ export async function settleEventRegistration(registrationId: string, paymentId:
   );
 
   if (isFreshSettlement) {
+    // Same cleanup as the free-registration path — a confirmed seat means
+    // this user is no longer "waiting" for one.
+    await leaveEventWaitlist(registration.userId, event.id).catch((err) =>
+      console.error(`Failed to clear waitlist entry for user ${registration.userId} on event ${event.id}:`, err)
+    );
     await sendEventRegistrationConfirmationEmail(
       registration.user.email,
       registration.user.name,

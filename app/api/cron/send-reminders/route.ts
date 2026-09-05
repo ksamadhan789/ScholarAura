@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEventReminderEmail, sendCompetitionReminderEmail } from "@/lib/email";
+import { secretsMatch } from "@/lib/timingSafeEqual";
 
 // Runs once a day (see vercel.json). A generous look-ahead window plus the
 // reminderSentAt guard means a registration gets exactly one reminder even
@@ -9,8 +10,9 @@ const LOOKAHEAD_HOURS = 48;
 
 function isAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  return request.headers.get("authorization") === `Bearer ${secret}`;
+  const provided = request.headers.get("authorization");
+  if (!secret || !provided) return false;
+  return secretsMatch(provided, `Bearer ${secret}`);
 }
 
 export async function GET(request: Request) {
