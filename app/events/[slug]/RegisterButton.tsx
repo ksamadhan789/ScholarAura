@@ -45,6 +45,14 @@ export function RegisterButton({
     return true;
   }
 
+  // Returns true if this response was handled (redirecting to onboarding),
+  // so the caller should stop rather than also setting an error message.
+  function redirectIfOnboardingRequired(data: { code?: string } | null): boolean {
+    if (data?.code !== "ONBOARDING_REQUIRED") return false;
+    router.push("/onboarding");
+    return true;
+  }
+
   async function handleFreeRegister() {
     const res = await fetch(`/api/events/${slug}/register`, {
       method: "POST",
@@ -53,6 +61,7 @@ export function RegisterButton({
     });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
+      if (redirectIfOnboardingRequired(data)) return;
       setError(data?.error ?? "Couldn't register. Please try again.");
       return;
     }
@@ -72,6 +81,7 @@ export function RegisterButton({
     });
     if (!checkoutRes.ok) {
       const data = await checkoutRes.json().catch(() => null);
+      if (redirectIfOnboardingRequired(data)) return;
       setError(data?.error ?? "Couldn't start checkout. Please try again.");
       return;
     }

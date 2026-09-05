@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { generateReferralCode } from "@/lib/referral";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import { checkRateLimit, REGISTER_ATTEMPT_LIMIT, REGISTER_WINDOW_MS } from "@/lib/rateLimit";
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -15,6 +16,19 @@ const registerSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const remoteIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const withinRegisterLimit = await checkRateLimit(
+      `register:${remoteIp ?? "unknown"}`,
+      REGISTER_ATTEMPT_LIMIT,
+      REGISTER_WINDOW_MS
+    );
+    if (!withinRegisterLimit) {
+      return NextResponse.json(
+        { error: "Too many signup attempts. Please wait a while and try again." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
 
@@ -34,7 +48,6 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-      const remoteIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
       const verified = await verifyTurnstileToken(turnstileToken, remoteIp);
       if (!verified) {
         return NextResponse.json(

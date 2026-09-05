@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
 import { sendEventRegistrationConfirmationEmail } from "@/lib/email";
 import { notifyNextWaitlisted } from "@/lib/waitlist";
+import { hasCompletedOnboarding } from "@/lib/onboarding";
 
 export async function POST(
   request: Request,
@@ -13,6 +14,12 @@ export async function POST(
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "You must be logged in" }, { status: 401 });
+  }
+  if (!(await hasCompletedOnboarding(session.user.id, session.user.role))) {
+    return NextResponse.json(
+      { error: "Please complete your profile before registering.", code: "ONBOARDING_REQUIRED" },
+      { status: 403 }
+    );
   }
 
   const body = await request.json().catch(() => ({}));

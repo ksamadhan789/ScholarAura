@@ -28,10 +28,19 @@ export function EnrollButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Returns true if this response was handled (redirecting to onboarding),
+  // so the caller should stop rather than also setting an error message.
+  function redirectIfOnboardingRequired(data: { code?: string } | null): boolean {
+    if (data?.code !== "ONBOARDING_REQUIRED") return false;
+    router.push("/onboarding");
+    return true;
+  }
+
   async function handleFreeEnroll() {
     const res = await fetch(`/api/courses/${slug}/enroll`, { method: "POST" });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
+      if (redirectIfOnboardingRequired(data)) return;
       setError(data?.error ?? "Couldn't enroll. Please try again.");
       return;
     }
@@ -47,6 +56,7 @@ export function EnrollButton({
     });
     if (!checkoutRes.ok) {
       const data = await checkoutRes.json().catch(() => null);
+      if (redirectIfOnboardingRequired(data)) return;
       setError(data?.error ?? "Couldn't start checkout. Please try again.");
       return;
     }
