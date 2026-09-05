@@ -14,7 +14,7 @@ const createCouponSchema = z
       .max(30)
       .transform((v) => v.toUpperCase()),
     discountType: z.enum(["PERCENT", "FIXED"]),
-    discountValue: z.coerce.number().positive("Discount must be greater than 0"),
+    discountValue: z.coerce.number().finite().positive("Discount must be greater than 0"),
     appliesTo: z.enum(["ALL", "COURSE", "EVENT", "COMPETITION"]).default("ALL"),
     maxRedemptions: z.preprocess(
       (val) => (val === "" || val == null ? null : val),
