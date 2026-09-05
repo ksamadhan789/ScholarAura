@@ -10,6 +10,7 @@ import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
 import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, claimCouponRedemption, CouponError } from "@/lib/coupon";
 import { sendEventRegistrationConfirmationEmail } from "@/lib/email";
 import { hasCompletedOnboarding } from "@/lib/onboarding";
+import { registrationWindowError } from "@/lib/registrationWindow";
 import {
   checkRateLimit,
   CHECKOUT_ATTEMPT_LIMIT,
@@ -54,6 +55,14 @@ export async function POST(
       { error: "This event is free — use the register endpoint instead" },
       { status: 400 }
     );
+  }
+  const windowError = registrationWindowError("event", {
+    registrationStartDate: event.registrationStartDate,
+    registrationDeadline: event.registrationDeadline,
+    endDate: event.endDate,
+  });
+  if (windowError) {
+    return NextResponse.json({ error: windowError }, { status: 400 });
   }
 
   const existing = await prisma.eventRegistration.findUnique({

@@ -10,6 +10,7 @@ import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/competitionEnrol
 import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, claimCouponRedemption, CouponError } from "@/lib/coupon";
 import { sendCompetitionEntryConfirmationEmail } from "@/lib/email";
 import { hasCompletedOnboarding } from "@/lib/onboarding";
+import { registrationWindowError } from "@/lib/registrationWindow";
 import {
   checkRateLimit,
   CHECKOUT_ATTEMPT_LIMIT,
@@ -54,6 +55,14 @@ export async function POST(
       { error: "Entries are closed for this competition" },
       { status: 400 }
     );
+  }
+  const windowError = registrationWindowError("competition", {
+    registrationStartDate: competition.registrationStartDate,
+    registrationDeadline: competition.registrationDeadline,
+    endDate: competition.endDate,
+  });
+  if (windowError) {
+    return NextResponse.json({ error: windowError }, { status: 400 });
   }
 
   const existing = await prisma.competitionEntry.findUnique({
