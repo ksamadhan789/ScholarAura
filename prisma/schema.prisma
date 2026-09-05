@@ -295,6 +295,11 @@ model CourseProgress {
   courseVideoId  String
   courseVideo    CourseVideo @relation(fields: [courseVideoId], references: [id])
   watchedPercent Int         @default(0)
+  // Set once, when the lecture page first pings the start endpoint — never
+  // touched again, so it's a stable anchor for "how long has this student
+  // actually had the lecture open" rather than something a completion
+  // request can move by resubmitting.
+  startedAt      DateTime?
   completedAt    DateTime?
   updatedAt      DateTime    @updatedAt
 
