@@ -12,7 +12,7 @@ const upsertSchema = z.object({
     .toUpperCase()
     .regex(/^[A-Z]{3}$/, "Use a 3-letter currency code, e.g. USD"),
   symbol: z.string().min(1).max(5),
-  rateFromInr: z.coerce.number().positive("Rate must be greater than 0"),
+  rateFromInr: z.coerce.number().finite().positive("Rate must be greater than 0"),
 });
 
 export async function GET() {
