@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAdminAction } from "@/lib/auditLog";
 
 const updateCouponSchema = z.object({
   isActive: z.boolean().optional(),
@@ -24,6 +25,13 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 
   const coupon = await prisma.coupon.update({ where: { id: params.id }, data: parsed.data });
+  await logAdminAction({
+    actorId: session.user.id,
+    action: "COUPON_UPDATED",
+    targetType: "Coupon",
+    targetId: coupon.id,
+    metadata: { code: coupon.code, isActive: coupon.isActive },
+  });
   return NextResponse.json(coupon);
 }
 
@@ -48,5 +56,12 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
   }
 
   await prisma.coupon.delete({ where: { id: params.id } });
+  await logAdminAction({
+    actorId: session.user.id,
+    action: "COUPON_DELETED",
+    targetType: "Coupon",
+    targetId: params.id,
+    metadata: { code: coupon.code },
+  });
   return NextResponse.json({ ok: true });
 }

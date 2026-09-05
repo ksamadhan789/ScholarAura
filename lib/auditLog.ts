@@ -8,7 +8,14 @@ export type AuditAction =
   | "RECRUITER_APPROVED"
   | "RECRUITER_REJECTED"
   | "JOB_APPROVED"
-  | "JOB_REJECTED";
+  | "JOB_REJECTED"
+  | "COUPON_CREATED"
+  | "COUPON_UPDATED"
+  | "COUPON_DELETED"
+  | "CURRENCY_RATE_SET"
+  | "CURRENCY_RATE_DELETED"
+  | "AFFILIATE_RATE_SET"
+  | "INSTRUCTOR_COMMISSION_SET";
 
 export type AuditTargetType =
   | "CoursePurchase"
@@ -16,7 +23,10 @@ export type AuditTargetType =
   | "CompetitionEntry"
   | "RefundRequest"
   | "RecruiterProfile"
-  | "Job";
+  | "Job"
+  | "Coupon"
+  | "ExchangeRate"
+  | "User";
 
 /**
  * Best-effort, like the email/notification side effects it sits alongside —

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAdminAction } from "@/lib/auditLog";
 
 const createCouponSchema = z
   .object({
@@ -61,5 +62,18 @@ export async function POST(request: Request) {
   }
 
   const coupon = await prisma.coupon.create({ data: parsed.data });
+  await logAdminAction({
+    actorId: session.user.id,
+    action: "COUPON_CREATED",
+    targetType: "Coupon",
+    targetId: coupon.id,
+    metadata: {
+      code: coupon.code,
+      discountType: coupon.discountType,
+      discountValue: Number(coupon.discountValue),
+      appliesTo: coupon.appliesTo,
+      maxRedemptions: coupon.maxRedemptions,
+    },
+  });
   return NextResponse.json(coupon);
 }

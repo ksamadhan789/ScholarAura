@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAdminAction } from "@/lib/auditLog";
 
 const updateSchema = z.object({
   isAffiliate: z.boolean(),
@@ -40,6 +41,14 @@ export async function PATCH(
       isAffiliate: true,
       affiliateRatePercent: true,
     },
+  });
+
+  await logAdminAction({
+    actorId: session.user.id,
+    action: "AFFILIATE_RATE_SET",
+    targetType: "User",
+    targetId: user.id,
+    metadata: { email: user.email, isAffiliate: user.isAffiliate, affiliateRatePercent: user.affiliateRatePercent },
   });
 
   return NextResponse.json(user);
