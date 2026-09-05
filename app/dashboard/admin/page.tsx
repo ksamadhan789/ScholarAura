@@ -188,6 +188,12 @@ export default async function AdminHomePage() {
         >
           Recommended courses
         </Link>
+        <Link
+          href="/dashboard/admin/audit-log"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          Audit log
+        </Link>
       </div>
     </main>
   );

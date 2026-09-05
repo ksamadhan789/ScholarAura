@@ -11,6 +11,7 @@ import {
 } from "@/lib/refundRequest";
 import { sendRefundRequestApprovedEmail, sendRefundRequestRejectedEmail } from "@/lib/email";
 import { createNotification } from "@/lib/notify";
+import { logAdminAction } from "@/lib/auditLog";
 
 const decisionSchema = z.object({
   decision: z.enum(["APPROVE", "REJECT"]),
@@ -35,6 +36,13 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   try {
     if (parsed.data.decision === "APPROVE") {
       const info = await approveRefundRequest(params.id);
+      await logAdminAction({
+        actorId: session.user.id,
+        action: "REFUND_REQUEST_APPROVED",
+        targetType: "RefundRequest",
+        targetId: params.id,
+        metadata: { itemTitle: info.itemTitle },
+      });
       await sendRefundRequestApprovedEmail(info.userEmail, info.userName, info.itemTitle).catch((err) =>
         console.error("Failed to send refund approved email:", err)
       );
@@ -47,6 +55,13 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     } else {
       const reason = parsed.data.rejectionReason || null;
       const info = await rejectRefundRequest(params.id, reason);
+      await logAdminAction({
+        actorId: session.user.id,
+        action: "REFUND_REQUEST_REJECTED",
+        targetType: "RefundRequest",
+        targetId: params.id,
+        metadata: { itemTitle: info.itemTitle, rejectionReason: reason },
+      });
       await sendRefundRequestRejectedEmail(info.userEmail, info.userName, info.itemTitle, reason).catch(
         (err) => console.error("Failed to send refund rejected email:", err)
       );
