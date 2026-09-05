@@ -67,7 +67,10 @@ async function reverseCreditAndReferral(
   if (!referrer) return;
 
   const ratePercent = getReferralRatePercent(referrer);
-  const reward = Math.round(originalAmount * (ratePercent / 100) * 100) / 100;
+  // Must mirror settleReferralCredit's cash-paid basis exactly, or a refund
+  // would claw back more (or less) than the referrer was actually paid.
+  const cashPaid = Math.max(0, originalAmount - creditApplied);
+  const reward = Math.round(cashPaid * (ratePercent / 100) * 100) / 100;
   if (reward <= 0) return;
 
   const clawedBack = await tx.user.updateMany({

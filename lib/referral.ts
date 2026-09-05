@@ -54,8 +54,14 @@ type TxClient = Omit<
 
 /**
  * Deducts any credit the buyer applied to this purchase, and pays a referral
- * reward to whoever referred them, based on the pre-discount price. Must run
- * inside the same transaction that marks the purchase successful.
+ * reward to whoever referred them, based on the cash actually collected
+ * (originalAmount minus any credit applied) rather than the sticker price.
+ * Rewarding the full price regardless of credit would let credit be paid
+ * out again as a referral reward with no new cash behind it — B's real
+ * purchase earns A credit, A spends that credit to cover a purchase, and if
+ * A was referred by C, C would earn a full-price reward on a purchase that
+ * brought in no revenue at all. Must run inside the same transaction that
+ * marks the purchase successful.
  */
 export async function settleReferralCredit(
   tx: TxClient,
@@ -96,7 +102,8 @@ export async function settleReferralCredit(
   if (!referrer) return;
 
   const ratePercent = getReferralRatePercent(referrer);
-  const reward = Math.round(originalAmount * (ratePercent / 100) * 100) / 100;
+  const cashPaid = Math.max(0, originalAmount - creditApplied);
+  const reward = Math.round(cashPaid * (ratePercent / 100) * 100) / 100;
   if (reward <= 0) return;
 
   await tx.user.update({
