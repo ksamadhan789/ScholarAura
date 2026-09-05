@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendAdminDigestEmail } from "@/lib/email";
+import { secretsMatch } from "@/lib/timingSafeEqual";
 
 function isAuthorized(request: Request): boolean {
   const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  return request.headers.get("authorization") === `Bearer ${secret}`;
+  const provided = request.headers.get("authorization");
+  if (!secret || !provided) return false;
+  return secretsMatch(provided, `Bearer ${secret}`);
 }
 
 function netAmount(amount: unknown, creditApplied: unknown): number {

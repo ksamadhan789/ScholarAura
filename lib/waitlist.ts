@@ -39,24 +39,28 @@ export async function leaveEventWaitlist(userId: string, eventId: string) {
 }
 
 /**
- * Called after a seat frees up (currently only from a confirmed
- * registration's refund). Notifies the oldest not-yet-notified waitlist
- * entry that a seat is open — first-come-first-served, no hold placed on
- * the seat, so it's still possible for someone else to grab it first.
+ * Called after a seat frees up (a cancellation or refund). Notifies the
+ * oldest waitlist entry that a seat is open — first-come-first-served, no
+ * hold placed on the seat, so it's still possible for someone else to grab
+ * it first. An entry stays eligible (and gets re-notified on the next
+ * opening) until the user actually registers — at which point the
+ * registration path removes their row — or leaves the waitlist; notifiedAt
+ * is just a "last notified" timestamp, not an exclusion filter, since
+ * excluding already-notified entries would let one unresponsive user
+ * permanently block everyone behind them.
  */
 export async function notifyNextWaitlisted(eventId: string): Promise<void> {
   const next = await prisma.eventWaitlist.findFirst({
-    where: { eventId, notifiedAt: null },
+    where: { eventId },
     orderBy: { createdAt: "asc" },
     include: { user: true, event: true },
   });
   if (!next) return;
 
-  const claimed = await prisma.eventWaitlist.updateMany({
-    where: { id: next.id, notifiedAt: null },
+  await prisma.eventWaitlist.update({
+    where: { id: next.id },
     data: { notifiedAt: new Date() },
   });
-  if (claimed.count === 0) return;
 
   await sendWaitlistSeatAvailableEmail(
     next.user.email,

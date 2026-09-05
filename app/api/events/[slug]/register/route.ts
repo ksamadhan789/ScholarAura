@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/enrollment";
 import { sendEventRegistrationConfirmationEmail } from "@/lib/email";
-import { notifyNextWaitlisted } from "@/lib/waitlist";
+import { notifyNextWaitlisted, leaveEventWaitlist } from "@/lib/waitlist";
 import { hasCompletedOnboarding } from "@/lib/onboarding";
 
 export async function POST(
@@ -78,6 +78,13 @@ export async function POST(
       email: session.user.email ?? "",
       enrollmentNumber: registration.enrollmentNumber!,
     });
+
+    // A now-registered user has nothing left to wait for — leave it behind so
+    // they don't keep occupying a waitlist slot (and its notifications) for a
+    // seat they already have.
+    await leaveEventWaitlist(session.user.id, event.id).catch((err) =>
+      console.error(`Failed to clear waitlist entry for user ${session.user.id} on event ${event.id}:`, err)
+    );
 
     await sendEventRegistrationConfirmationEmail(
       session.user.email!,
