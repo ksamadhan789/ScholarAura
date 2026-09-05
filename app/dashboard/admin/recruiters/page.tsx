@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
+import { Pagination, PAGE_SIZE } from "@/components/Pagination";
 import { RecruiterApprovalActions } from "./RecruiterApprovalActions";
 
 const STATUS_BADGE_VARIANT: Record<string, "success" | "warning" | "neutral"> = {
@@ -11,15 +12,26 @@ const STATUS_BADGE_VARIANT: Record<string, "success" | "warning" | "neutral"> = 
   REJECTED: "neutral",
 };
 
-export default async function AdminRecruitersPage() {
+export default async function AdminRecruitersPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
   if (session.user.role !== "ADMIN") redirect("/dashboard");
 
-  const recruiters = await prisma.recruiterProfile.findMany({
-    include: { user: { select: { name: true, email: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+  const page = Math.max(1, Number(searchParams.page) || 1);
+
+  const [recruiters, totalCount] = await Promise.all([
+    prisma.recruiterProfile.findMany({
+      include: { user: { select: { name: true, email: true } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.recruiterProfile.count(),
+  ]);
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-16">
@@ -58,6 +70,8 @@ export default async function AdminRecruitersPage() {
           ))}
         </div>
       )}
+
+      <Pagination page={page} totalCount={totalCount} basePath="/dashboard/admin/recruiters" />
     </main>
   );
 }
