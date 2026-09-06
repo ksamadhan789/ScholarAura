@@ -115,6 +115,23 @@ export default async function CourseDetailPage({
       )
     : new Set<string>();
 
+  const finalQuizRow = await prisma.quiz.findFirst({
+    where: { courseId: course.id, courseVideoId: null },
+    select: { id: true },
+  });
+  const finalQuiz = finalQuizRow
+    ? {
+        id: finalQuizRow.id,
+        passed: session
+          ? Boolean(
+              await prisma.quizAttempt.findFirst({
+                where: { quizId: finalQuizRow.id, userId: session.user.id, passed: true },
+              })
+            )
+          : false,
+      }
+    : null;
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
       {!course.isPublished && (
@@ -212,6 +229,14 @@ export default async function CourseDetailPage({
                 </div>
               );
             })}
+            {finalQuiz && hasFullAccess && (
+              <Link
+                href={`/courses/${course.slug}/quiz`}
+                className="flex items-center justify-between rounded border border-gray-200 dark:border-slate-700 p-3 hover:border-gray-400"
+              >
+                <p>📝 Final quiz{finalQuiz.passed ? " · ✓ Passed" : ""}</p>
+              </Link>
+            )}
           </div>
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type VideoInfo = {
   id: string;
@@ -15,12 +16,14 @@ type VideoInfo = {
 export function LectureRow({
   slug,
   video,
+  hasQuiz,
   index,
   prev,
   next,
 }: {
   slug: string;
   video: VideoInfo;
+  hasQuiz: boolean;
   index: number;
   prev: { id: string; orderIndex: number } | null;
   next: { id: string; orderIndex: number } | null;
@@ -186,6 +189,12 @@ export function LectureRow({
         >
           Edit
         </button>
+        <Link
+          href={`/dashboard/courses/${slug}/lectures/${video.id}/quiz`}
+          className="rounded border border-gray-300 dark:border-slate-600 px-2 py-1 text-xs"
+        >
+          {hasQuiz ? "Quiz" : "+ Quiz"}
+        </Link>
         <button
           onClick={remove}
           disabled={loading}

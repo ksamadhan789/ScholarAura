@@ -14,7 +14,7 @@ export default async function LecturePage({
 }) {
   const video = await prisma.courseVideo.findUnique({
     where: { id: params.videoId },
-    include: { course: true },
+    include: { course: true, quiz: { select: { id: true } } },
   });
 
   if (!video || video.course.slug !== params.slug) {
@@ -51,6 +51,13 @@ export default async function LecturePage({
       })
     : null;
 
+  const passedQuiz =
+    session && video.quiz
+      ? await prisma.quizAttempt.findFirst({
+          where: { quizId: video.quiz.id, userId: session.user.id, passed: true },
+        })
+      : null;
+
   const embedUrl = getSignedEmbedUrl(video.videoProviderId);
 
   return (
@@ -79,6 +86,14 @@ export default async function LecturePage({
               videoId={video.id}
               initiallyCompleted={Boolean(progress?.completedAt)}
             />
+            {video.quiz && (
+              <Link
+                href={`/courses/${params.slug}/lectures/${video.id}/quiz`}
+                className="mt-3 inline-block rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+              >
+                📝 {passedQuiz ? "Quiz passed — retake" : "Take the quiz"}
+              </Link>
+            )}
           </>
         ) : (
           <div className="rounded border border-gray-200 dark:border-slate-700 p-4">

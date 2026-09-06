@@ -18,7 +18,7 @@ export default async function ManageCoursePage({
 
   const course = await prisma.course.findUnique({
     where: { slug: params.slug },
-    include: { videos: { orderBy: { orderIndex: "asc" } } },
+    include: { videos: { orderBy: { orderIndex: "asc" }, include: { quiz: { select: { id: true } } } } },
   });
 
   if (!course) {
@@ -30,6 +30,11 @@ export default async function ManageCoursePage({
   if (!isOwner && !isAdmin) {
     redirect("/dashboard/courses");
   }
+
+  const finalQuiz = await prisma.quiz.findFirst({
+    where: { courseId: course.id, courseVideoId: null },
+    select: { id: true },
+  });
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
@@ -53,6 +58,12 @@ export default async function ManageCoursePage({
           >
             Students
           </Link>
+          <Link
+            href={`/dashboard/courses/${course.slug}/quiz`}
+            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          >
+            {finalQuiz ? "Final quiz" : "+ Final quiz"}
+          </Link>
         </div>
       </div>
 
@@ -65,6 +76,7 @@ export default async function ManageCoursePage({
               key={video.id}
               slug={course.slug}
               video={video}
+              hasQuiz={Boolean(video.quiz)}
               index={i}
               prev={i > 0 ? course.videos[i - 1] : null}
               next={i < course.videos.length - 1 ? course.videos[i + 1] : null}

@@ -156,6 +156,7 @@ model User {
   notifications     Notification[]
   refundRequests    RefundRequest[]
   auditLogs         AuditLog[]
+  quizAttempts      QuizAttempt[]
 
   @@map("users")
 }
@@ -243,8 +244,48 @@ model Course {
   reviews       CourseReview[]
   wishlistedBy  CourseWishlist[]
   questions     CourseQuestion[]
+  quizzes       Quiz[]
 
   @@map("courses")
+}
+
+// A quiz belongs to a course, and optionally to one specific lecture within
+// it — courseVideoId null means it's the course's final quiz. questions is
+// a QuizQuestion[] (see lib/quiz.ts) rather than normalized tables: nothing
+// here needs cross-quiz querying or reuse of individual questions, so the
+// relational overhead of separate question/option tables buys nothing over
+// a validated JSON blob (the same tradeoff Event.people already makes).
+model Quiz {
+  id             String       @id @default(uuid())
+  courseId       String
+  course         Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseVideoId  String?      @unique
+  courseVideo    CourseVideo? @relation(fields: [courseVideoId], references: [id], onDelete: Cascade)
+  title          String
+  passingPercent Int          @default(70)
+  questions      Json
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  attempts QuizAttempt[]
+
+  @@index([courseId])
+  @@map("quizzes")
+}
+
+model QuizAttempt {
+  id           String   @id @default(uuid())
+  quizId       String
+  quiz         Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  scorePercent Int
+  passed       Boolean
+  answers      Json
+  submittedAt  DateTime @default(now())
+
+  @@index([quizId, userId])
+  @@map("quiz_attempts")
 }
 
 model CourseWishlist {
@@ -271,6 +312,7 @@ model CourseVideo {
   isPreview         Boolean  @default(false) // free preview clip, if any
 
   progress          CourseProgress[]
+  quiz              Quiz?
 
   @@map("course_videos")
 }

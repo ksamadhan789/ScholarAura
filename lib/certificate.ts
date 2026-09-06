@@ -36,6 +36,23 @@ export async function issueCourseCertificateIfEligible(userId: string, courseId:
   });
   if (completedCount < totalVideos) return null;
 
+  // Every quiz attached to this course — per-lecture and the final quiz
+  // alike — must have at least one passing attempt from this user before a
+  // certificate means anything. Quizzes are optional per lecture, so a
+  // course with none isn't gated by this at all.
+  const quizzes = await prisma.quiz.findMany({ where: { courseId }, select: { id: true } });
+  if (quizzes.length > 0) {
+    const passedQuizIds = new Set(
+      (
+        await prisma.quizAttempt.findMany({
+          where: { userId, passed: true, quizId: { in: quizzes.map((q) => q.id) } },
+          select: { quizId: true },
+        })
+      ).map((a) => a.quizId)
+    );
+    if (!quizzes.every((q) => passedQuizIds.has(q.id))) return null;
+  }
+
   for (let attempt = 0; attempt < 5; attempt++) {
     const certificateNumber = await generateCertificateNumber();
 
