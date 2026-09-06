@@ -78,6 +78,9 @@ export default async function ManageJobsPage({
                       {job.isPublished ? "Published" : "Draft"}
                     </Badge>
                   )}
+                  {job.featuredUntil && job.featuredUntil > new Date() && (
+                    <Badge variant="brand">⭐ Featured</Badge>
+                  )}
                   <span>{applicationCountByJobId.get(job.id) ?? 0} applicants</span>
                 </div>
               </div>
@@ -98,6 +101,14 @@ export default async function ManageJobsPage({
                     >
                       Applicants
                     </Link>
+                    {job.isPublished && (
+                      <Link
+                        href={`/dashboard/jobs/${job.slug}/boost`}
+                        className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                      >
+                        ⭐ Boost
+                      </Link>
+                    )}
                     <JobPublishToggle slug={job.slug} isPublished={job.isPublished} />
                   </>
                 )}

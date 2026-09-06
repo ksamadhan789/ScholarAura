@@ -48,6 +48,7 @@ export default async function JobDetailPage({ params }: { params: { slug: string
 
   const deadlinePassed = job.applicationDeadline ? new Date() > job.applicationDeadline : false;
   const isInternship = job.employmentType === "INTERNSHIP";
+  const isFeatured = Boolean(job.featuredUntil && job.featuredUntil > new Date());
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
@@ -73,6 +74,7 @@ export default async function JobDetailPage({ params }: { params: { slug: string
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
+        {isFeatured && <Badge variant="warning">⭐ Featured</Badge>}
         <Badge variant="brand">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</Badge>
         <span>{job.isRemote ? "Remote" : job.location}</span>
         {isInternship ? (

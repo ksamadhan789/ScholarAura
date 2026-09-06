@@ -8,6 +8,7 @@ import {
   EventFullError,
 } from "@/lib/paymentSettlement";
 import { settleBundlePurchase } from "@/lib/bundlePurchase";
+import { settleJobBoost } from "@/lib/jobBoost";
 
 // Server-to-server safety net for payment confirmation: the checkout flow
 // normally relies on the buyer's browser calling verify-payment after
@@ -88,6 +89,14 @@ export async function POST(request: Request) {
     });
     if (bundlePurchase) {
       await settleBundlePurchase(bundlePurchase.id, paymentId);
+      return NextResponse.json({ received: true });
+    }
+
+    const jobBoost = await prisma.jobBoost.findFirst({
+      where: { razorpayOrderId: orderId },
+    });
+    if (jobBoost) {
+      await settleJobBoost(jobBoost.id, paymentId);
       return NextResponse.json({ received: true });
     }
 

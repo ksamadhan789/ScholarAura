@@ -101,6 +101,9 @@ export default async function RecruiterHomePage() {
                           ? "Pending review"
                           : "Changes needed"}
                   </Badge>
+                  {job.featuredUntil && job.featuredUntil > new Date() && (
+                    <Badge variant="brand">⭐ Featured</Badge>
+                  )}
                   <span>{applicationCountByJobId.get(job.id) ?? 0} applicants</span>
                 </div>
                 {job.approvalStatus === "REJECTED" && job.rejectionReason && (
@@ -122,6 +125,14 @@ export default async function RecruiterHomePage() {
                 >
                   Applicants
                 </Link>
+                {job.approvalStatus === "APPROVED" && job.isPublished && (
+                  <Link
+                    href={`/dashboard/recruiter/jobs/${job.slug}/boost`}
+                    className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
+                  >
+                    ⭐ Boost
+                  </Link>
+                )}
                 {job.approvalStatus === "APPROVED" && (
                   <RecruiterJobPublishToggle slug={job.slug} isPublished={job.isPublished} />
                 )}

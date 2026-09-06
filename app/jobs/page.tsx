@@ -28,11 +28,13 @@ function JobCard({
     salaryRange: string | null;
     stipendRange: string | null;
     durationMonths: number | null;
+    featuredUntil: Date | null;
     createdAt: Date;
   };
   isSaved: boolean | null;
 }) {
   const isInternship = job.employmentType === "INTERNSHIP";
+  const isFeatured = Boolean(job.featuredUntil && job.featuredUntil > new Date());
   return (
     <div className="relative">
       {isSaved !== null && (
@@ -42,7 +44,11 @@ function JobCard({
       )}
       <Link
         href={`/jobs/${job.slug}`}
-        className="flex items-start gap-4 rounded-lg border border-gray-200 dark:border-slate-700 p-4 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
+        className={`flex items-start gap-4 rounded-lg border p-4 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800 ${
+          isFeatured
+            ? "border-amber-300 bg-amber-50/50 dark:border-amber-700 dark:bg-amber-900/10"
+            : "border-gray-200 dark:border-slate-700"
+        }`}
       >
         {job.companyLogoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -60,6 +66,7 @@ function JobCard({
           <h3 className="font-medium text-slate-900 dark:text-white">{job.title}</h3>
           <p className="text-sm text-gray-600 dark:text-slate-400">{job.companyName}</p>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
+            {isFeatured && <Badge variant="warning">⭐ Featured</Badge>}
             <Badge variant="brand">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</Badge>
             <span>{job.isRemote ? "Remote" : job.location}</span>
             {isInternship ? (
@@ -122,6 +129,13 @@ export default async function JobsPage({
         ).map((w) => w.jobId)
       )
     : null;
+
+  // Prisma can't express "featured jobs first, then by date" in one
+  // orderBy, so split and concatenate — same pattern as the ongoing/
+  // upcoming split on /events.
+  const now = new Date();
+  const featuredJobs = jobs.filter((j) => j.featuredUntil && j.featuredUntil > now);
+  const regularJobs = jobs.filter((j) => !j.featuredUntil || j.featuredUntil <= now);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
@@ -189,10 +203,40 @@ export default async function JobsPage({
           👀 No jobs match right now — check back soon!
         </p>
       ) : (
-        <div className="flex flex-col gap-3">
-          {jobs.map((job) => (
-            <JobCard key={job.slug} job={job} isSaved={savedJobIds ? savedJobIds.has(job.id) : null} />
-          ))}
+        <div className="flex flex-col gap-8">
+          {featuredJobs.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
+                ⭐ Featured
+              </h2>
+              <div className="flex flex-col gap-3">
+                {featuredJobs.map((job) => (
+                  <JobCard
+                    key={job.slug}
+                    job={job}
+                    isSaved={savedJobIds ? savedJobIds.has(job.id) : null}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section>
+            {featuredJobs.length > 0 && (
+              <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
+                All jobs
+              </h2>
+            )}
+            <div className="flex flex-col gap-3">
+              {regularJobs.map((job) => (
+                <JobCard
+                  key={job.slug}
+                  job={job}
+                  isSaved={savedJobIds ? savedJobIds.has(job.id) : null}
+                />
+              ))}
+            </div>
+          </section>
         </div>
       )}
     </main>

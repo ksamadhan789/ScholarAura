@@ -162,6 +162,7 @@ model User {
   competitionWishlist CompetitionWishlist[]
   jobWishlist         JobWishlist[]
   sentJobMessages     JobMessage[]
+  jobBoosts           JobBoost[]
 
   @@map("users")
 }
@@ -836,6 +837,11 @@ model Job {
   durationMonths      Int?
   internshipStartDate DateTime?
   perks               Json?
+  // Set by settleJobBoost (lib/jobBoost.ts) when a JobBoost purchase
+  // succeeds — null or in the past means "not currently featured". Kept
+  // denormalized on Job (rather than computed by joining JobBoost on every
+  // listing query) so /jobs can just filter/sort on one column.
+  featuredUntil       DateTime?
   isPublished         Boolean            @default(false)
   approvalStatus      JobApprovalStatus  @default(APPROVED)
   rejectionReason     String?
@@ -848,8 +854,34 @@ model Job {
 
   applications        JobApplication[]
   wishlistedBy        JobWishlist[]
+  boosts              JobBoost[]
 
   @@map("jobs")
+}
+
+// A one-time paid boost that pins a job to the top of /jobs and marks it
+// Featured for durationDays. Deliberately its own purchasable product
+// (rather than fields bolted onto Job) so a future recruiter subscription
+// tier — e.g. "N boosts included" or "always featured" — can layer on top
+// without reshaping this model.
+model JobBoost {
+  id                String        @id @default(uuid())
+  jobId             String
+  job               Job           @relation(fields: [jobId], references: [id])
+  purchasedByUserId String
+  purchasedByUser   User          @relation(fields: [purchasedByUserId], references: [id])
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  chargedAmount     Decimal?      @db.Decimal(10, 2)
+  status            PaymentStatus @default(PENDING)
+  durationDays      Int           @default(30)
+  expiresAt         DateTime?
+  purchasedAt       DateTime      @default(now())
+
+  @@index([jobId])
+  @@map("job_boosts")
 }
 
 // ----------------------
