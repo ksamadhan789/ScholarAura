@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EVENT_TYPE_LABELS, EVENT_FORMAT_OPTIONS } from "@/lib/eventLabels";
+import { EVENT_TYPE_LABELS, EVENT_FORMAT_OPTIONS, EVENT_AUDIENCE_OPTIONS } from "@/lib/eventLabels";
 import { PeopleEditor } from "@/components/PeopleEditor";
 import type { EventPerson } from "@/lib/eventPeople";
 
@@ -18,6 +18,7 @@ type FormState = {
   venueOrLink: string;
   format: string;
   city: string;
+  audience: string;
   thumbnailUrl: string;
   brochureUrl: string;
   eligibility: string;
@@ -135,6 +136,20 @@ export function EditEventForm({
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           >
             {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Audience</label>
+          <select
+            value={form.audience}
+            onChange={(e) => set("audience", e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          >
+            {EVENT_AUDIENCE_OPTIONS.map(({ value, label }) => (
               <option key={value} value={value}>
                 {label}
               </option>

@@ -40,6 +40,12 @@ enum EventFormat {
   HYBRID
 }
 
+enum EventAudience {
+  STUDENT
+  PROFESSIONAL
+  EVERYONE
+}
+
 enum PaymentStatus {
   PENDING
   SUCCESS
@@ -331,6 +337,7 @@ model Event {
   venueOrLink   String
   format        EventFormat @default(OFFLINE)
   city          String?
+  audience      EventAudience @default(EVERYONE)
   isPublished   Boolean   @default(false)
   isArchived    Boolean   @default(false)
   thumbnailUrl  String?

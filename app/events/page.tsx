@@ -1,7 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { EVENT_TYPE_LABELS, EVENT_TYPE_TABS, EVENT_FORMAT_LABELS, formatDateRange } from "@/lib/eventLabels";
+import {
+  EVENT_TYPE_LABELS,
+  EVENT_TYPE_TABS,
+  EVENT_FORMAT_LABELS,
+  EVENT_AUDIENCE_LABELS,
+  formatDateRange,
+} from "@/lib/eventLabels";
 import { Badge } from "@/components/Badge";
 import { Thumbnail } from "@/components/Thumbnail";
 
@@ -33,6 +39,7 @@ function EventCard({
     endDate: Date;
     format: string;
     city: string | null;
+    audience: string;
     seatsTotal: number;
     seatsFilled: number;
     fee: unknown;
@@ -47,7 +54,12 @@ function EventCard({
     >
       <Thumbnail url={event.thumbnailUrl} alt={event.title} icon="📅" />
       <div className="p-4">
-        <Badge variant="brand">{EVENT_TYPE_LABELS[event.type]}</Badge>
+        <div className="flex flex-wrap gap-1.5">
+          <Badge variant="brand">{EVENT_TYPE_LABELS[event.type]}</Badge>
+          {event.audience !== "EVERYONE" && (
+            <Badge variant="neutral">{EVENT_AUDIENCE_LABELS[event.audience]}</Badge>
+          )}
+        </div>
         <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{event.title}</h3>
         <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
           {formatDateRange(event.startDate, event.endDate)}
@@ -73,7 +85,7 @@ const PAYMENT_OPTIONS = [
 
 /** Builds a query string from the current filters plus one overridden field, for links that change a single filter without dropping the others. */
 function buildQuery(
-  base: { type?: string; q?: string; format?: string; payment?: string; city?: string },
+  base: { type?: string; q?: string; format?: string; payment?: string; city?: string; audience?: string },
   overrides: { type?: string }
 ): string {
   const merged = { ...base, ...overrides };
@@ -83,6 +95,7 @@ function buildQuery(
   if (merged.format) params.set("format", merged.format);
   if (merged.payment) params.set("payment", merged.payment);
   if (merged.city) params.set("city", merged.city);
+  if (merged.audience) params.set("audience", merged.audience);
   const qs = params.toString();
   return qs ? `/events?${qs}` : "/events";
 }
@@ -90,13 +103,21 @@ function buildQuery(
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: { type?: string; q?: string; format?: string; payment?: string; city?: string };
+  searchParams: {
+    type?: string;
+    q?: string;
+    format?: string;
+    payment?: string;
+    city?: string;
+    audience?: string;
+  };
 }) {
   const activeType = searchParams.type;
   const q = searchParams.q?.trim();
   const activeFormat = searchParams.format;
   const activePayment = searchParams.payment;
   const activeCity = searchParams.city;
+  const activeAudience = searchParams.audience;
   const now = new Date();
 
   // This page is scoped to "Upcoming & ongoing" (its own title) — excluding
@@ -114,6 +135,7 @@ export default async function EventsPage({
         ...(activeFormat ? { format: activeFormat as never } : {}),
         ...(activePayment === "FREE" ? { fee: 0 } : activePayment === "PAID" ? { fee: { gt: 0 } } : {}),
         ...(activeCity ? { city: activeCity } : {}),
+        ...(activeAudience ? { audience: activeAudience as never } : {}),
         ...(q
           ? {
               OR: [
@@ -144,7 +166,7 @@ export default async function EventsPage({
   const activeLabel = activeType
     ? EVENT_TYPE_TABS.find((t) => t.type === activeType)?.label
     : null;
-  const hasActiveFilters = Boolean(activeFormat || activePayment || activeCity);
+  const hasActiveFilters = Boolean(activeFormat || activePayment || activeCity || activeAudience);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
@@ -193,6 +215,18 @@ export default async function EventsPage({
           {cities.map((city) => (
             <option key={city} value={city}>
               {city}
+            </option>
+          ))}
+        </select>
+        <select
+          name="audience"
+          defaultValue={activeAudience ?? ""}
+          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+        >
+          <option value="">Any audience</option>
+          {Object.entries(EVENT_AUDIENCE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
             </option>
           ))}
         </select>

@@ -27,6 +27,18 @@ export const EVENT_FORMAT_OPTIONS: { value: string; label: string }[] = [
   { value: "HYBRID", label: "🔀 Hybrid" },
 ];
 
+export const EVENT_AUDIENCE_LABELS: Record<string, string> = {
+  STUDENT: "🎓 Students",
+  PROFESSIONAL: "💼 Professionals",
+  EVERYONE: "🌐 Everyone",
+};
+
+export const EVENT_AUDIENCE_OPTIONS: { value: string; label: string }[] = [
+  { value: "STUDENT", label: "🎓 Students" },
+  { value: "PROFESSIONAL", label: "💼 Professionals" },
+  { value: "EVERYONE", label: "🌐 Everyone" },
+];
+
 // This app is India-only, but these run in Server Components on a server
 // whose local timezone is whatever the host defaults to (UTC on a typical
 // Vercel deployment) — without pinning Asia/Kolkata explicitly, every date

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EVENT_TYPE_LABELS, EVENT_FORMAT_OPTIONS } from "@/lib/eventLabels";
+import { EVENT_TYPE_LABELS, EVENT_FORMAT_OPTIONS, EVENT_AUDIENCE_OPTIONS } from "@/lib/eventLabels";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -16,6 +16,7 @@ export default function NewEventPage() {
   const [format, setFormat] = useState("ONLINE");
   const [venueOrLink, setVenueOrLink] = useState("");
   const [city, setCity] = useState("");
+  const [audience, setAudience] = useState("EVERYONE");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [brochureUrl, setBrochureUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export default function NewEventPage() {
           format,
           venueOrLink,
           city,
+          audience,
           thumbnailUrl: thumbnailUrl || undefined,
           brochureUrl,
         }),
@@ -94,6 +96,20 @@ export default function NewEventPage() {
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
           >
             {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Audience</label>
+          <select
+            value={audience}
+            onChange={(e) => setAudience(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+          >
+            {EVENT_AUDIENCE_OPTIONS.map(({ value, label }) => (
               <option key={value} value={value}>
                 {label}
               </option>
