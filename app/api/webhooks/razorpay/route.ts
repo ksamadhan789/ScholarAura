@@ -7,6 +7,7 @@ import {
   settleCompetitionEntry,
   EventFullError,
 } from "@/lib/paymentSettlement";
+import { settleBundlePurchase } from "@/lib/bundlePurchase";
 
 // Server-to-server safety net for payment confirmation: the checkout flow
 // normally relies on the buyer's browser calling verify-payment after
@@ -79,6 +80,14 @@ export async function POST(request: Request) {
     });
     if (competitionEntry) {
       await settleCompetitionEntry(competitionEntry.id, paymentId);
+      return NextResponse.json({ received: true });
+    }
+
+    const bundlePurchase = await prisma.bundlePurchase.findFirst({
+      where: { razorpayOrderId: orderId },
+    });
+    if (bundlePurchase) {
+      await settleBundlePurchase(bundlePurchase.id, paymentId);
       return NextResponse.json({ received: true });
     }
 

@@ -157,6 +157,7 @@ model User {
   refundRequests    RefundRequest[]
   auditLogs         AuditLog[]
   quizAttempts      QuizAttempt[]
+  bundlePurchases   BundlePurchase[]
 
   @@map("users")
 }
@@ -246,6 +247,7 @@ model Course {
   questions     CourseQuestion[]
   quizzes       Quiz[]
   resources     CourseResource[]
+  bundleItems   CourseBundleItem[]
 
   @@map("courses")
 }
@@ -366,6 +368,65 @@ model CoursePurchase {
   @@unique([userId, courseId])
   @@index([courseId])
   @@map("course_purchases")
+}
+
+// A curated, ordered set of existing courses sold at one price — also
+// functions as a learning path: its page shows completion across every
+// included course, not just a one-time bundle discount. Admin-managed only
+// (see BundlePurchase below), since a bundle can cross instructors and is
+// an editorial/catalog decision rather than something an instructor owns.
+model CourseBundle {
+  id           String   @id @default(uuid())
+  title        String
+  slug         String   @unique
+  description  String
+  price        Decimal  @db.Decimal(10, 2)
+  thumbnailUrl String?
+  isPublished  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items     CourseBundleItem[]
+  purchases BundlePurchase[]
+
+  @@map("course_bundles")
+}
+
+model CourseBundleItem {
+  id         String       @id @default(uuid())
+  bundleId   String
+  bundle     CourseBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  courseId   String
+  course     Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  orderIndex Int
+
+  @@unique([bundleId, courseId])
+  @@index([courseId])
+  @@map("course_bundle_items")
+}
+
+// Records the bundle-level payment. The courses it grants access to are
+// fanned out into ordinary CoursePurchase rows (see lib/bundlePurchase.ts)
+// rather than tracked here, so every existing access check — enrollment,
+// certificates, quizzes, downloadable resources — needs no bundle-awareness
+// at all. Coupons and credit-balance application are intentionally not
+// supported on bundle checkouts (v1 scope).
+model BundlePurchase {
+  id                String        @id @default(uuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  bundleId          String
+  bundle            CourseBundle  @relation(fields: [bundleId], references: [id])
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  chargedAmount     Decimal?      @db.Decimal(10, 2)
+  status            PaymentStatus @default(PENDING)
+  purchasedAt       DateTime      @default(now())
+
+  @@unique([userId, bundleId])
+  @@map("bundle_purchases")
 }
 
 model CourseProgress {
