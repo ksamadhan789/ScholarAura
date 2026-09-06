@@ -58,6 +58,11 @@ export default async function LecturePage({
         })
       : null;
 
+  const resources = await prisma.courseResource.findMany({
+    where: { courseVideoId: video.id },
+    orderBy: { createdAt: "asc" },
+  });
+
   const embedUrl = getSignedEmbedUrl(video.videoProviderId);
 
   return (
@@ -76,6 +81,23 @@ export default async function LecturePage({
           className="h-full w-full"
         />
       </div>
+
+      {resources.length > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-2 text-sm font-medium">Resources</h2>
+          <div className="flex flex-col gap-2">
+            {resources.map((r) => (
+              <a
+                key={r.id}
+                href={`/api/courses/${params.slug}/resources/${r.id}/download`}
+                className="flex items-center justify-between rounded border border-gray-200 dark:border-slate-700 p-3 text-sm hover:border-gray-400"
+              >
+                📎 {r.title}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-6">
         {session ? (

@@ -245,6 +245,7 @@ model Course {
   wishlistedBy  CourseWishlist[]
   questions     CourseQuestion[]
   quizzes       Quiz[]
+  resources     CourseResource[]
 
   @@map("courses")
 }
@@ -288,6 +289,30 @@ model QuizAttempt {
   @@map("quiz_attempts")
 }
 
+// A downloadable file attached to a course, and optionally to one specific
+// lecture within it — courseVideoId null means it's a course-wide resource.
+// Unlike Quiz, a lecture or course can have any number of these, so there's
+// no unique constraint on courseVideoId here. The file itself lives in
+// Google Drive (see lib/courseResourceStorage.ts); only its Drive file ID
+// is stored here, matching the JobApplication.resumeFileId pattern.
+model CourseResource {
+  id            String       @id @default(uuid())
+  courseId      String
+  course        Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseVideoId String?
+  courseVideo   CourseVideo? @relation(fields: [courseVideoId], references: [id], onDelete: Cascade)
+  title         String
+  fileId        String
+  fileName      String
+  mimeType      String
+  fileSizeBytes Int
+  createdAt     DateTime     @default(now())
+
+  @@index([courseId])
+  @@index([courseVideoId])
+  @@map("course_resources")
+}
+
 model CourseWishlist {
   id        String   @id @default(uuid())
   userId    String
@@ -313,6 +338,7 @@ model CourseVideo {
 
   progress          CourseProgress[]
   quiz              Quiz?
+  resources         CourseResource[]
 
   @@map("course_videos")
 }

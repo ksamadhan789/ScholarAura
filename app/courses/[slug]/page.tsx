@@ -115,6 +115,11 @@ export default async function CourseDetailPage({
       )
     : new Set<string>();
 
+  const courseResources = await prisma.courseResource.findMany({
+    where: { courseId: course.id, courseVideoId: null },
+    orderBy: { createdAt: "asc" },
+  });
+
   const finalQuizRow = await prisma.quiz.findFirst({
     where: { courseId: course.id, courseVideoId: null },
     select: { id: true },
@@ -240,6 +245,23 @@ export default async function CourseDetailPage({
           </div>
         )}
       </div>
+
+      {courseResources.length > 0 && hasFullAccess && (
+        <div className="mt-10">
+          <h2 className="mb-3 text-lg font-medium">Resources</h2>
+          <div className="flex flex-col gap-2">
+            {courseResources.map((r) => (
+              <a
+                key={r.id}
+                href={`/api/courses/${course.slug}/resources/${r.id}/download`}
+                className="flex items-center justify-between rounded border border-gray-200 dark:border-slate-700 p-3 hover:border-gray-400"
+              >
+                📎 {r.title}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       <CourseQASection
         slug={course.slug}
