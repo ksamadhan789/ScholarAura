@@ -10,7 +10,8 @@ export type NotificationType =
   | "RECRUITER_ACCOUNT_STATUS"
   | "JOB_APPROVAL_STATUS"
   | "REFUND_REQUEST_STATUS"
-  | "COMPETITION_RESULT";
+  | "COMPETITION_RESULT"
+  | "JOB_MESSAGE";
 
 /**
  * Creates an in-app notification alongside (never instead of) the existing

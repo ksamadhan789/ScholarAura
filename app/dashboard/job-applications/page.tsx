@@ -52,6 +52,12 @@ export default async function MyJobApplicationsPage() {
                 <Badge variant={STATUS_BADGE_VARIANT[app.status]}>
                   {JOB_APPLICATION_STATUS_LABELS[app.status]}
                 </Badge>
+                <Link
+                  href={`/dashboard/job-applications/${app.id}/messages`}
+                  className="text-sm text-brand-600 underline dark:text-brand-400"
+                >
+                  💬 Message
+                </Link>
                 {app.status !== "HIRED" && <WithdrawApplicationButton jobSlug={app.job.slug} />}
               </div>
             </div>
