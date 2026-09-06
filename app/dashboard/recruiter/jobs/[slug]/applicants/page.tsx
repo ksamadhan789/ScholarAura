@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
@@ -57,14 +58,22 @@ export default async function RecruiterJobApplicantsPage({ params }: { params: {
                   {app.coverNote}
                 </p>
               )}
-              <a
-                href={`/api/admin/job-applications/${app.id}/resume`}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-3 inline-block text-sm text-brand-600 underline dark:text-brand-400"
-              >
-                View resume
-              </a>
+              <div className="mt-3 flex items-center gap-4">
+                <a
+                  href={`/api/admin/job-applications/${app.id}/resume`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-brand-600 underline dark:text-brand-400"
+                >
+                  View resume
+                </a>
+                <Link
+                  href={`/dashboard/recruiter/jobs/${job.slug}/applicants/${app.id}/messages`}
+                  className="text-sm text-brand-600 underline dark:text-brand-400"
+                >
+                  💬 Message
+                </Link>
+              </div>
             </div>
           ))}
         </div>

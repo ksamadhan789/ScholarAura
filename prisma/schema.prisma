@@ -161,6 +161,7 @@ model User {
   eventWishlist       EventWishlist[]
   competitionWishlist CompetitionWishlist[]
   jobWishlist         JobWishlist[]
+  sentJobMessages     JobMessage[]
 
   @@map("users")
 }
@@ -894,9 +895,28 @@ model JobApplication {
   appliedAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
 
+  messages     JobMessage[]
+
   @@unique([jobId, userId])
   @@index([userId])
   @@map("job_applications")
+}
+
+// A simple 1:1 message thread scoped to one application — lets the
+// recruiter (or admin, for an admin-posted job) and the applicant message
+// each other about that specific application. No separate "conversation"
+// concept: the JobApplication itself is the thread.
+model JobMessage {
+  id            String         @id @default(uuid())
+  applicationId String
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  senderId      String
+  sender        User           @relation(fields: [senderId], references: [id])
+  body          String
+  createdAt     DateTime       @default(now())
+
+  @@index([applicationId, createdAt])
+  @@map("job_messages")
 }
 
 // ----------------------
