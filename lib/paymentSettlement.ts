@@ -114,6 +114,10 @@ export async function settleEventRegistration(registrationId: string, paymentId:
             description: `Event: ${event.title}`,
           });
           await claimCouponRedemption(tx, registration.couponId);
+          // A registered event no longer needs to be "saved for later".
+          await tx.eventWishlist.deleteMany({
+            where: { userId: registration.userId, eventId: event.id },
+          });
         }
 
         const result = await tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
@@ -171,6 +175,10 @@ export async function settleCompetitionEntry(entryId: string, paymentId: string)
             description: `Competition: ${competition.title}`,
           });
           await claimCouponRedemption(tx, entry.couponId);
+          // An entered competition no longer needs to be "saved for later".
+          await tx.competitionWishlist.deleteMany({
+            where: { userId: entry.userId, competitionId: competition.id },
+          });
         }
 
         const result = await tx.competitionEntry.findUniqueOrThrow({ where: { id: entry.id } });

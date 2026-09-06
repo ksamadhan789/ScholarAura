@@ -14,6 +14,7 @@ import { RegisterButton } from "./RegisterButton";
 import { PeopleList } from "@/components/PeopleList";
 import { WaitlistButton } from "@/components/events/WaitlistButton";
 import { CancelRegistrationButton } from "@/components/events/CancelRegistrationButton";
+import { SaveButton } from "@/components/SaveButton";
 import type { EventPerson } from "@/lib/eventPeople";
 
 export async function generateMetadata({
@@ -52,7 +53,7 @@ export default async function EventDetailPage({
     notFound();
   }
 
-  const [registration, currentUser, rates, waitlistEntry] = session
+  const [registration, currentUser, rates, waitlistEntry, wishlistEntry] = session
     ? await Promise.all([
         prisma.eventRegistration.findUnique({
           where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
@@ -62,8 +63,11 @@ export default async function EventDetailPage({
         prisma.eventWaitlist.findUnique({
           where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
         }),
+        prisma.eventWishlist.findUnique({
+          where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
+        }),
       ])
-    : [null, null, await prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } }), null];
+    : [null, null, await prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } }), null, null];
 
   const serializedRates = rates.map((r) => ({
     currencyCode: r.currencyCode,
@@ -197,6 +201,12 @@ export default async function EventDetailPage({
           </>
         )}
       </div>
+
+      {session && !isRegistered && (
+        <div className="mt-3">
+          <SaveButton endpoint={`/api/events/${event.slug}/wishlist`} isSaved={!!wishlistEntry} />
+        </div>
+      )}
     </main>
   );
 }

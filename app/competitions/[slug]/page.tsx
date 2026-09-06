@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { EntryButton } from "./EntryButton";
 import { SubmissionForm } from "./SubmissionForm";
 import { PeopleList } from "@/components/PeopleList";
+import { SaveButton } from "@/components/SaveButton";
 import { formatDateTime } from "@/lib/eventLabels";
 import type { EventPerson } from "@/lib/eventPeople";
 
@@ -48,7 +49,7 @@ export default async function CompetitionDetailPage({
     notFound();
   }
 
-  const [entry, currentUser, rates, winners] = session
+  const [entry, currentUser, rates, winners, wishlistEntry] = session
     ? await Promise.all([
         prisma.competitionEntry.findUnique({
           where: { userId_competitionId: { userId: session.user.id, competitionId: competition.id } },
@@ -60,6 +61,9 @@ export default async function CompetitionDetailPage({
           include: { user: { select: { name: true } } },
           orderBy: { rank: "asc" },
         }),
+        prisma.competitionWishlist.findUnique({
+          where: { userId_competitionId: { userId: session.user.id, competitionId: competition.id } },
+        }),
       ])
     : [
         null,
@@ -70,6 +74,7 @@ export default async function CompetitionDetailPage({
           include: { user: { select: { name: true } } },
           orderBy: { rank: "asc" },
         }),
+        null,
       ];
 
   const medalByRank: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
@@ -238,6 +243,15 @@ export default async function CompetitionDetailPage({
           </>
         )}
       </div>
+
+      {session && !isEntered && (
+        <div className="mt-3">
+          <SaveButton
+            endpoint={`/api/competitions/${competition.slug}/wishlist`}
+            isSaved={!!wishlistEntry}
+          />
+        </div>
+      )}
     </main>
   );
 }

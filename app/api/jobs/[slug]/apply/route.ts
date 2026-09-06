@@ -88,6 +88,11 @@ export async function POST(request: Request, { params }: { params: { slug: strin
       throw err;
     }
 
+    // An applied-to job no longer needs to be "saved for later".
+    await prisma.jobWishlist.deleteMany({
+      where: { userId: session.user.id, jobId: job.id },
+    });
+
     await sendJobApplicationReceivedEmail(
       session.user.email!,
       session.user.name ?? "",

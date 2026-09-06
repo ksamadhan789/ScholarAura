@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { EMPLOYMENT_TYPE_LABELS, formatJobDate } from "@/lib/jobLabels";
 import { Badge } from "@/components/Badge";
 import { WithdrawApplicationButton } from "@/components/WithdrawApplicationButton";
+import { SaveButton } from "@/components/SaveButton";
 
 export async function generateMetadata({
   params,
@@ -34,11 +35,16 @@ export default async function JobDetailPage({ params }: { params: { slug: string
     notFound();
   }
 
-  const application = session
-    ? await prisma.jobApplication.findUnique({
-        where: { jobId_userId: { jobId: job.id, userId: session.user.id } },
-      })
-    : null;
+  const [application, wishlistEntry] = session
+    ? await Promise.all([
+        prisma.jobApplication.findUnique({
+          where: { jobId_userId: { jobId: job.id, userId: session.user.id } },
+        }),
+        prisma.jobWishlist.findUnique({
+          where: { userId_jobId: { userId: session.user.id, jobId: job.id } },
+        }),
+      ])
+    : [null, null];
 
   const deadlinePassed = job.applicationDeadline ? new Date() > job.applicationDeadline : false;
 
@@ -131,6 +137,12 @@ export default async function JobDetailPage({ params }: { params: { slug: string
           </Link>
         )}
       </div>
+
+      {session && !application && (
+        <div className="mt-4">
+          <SaveButton endpoint={`/api/jobs/${job.slug}/wishlist`} isSaved={!!wishlistEntry} />
+        </div>
+      )}
     </main>
   );
 }

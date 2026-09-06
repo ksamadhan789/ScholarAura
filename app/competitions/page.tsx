@@ -1,17 +1,20 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { Thumbnail } from "@/components/Thumbnail";
+import { SaveButton } from "@/components/SaveButton";
 
 export const metadata: Metadata = {
   title: "Competitions",
   description: "Competitions hosted on ScholarAura — submit an entry and compete for prizes.",
 };
 
-// No dynamic API (cookies/searchParams/getServerSession) here to naturally
-// opt this out of static prerendering — same fix as /courses (see its
-// comment) to avoid needing DB access at build time.
+// getServerSession also opts this out of static prerendering now, but keep
+// this explicit — same fix as /courses (see its comment) — since it doesn't
+// depend on that call staying here.
 export const dynamic = "force-dynamic";
 
 function formatDeadline(date: Date) {
@@ -20,8 +23,10 @@ function formatDeadline(date: Date) {
 
 function CompetitionCard({
   competition,
+  isSaved,
 }: {
   competition: {
+    id: string;
     slug: string;
     title: string;
     submissionDeadline: Date;
@@ -29,25 +34,37 @@ function CompetitionCard({
     maxTeamSize: number;
     thumbnailUrl: string | null;
   };
+  isSaved: boolean | null;
 }) {
   return (
-    <Link
-      href={`/competitions/${competition.slug}`}
-      className="overflow-hidden rounded-lg border border-gray-200 dark:border-slate-700 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
-    >
-      <Thumbnail url={competition.thumbnailUrl} alt={competition.title} icon="🏆" />
-      <div className="p-4">
-        <Badge variant="brand">Competition</Badge>
-        <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{competition.title}</h3>
-        <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-          Submit by {formatDeadline(competition.submissionDeadline)} ·{" "}
-          {competition.maxTeamSize > 1 ? `Team of up to ${competition.maxTeamSize}` : "Individual"}
-        </p>
-        <p className="mt-2 font-semibold text-slate-900 dark:text-white">
-          {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
-        </p>
-      </div>
-    </Link>
+    <div className="relative">
+      {isSaved !== null && (
+        <div className="absolute right-2 top-2 z-10">
+          <SaveButton
+            endpoint={`/api/competitions/${competition.slug}/wishlist`}
+            isSaved={isSaved}
+            variant="overlay"
+          />
+        </div>
+      )}
+      <Link
+        href={`/competitions/${competition.slug}`}
+        className="block overflow-hidden rounded-lg border border-gray-200 dark:border-slate-700 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
+      >
+        <Thumbnail url={competition.thumbnailUrl} alt={competition.title} icon="🏆" />
+        <div className="p-4">
+          <Badge variant="brand">Competition</Badge>
+          <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{competition.title}</h3>
+          <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
+            Submit by {formatDeadline(competition.submissionDeadline)} ·{" "}
+            {competition.maxTeamSize > 1 ? `Team of up to ${competition.maxTeamSize}` : "Individual"}
+          </p>
+          <p className="mt-2 font-semibold text-slate-900 dark:text-white">
+            {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
+          </p>
+        </div>
+      </Link>
+    </div>
   );
 }
 
@@ -62,6 +79,7 @@ export default async function CompetitionsPage({
 }: {
   searchParams: { q?: string; team?: string };
 }) {
+  const session = await getServerSession(authOptions);
   const q = searchParams.q?.trim();
   const activeTeam = searchParams.team;
 
@@ -85,6 +103,17 @@ export default async function CompetitionsPage({
     },
     orderBy: { startDate: "asc" },
   });
+
+  const savedCompetitionIds = session
+    ? new Set(
+        (
+          await prisma.competitionWishlist.findMany({
+            where: { userId: session.user.id, competitionId: { in: competitions.map((c) => c.id) } },
+            select: { competitionId: true },
+          })
+        ).map((w) => w.competitionId)
+      )
+    : null;
 
   const now = new Date();
   const open = competitions.filter((c) => c.submissionDeadline >= now);
@@ -142,7 +171,7 @@ export default async function CompetitionsPage({
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {open.map((c) => (
-                  <CompetitionCard key={c.id} competition={c} />
+                  <CompetitionCard key={c.id} competition={c} isSaved={savedCompetitionIds ? savedCompetitionIds.has(c.id) : null} />
                 ))}
               </div>
             </section>
@@ -153,7 +182,7 @@ export default async function CompetitionsPage({
               <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">🔒 Closed</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {closed.map((c) => (
-                  <CompetitionCard key={c.id} competition={c} />
+                  <CompetitionCard key={c.id} competition={c} isSaved={savedCompetitionIds ? savedCompetitionIds.has(c.id) : null} />
                 ))}
               </div>
             </section>

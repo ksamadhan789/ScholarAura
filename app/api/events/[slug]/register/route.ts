@@ -95,6 +95,11 @@ export async function POST(
       console.error(`Failed to clear waitlist entry for user ${session.user.id} on event ${event.id}:`, err)
     );
 
+    // A registered event no longer needs to be "saved for later".
+    await prisma.eventWishlist.deleteMany({
+      where: { userId: session.user.id, eventId: event.id },
+    });
+
     await sendEventRegistrationConfirmationEmail(
       session.user.email!,
       session.user.name ?? "",
