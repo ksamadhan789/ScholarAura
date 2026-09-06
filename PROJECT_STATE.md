@@ -63,3 +63,12 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 - Develop on branch `claude/search-results-visibility-dr0eae`, open a PR to `master`, merge (squash) once CI is green.
 - Before shipping: `npx tsc --noEmit`, `npx vitest run`, `npx next build`.
 - After a schema change: `npx prisma generate`.
+
+## How Claude Works on This Project
+
+- **The owner is not a programmer.** They describe features in plain language; Claude decides the technical approach, which files matter, how to test, and what to document. The owner is never responsible for managing context or pasting code.
+- **Every task starts by reading this file and TODO.md**, then only the files the task actually needs. Never scan the whole codebase unless explicitly asked to audit it.
+- **The code is authoritative, not this file.** If PROJECT_STATE.md and the actual code disagree, trust the code, say so, and update this file to match after finishing the task.
+- **Keep these memory files in sync with the implementation.** Update PROJECT_STATE.md, TODO.md, and CHANGELOG.md as part of every meaningful change, not as an afterthought.
+- **Smallest safe change.** No unrelated refactoring, renaming, or redesign. Reuse what exists instead of building a duplicate.
+- **Report in plain language.** Say what changed, what to test, and whether anything manual is needed. Show code only if asked.
