@@ -26,10 +26,13 @@ function JobCard({
     isRemote: boolean;
     employmentType: string;
     salaryRange: string | null;
+    stipendRange: string | null;
+    durationMonths: number | null;
     createdAt: Date;
   };
   isSaved: boolean | null;
 }) {
+  const isInternship = job.employmentType === "INTERNSHIP";
   return (
     <div className="relative">
       {isSaved !== null && (
@@ -59,7 +62,18 @@ function JobCard({
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
             <Badge variant="brand">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</Badge>
             <span>{job.isRemote ? "Remote" : job.location}</span>
-            {job.salaryRange && <span>· {job.salaryRange}</span>}
+            {isInternship ? (
+              <>
+                {job.stipendRange && <span>· {job.stipendRange}</span>}
+                {job.durationMonths && (
+                  <span>
+                    · {job.durationMonths} month{job.durationMonths === 1 ? "" : "s"}
+                  </span>
+                )}
+              </>
+            ) : (
+              job.salaryRange && <span>· {job.salaryRange}</span>
+            )}
           </div>
           <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
             Posted {formatJobDate(job.createdAt)}

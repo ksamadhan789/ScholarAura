@@ -20,6 +20,13 @@ const createJobSchema = z.object({
     (val) => (val === "" || val == null ? undefined : val),
     z.coerce.date().optional()
   ),
+  stipendRange: z.string().trim().optional().or(z.literal("")),
+  durationMonths: z.coerce.number().int().min(1).max(24).optional(),
+  internshipStartDate: z.preprocess(
+    (val) => (val === "" || val == null ? undefined : val),
+    z.coerce.date().optional()
+  ),
+  perks: z.array(z.string().trim().min(1)).max(10).optional(),
 });
 
 export async function GET() {
@@ -85,6 +92,10 @@ export async function POST(request: Request) {
         minExperienceYears: d.minExperienceYears ?? null,
         salaryRange: d.salaryRange || null,
         applicationDeadline: d.applicationDeadline ?? null,
+        stipendRange: d.stipendRange || null,
+        durationMonths: d.durationMonths ?? null,
+        internshipStartDate: d.internshipStartDate ?? null,
+        perks: d.perks && d.perks.length > 0 ? d.perks : undefined,
         // Every recruiter-submitted job starts unpublished and pending
         // admin review, regardless of whether their account is already
         // approved — per the "every job needs approval" decision.

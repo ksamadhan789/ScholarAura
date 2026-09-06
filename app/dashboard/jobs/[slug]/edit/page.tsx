@@ -32,6 +32,10 @@ export default async function EditJobPage({ params }: { params: { slug: string }
         minExperienceYears: job.minExperienceYears?.toString() ?? "",
         salaryRange: job.salaryRange ?? "",
         applicationDeadline: toDateInput(job.applicationDeadline),
+        stipendRange: job.stipendRange ?? "",
+        durationMonths: job.durationMonths?.toString() ?? "",
+        internshipStartDate: toDateInput(job.internshipStartDate),
+        perks: Array.isArray(job.perks) ? (job.perks as string[]) : [],
       }}
     />
   );

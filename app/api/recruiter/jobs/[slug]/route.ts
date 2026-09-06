@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -20,6 +21,13 @@ const updateJobSchema = z
       (val) => (val === "" ? null : val),
       z.coerce.date().nullable().optional()
     ),
+    stipendRange: z.string().trim().nullable().optional(),
+    durationMonths: z.coerce.number().int().min(1).max(24).nullable().optional(),
+    internshipStartDate: z.preprocess(
+      (val) => (val === "" ? null : val),
+      z.coerce.date().nullable().optional()
+    ),
+    perks: z.array(z.string().trim().min(1)).max(10).nullable().optional(),
     isPublished: z.boolean().optional(),
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined), {
@@ -88,6 +96,14 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
         ...(content.minExperienceYears !== undefined && { minExperienceYears: content.minExperienceYears }),
         ...(content.salaryRange !== undefined && { salaryRange: content.salaryRange || null }),
         ...(content.applicationDeadline !== undefined && { applicationDeadline: content.applicationDeadline }),
+        ...(content.stipendRange !== undefined && { stipendRange: content.stipendRange || null }),
+        ...(content.durationMonths !== undefined && { durationMonths: content.durationMonths }),
+        ...(content.internshipStartDate !== undefined && {
+          internshipStartDate: content.internshipStartDate,
+        }),
+        ...(content.perks !== undefined && {
+          perks: content.perks && content.perks.length > 0 ? content.perks : Prisma.JsonNull,
+        }),
         // Any edit to a recruiter-submitted job's content sends it back
         // through moderation — otherwise an already-approved posting could
         // be swapped for different content post-review.
