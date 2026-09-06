@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { Thumbnail } from "@/components/Thumbnail";
 import { SaveButton } from "@/components/SaveButton";
+import { readLocationCookie } from "@/lib/location";
 
 export const metadata: Metadata = {
   title: "Competitions",
@@ -33,6 +34,7 @@ function CompetitionCard({
     fee: unknown;
     maxTeamSize: number;
     thumbnailUrl: string | null;
+    city: string | null;
   };
   isSaved: boolean | null;
 }) {
@@ -58,6 +60,7 @@ function CompetitionCard({
           <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
             Submit by {formatDeadline(competition.submissionDeadline)} ·{" "}
             {competition.maxTeamSize > 1 ? `Team of up to ${competition.maxTeamSize}` : "Individual"}
+            {competition.city && ` · ${competition.city}`}
           </p>
           <p className="mt-2 font-semibold text-slate-900 dark:text-white">
             {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
@@ -77,32 +80,47 @@ const TEAM_SIZE_OPTIONS = [
 export default async function CompetitionsPage({
   searchParams,
 }: {
-  searchParams: { q?: string; team?: string };
+  searchParams: { q?: string; team?: string; city?: string };
 }) {
   const session = await getServerSession(authOptions);
   const q = searchParams.q?.trim();
   const activeTeam = searchParams.team;
+  // Same "present but empty means explicitly cleared" rule as /events.
+  const activeCity = searchParams.city !== undefined ? searchParams.city || undefined : readLocationCookie();
 
-  const competitions = await prisma.competition.findMany({
-    where: {
-      isPublished: true,
-      ...(activeTeam === "individual"
-        ? { maxTeamSize: 1 }
-        : activeTeam === "team"
-          ? { maxTeamSize: { gt: 1 } }
+  const [competitions, cityRows] = await Promise.all([
+    prisma.competition.findMany({
+      where: {
+        isPublished: true,
+        ...(activeTeam === "individual"
+          ? { maxTeamSize: 1 }
+          : activeTeam === "team"
+            ? { maxTeamSize: { gt: 1 } }
+            : {}),
+        ...(activeCity ? { city: activeCity } : {}),
+        ...(q
+          ? {
+              OR: [
+                { title: { contains: q, mode: "insensitive" } },
+                { description: { contains: q, mode: "insensitive" } },
+                { shortDescription: { contains: q, mode: "insensitive" } },
+              ],
+            }
           : {}),
-      ...(q
-        ? {
-            OR: [
-              { title: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-              { shortDescription: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    orderBy: { startDate: "asc" },
-  });
+      },
+      orderBy: { startDate: "asc" },
+    }),
+    // Independent of the filters above, so the Location dropdown always
+    // lists every city with a published competition — same pattern as
+    // /events.
+    prisma.competition.findMany({
+      where: { isPublished: true, city: { not: null } },
+      select: { city: true },
+      distinct: ["city"],
+      orderBy: { city: "asc" },
+    }),
+  ]);
+  const cities = cityRows.map((r) => r.city as string);
 
   const savedCompetitionIds = session
     ? new Set(
@@ -142,13 +160,25 @@ export default async function CompetitionsPage({
             </option>
           ))}
         </select>
+        <select
+          name="city"
+          defaultValue={activeCity ?? ""}
+          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+        >
+          <option value="">Any location</option>
+          {cities.map((city) => (
+            <option key={city} value={city}>
+              {city}
+            </option>
+          ))}
+        </select>
         <button
           type="submit"
           className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
         >
           Search
         </button>
-        {(q || activeTeam) && (
+        {(q || activeTeam || activeCity) && (
           <Link
             href="/competitions"
             className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -160,7 +190,8 @@ export default async function CompetitionsPage({
 
       {competitions.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
-          👀 No competitions {q || activeTeam ? "matched your search" : "published yet"} — check back soon!
+          👀 No competitions {q || activeTeam || activeCity ? "matched your search" : "published yet"} —
+          check back soon!
         </p>
       ) : (
         <div className="flex flex-col gap-10">

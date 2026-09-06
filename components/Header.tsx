@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
 import { SearchBar } from "./SearchBar";
 import { NotificationBell } from "./NotificationBell";
+import { LocationPicker } from "./LocationPicker";
 import { EVENT_TYPE_TABS } from "@/lib/eventLabels";
 
 export function Header() {
@@ -106,6 +107,7 @@ export function Header() {
         </div>
 
         <div className="hidden items-center gap-3 text-sm md:flex">
+          <LocationPicker />
           <ThemeToggle />
           <NotificationBell />
           {status === "loading" ? null : session ? (
@@ -163,6 +165,10 @@ export function Header() {
         <div className="border-t border-slate-200 px-4 py-4 dark:border-slate-700 md:hidden">
           <div className="mb-4">
             <SearchBar />
+          </div>
+
+          <div className="mb-4">
+            <LocationPicker />
           </div>
 
           <nav className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-300">

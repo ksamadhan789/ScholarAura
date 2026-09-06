@@ -22,6 +22,7 @@ type FormState = {
   brochureUrl: string;
   certificateLogoUrl: string;
   eligibility: string;
+  city: string;
   registrationStartDate: string;
   registrationDeadline: string;
   resultDate: string;
@@ -209,6 +210,18 @@ export function EditCompetitionForm({
             placeholder="e.g. Bonafide D.Pharmacy students"
             value={form.eligibility}
             onChange={(e) => set("eligibility", e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            City <span className="font-normal text-gray-400 dark:text-slate-500">(optional — leave blank for online/remote)</span>
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. Pune"
+            value={form.city}
+            onChange={(e) => set("city", e.target.value)}
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>

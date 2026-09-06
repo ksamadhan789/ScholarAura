@@ -41,6 +41,7 @@ export default async function EditCompetitionPage({ params }: { params: { slug: 
         brochureUrl: competition.brochureUrl ?? "",
         certificateLogoUrl: competition.certificateLogoUrl ?? "",
         eligibility: competition.eligibility ?? "",
+        city: competition.city ?? "",
         registrationStartDate: toLocalInput(competition.registrationStartDate),
         registrationDeadline: toLocalInput(competition.registrationDeadline),
         resultDate: toLocalInput(competition.resultDate),

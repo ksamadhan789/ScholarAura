@@ -23,6 +23,7 @@ export default function NewCompetitionPage() {
   const [brochureUrl, setBrochureUrl] = useState("");
   const [certificateLogoUrl, setCertificateLogoUrl] = useState("");
   const [eligibility, setEligibility] = useState("");
+  const [city, setCity] = useState("");
   const [registrationStartDate, setRegistrationStartDate] = useState("");
   const [registrationDeadline, setRegistrationDeadline] = useState("");
   const [resultDate, setResultDate] = useState("");
@@ -56,6 +57,7 @@ export default function NewCompetitionPage() {
           brochureUrl: brochureUrl || undefined,
           certificateLogoUrl: certificateLogoUrl || undefined,
           eligibility: eligibility || undefined,
+          city: city || undefined,
           registrationStartDate: registrationStartDate || undefined,
           registrationDeadline: registrationDeadline || undefined,
           resultDate: resultDate || undefined,
@@ -200,6 +202,18 @@ export default function NewCompetitionPage() {
             placeholder="e.g. Bonafide D.Pharmacy students"
             value={eligibility}
             onChange={(e) => setEligibility(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            City <span className="font-normal text-gray-400 dark:text-slate-500">(optional — leave blank for online/remote)</span>
+          </label>
+          <input
+            type="text"
+            placeholder="e.g. Pune"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
