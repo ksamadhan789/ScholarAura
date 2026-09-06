@@ -18,7 +18,10 @@ export type AuditAction =
   | "INSTRUCTOR_COMMISSION_SET"
   | "JOB_APPLICATION_STATUS_CHANGED"
   | "COLLEGE_APPROVED"
-  | "COLLEGE_REJECTED";
+  | "COLLEGE_REJECTED"
+  | "BUNDLE_CREATED"
+  | "BUNDLE_UPDATED"
+  | "BUNDLE_DELETED";
 
 export type AuditTargetType =
   | "CoursePurchase"
@@ -31,7 +34,8 @@ export type AuditTargetType =
   | "ExchangeRate"
   | "User"
   | "JobApplication"
-  | "College";
+  | "College"
+  | "CourseBundle";
 
 /**
  * Best-effort, like the email/notification side effects it sits alongside —

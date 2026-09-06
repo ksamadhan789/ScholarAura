@@ -24,6 +24,9 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   JOB_APPLICATION_STATUS_CHANGED: "Job application status changed",
   COLLEGE_APPROVED: "College approved",
   COLLEGE_REJECTED: "College rejected",
+  BUNDLE_CREATED: "Bundle created",
+  BUNDLE_UPDATED: "Bundle updated",
+  BUNDLE_DELETED: "Bundle deleted",
 };
 
 function formatMetadata(metadata: unknown): string | null {

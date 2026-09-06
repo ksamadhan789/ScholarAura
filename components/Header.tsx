@@ -53,6 +53,10 @@ export function Header() {
             💼 Jobs
           </Link>
 
+          <Link href="/bundles" className="hover:text-brand-600 dark:hover:text-brand-400">
+            🎁 Bundles
+          </Link>
+
           <div
             className="relative"
             onMouseEnter={openEventsMenu}
@@ -182,6 +186,13 @@ export function Header() {
               className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               💼 Jobs
+            </Link>
+            <Link
+              href="/bundles"
+              onClick={() => setMobileOpen(false)}
+              className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              🎁 Bundles
             </Link>
 
             <button
