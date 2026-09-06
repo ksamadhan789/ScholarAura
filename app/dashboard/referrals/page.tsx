@@ -3,8 +3,50 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getReferralRatePercent } from "@/lib/referral";
+import { getTopReferrersByCount, getTopReferrersByCredit } from "@/lib/referralLeaderboard";
 import { SITE_URL } from "@/lib/siteUrl";
 import { CopyLinkButton } from "./CopyLinkButton";
+import type { LeaderboardEntry } from "@/lib/referralLeaderboard";
+
+function LeaderboardTable({
+  title,
+  entries,
+  currentUserId,
+  formatValue,
+}: {
+  title: string;
+  entries: LeaderboardEntry[];
+  currentUserId: string;
+  formatValue: (value: number) => string;
+}) {
+  return (
+    <div className="flex-1 rounded border border-gray-200 dark:border-slate-700 p-4">
+      <h3 className="mb-3 font-medium">{title}</h3>
+      {entries.length === 0 ? (
+        <p className="text-sm text-gray-500 dark:text-slate-400">No referrals yet.</p>
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          {entries.map((entry) => (
+            <div
+              key={entry.userId}
+              className={`flex items-center justify-between rounded px-2 py-1.5 text-sm ${
+                entry.userId === currentUserId
+                  ? "bg-brand-50 font-medium dark:bg-slate-800"
+                  : ""
+              }`}
+            >
+              <span className="text-gray-600 dark:text-slate-400">
+                #{entry.rank} {entry.displayName}
+                {entry.userId === currentUserId ? " (you)" : ""}
+              </span>
+              <span>{formatValue(entry.value)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default async function ReferralsPage() {
   const session = await getServerSession(authOptions);
@@ -17,7 +59,7 @@ export default async function ReferralsPage() {
     redirect("/login");
   }
 
-  const [referrals, transactions] = await Promise.all([
+  const [referrals, transactions, topByCount, topByCredit] = await Promise.all([
     prisma.user.findMany({
       where: { referredById: user.id },
       select: { id: true, name: true, email: true, createdAt: true },
@@ -28,6 +70,8 @@ export default async function ReferralsPage() {
       orderBy: { createdAt: "desc" },
       take: 25,
     }),
+    getTopReferrersByCount(10),
+    getTopReferrersByCredit(10),
   ]);
 
   const referralLink = `${SITE_URL}/register?ref=${user.referralCode}`;
@@ -81,6 +125,24 @@ export default async function ReferralsPage() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mt-10">
+        <h2 className="mb-3 text-lg font-medium">🏆 Leaderboard</h2>
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <LeaderboardTable
+            title="Most referrals"
+            entries={topByCount}
+            currentUserId={user.id}
+            formatValue={(v) => `${v} referral${v === 1 ? "" : "s"}`}
+          />
+          <LeaderboardTable
+            title="Most credit earned"
+            entries={topByCredit}
+            currentUserId={user.id}
+            formatValue={(v) => `₹${v.toFixed(2)}`}
+          />
+        </div>
       </div>
 
       <div className="mt-10">
