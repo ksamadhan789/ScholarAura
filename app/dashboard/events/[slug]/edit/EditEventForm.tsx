@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
+import { EVENT_TYPE_LABELS, EVENT_FORMAT_OPTIONS } from "@/lib/eventLabels";
 import { PeopleEditor } from "@/components/PeopleEditor";
 import type { EventPerson } from "@/lib/eventPeople";
 
@@ -16,7 +16,8 @@ type FormState = {
   fee: string;
   seatsTotal: string;
   venueOrLink: string;
-  isOnline: boolean;
+  format: string;
+  city: string;
   thumbnailUrl: string;
   brochureUrl: string;
   eligibility: string;
@@ -187,17 +188,40 @@ export function EditEventForm({
             />
           </div>
         </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={form.isOnline}
-            onChange={(e) => set("isOnline", e.target.checked)}
-          />
-          This is an online event (Zoom)
-        </label>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Format</label>
+          <select
+            value={form.format}
+            onChange={(e) => set("format", e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          >
+            {EVENT_FORMAT_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+        {form.format !== "ONLINE" && (
+          <div>
+            <label className="mb-1 block text-sm font-medium">City</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Mumbai"
+              value={form.city}
+              onChange={(e) => set("city", e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+              Shown publicly and used for the location filter — the exact venue address stays hidden
+              until someone registers.
+            </p>
+          </div>
+        )}
         <div>
           <label className="mb-1 block text-sm font-medium">
-            {form.isOnline ? "Zoom link" : "Venue address"}
+            {form.format === "ONLINE" ? "Zoom link" : form.format === "HYBRID" ? "Venue address + Zoom link" : "Venue address"}
           </label>
           <input
             type="text"

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { EVENT_TYPE_LABELS, formatDateRange, formatDateTime } from "@/lib/eventLabels";
+import { EVENT_TYPE_LABELS, EVENT_FORMAT_LABELS, formatDateRange, formatDateTime } from "@/lib/eventLabels";
 import { RegisterButton } from "./RegisterButton";
 import { PeopleList } from "@/components/PeopleList";
 import { WaitlistButton } from "@/components/events/WaitlistButton";
@@ -135,11 +135,14 @@ export default async function EventDetailPage({
       <PeopleList people={(event.people as unknown as EventPerson[] | null) ?? []} />
 
       <div className="mt-4 flex flex-col gap-1 text-sm text-gray-600 dark:text-slate-400">
-        <p>{event.isOnline ? "Online" : "In person"}</p>
+        <p>
+          {EVENT_FORMAT_LABELS[event.format]}
+          {event.city && ` · ${event.city}`}
+        </p>
         <p>
           {canSeeVenue
             ? event.venueOrLink
-            : event.isOnline
+            : event.format === "ONLINE"
               ? "The Zoom link will be shared here once you register."
               : "The venue address will be shared here once you register."}
         </p>

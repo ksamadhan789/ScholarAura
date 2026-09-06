@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
+import { EVENT_TYPE_LABELS, EVENT_FORMAT_OPTIONS } from "@/lib/eventLabels";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -13,8 +13,9 @@ export default function NewEventPage() {
   const [endDate, setEndDate] = useState("");
   const [fee, setFee] = useState("0");
   const [seatsTotal, setSeatsTotal] = useState("50");
-  const [isOnline, setIsOnline] = useState(true);
+  const [format, setFormat] = useState("ONLINE");
   const [venueOrLink, setVenueOrLink] = useState("");
+  const [city, setCity] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [brochureUrl, setBrochureUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +38,9 @@ export default function NewEventPage() {
           endDate,
           fee,
           seatsTotal,
-          isOnline,
+          format,
           venueOrLink,
+          city,
           thumbnailUrl: thumbnailUrl || undefined,
           brochureUrl,
         }),
@@ -145,22 +147,45 @@ export default function NewEventPage() {
             />
           </div>
         </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={isOnline}
-            onChange={(e) => setIsOnline(e.target.checked)}
-          />
-          This is an online event (Zoom)
-        </label>
+        <div>
+          <label className="mb-1 block text-sm font-medium">Format</label>
+          <select
+            value={format}
+            onChange={(e) => setFormat(e.target.value)}
+            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+          >
+            {EVENT_FORMAT_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+        {format !== "ONLINE" && (
+          <div>
+            <label className="mb-1 block text-sm font-medium">City</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Mumbai"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+              Shown publicly and used for the location filter — the exact venue address stays hidden
+              until someone registers.
+            </p>
+          </div>
+        )}
         <div>
           <label className="mb-1 block text-sm font-medium">
-            {isOnline ? "Zoom link" : "Venue address"}
+            {format === "ONLINE" ? "Zoom link" : format === "HYBRID" ? "Venue address + Zoom link" : "Venue address"}
           </label>
           <input
             type="text"
             required
-            placeholder={isOnline ? "https://zoom.us/j/..." : "Room / building / city"}
+            placeholder={format === "ONLINE" ? "https://zoom.us/j/..." : "Room / building / street address"}
             value={venueOrLink}
             onChange={(e) => setVenueOrLink(e.target.value)}
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"

@@ -34,6 +34,12 @@ enum EventType {
   WEBINAR
 }
 
+enum EventFormat {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
 enum PaymentStatus {
   PENDING
   SUCCESS
@@ -323,7 +329,8 @@ model Event {
   seatsTotal    Int
   seatsFilled   Int       @default(0)
   venueOrLink   String
-  isOnline      Boolean   @default(false)
+  format        EventFormat @default(OFFLINE)
+  city          String?
   isPublished   Boolean   @default(false)
   isArchived    Boolean   @default(false)
   thumbnailUrl  String?

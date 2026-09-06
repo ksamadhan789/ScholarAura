@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { EVENT_TYPE_LABELS, EVENT_TYPE_TABS, formatDateRange } from "@/lib/eventLabels";
+import { EVENT_TYPE_LABELS, EVENT_TYPE_TABS, EVENT_FORMAT_LABELS, formatDateRange } from "@/lib/eventLabels";
 import { Badge } from "@/components/Badge";
 import { Thumbnail } from "@/components/Thumbnail";
 
@@ -31,7 +31,8 @@ function EventCard({
     title: string;
     startDate: Date;
     endDate: Date;
-    isOnline: boolean;
+    format: string;
+    city: string | null;
     seatsTotal: number;
     seatsFilled: number;
     fee: unknown;
@@ -52,7 +53,8 @@ function EventCard({
           {formatDateRange(event.startDate, event.endDate)}
         </p>
         <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-          {event.isOnline ? "Online" : "In person"} ·{" "}
+          {EVENT_FORMAT_LABELS[event.format]}
+          {event.city && ` · ${event.city}`} ·{" "}
           {seatsLeft > 0 ? `${seatsLeft} seats left` : "Full"}
         </p>
         <p className="mt-2 font-semibold text-slate-900 dark:text-white">
@@ -63,13 +65,38 @@ function EventCard({
   );
 }
 
+const PAYMENT_OPTIONS = [
+  { value: "", label: "Any price" },
+  { value: "FREE", label: "Free" },
+  { value: "PAID", label: "Paid" },
+];
+
+/** Builds a query string from the current filters plus one overridden field, for links that change a single filter without dropping the others. */
+function buildQuery(
+  base: { type?: string; q?: string; format?: string; payment?: string; city?: string },
+  overrides: { type?: string }
+): string {
+  const merged = { ...base, ...overrides };
+  const params = new URLSearchParams();
+  if (merged.type) params.set("type", merged.type);
+  if (merged.q) params.set("q", merged.q);
+  if (merged.format) params.set("format", merged.format);
+  if (merged.payment) params.set("payment", merged.payment);
+  if (merged.city) params.set("city", merged.city);
+  const qs = params.toString();
+  return qs ? `/events?${qs}` : "/events";
+}
+
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: { type?: string; q?: string };
+  searchParams: { type?: string; q?: string; format?: string; payment?: string; city?: string };
 }) {
   const activeType = searchParams.type;
   const q = searchParams.q?.trim();
+  const activeFormat = searchParams.format;
+  const activePayment = searchParams.payment;
+  const activeCity = searchParams.city;
   const now = new Date();
 
   // This page is scoped to "Upcoming & ongoing" (its own title) — excluding
@@ -78,23 +105,38 @@ export default async function EventsPage({
   // that only matched a past event left `events` non-empty while both
   // buckets were empty, silently rendering a blank results area instead of
   // the "no events" message.
-  const events = await prisma.event.findMany({
-    where: {
-      isPublished: true,
-      endDate: { gte: now },
-      ...(activeType ? { type: activeType as never } : {}),
-      ...(q
-        ? {
-            OR: [
-              { title: { contains: q, mode: "insensitive" } },
-              { description: { contains: q, mode: "insensitive" } },
-              { shortDescription: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    orderBy: { startDate: "asc" },
-  });
+  const [events, cityRows] = await Promise.all([
+    prisma.event.findMany({
+      where: {
+        isPublished: true,
+        endDate: { gte: now },
+        ...(activeType ? { type: activeType as never } : {}),
+        ...(activeFormat ? { format: activeFormat as never } : {}),
+        ...(activePayment === "FREE" ? { fee: 0 } : activePayment === "PAID" ? { fee: { gt: 0 } } : {}),
+        ...(activeCity ? { city: activeCity } : {}),
+        ...(q
+          ? {
+              OR: [
+                { title: { contains: q, mode: "insensitive" } },
+                { description: { contains: q, mode: "insensitive" } },
+                { shortDescription: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: { startDate: "asc" },
+    }),
+    // Independent of the filters above, so the Location dropdown always
+    // lists every city with a live event rather than shrinking to just
+    // whatever the current filter selection happens to match.
+    prisma.event.findMany({
+      where: { isPublished: true, endDate: { gte: now }, city: { not: null } },
+      select: { city: true },
+      distinct: ["city"],
+      orderBy: { city: "asc" },
+    }),
+  ]);
+  const cities = cityRows.map((r) => r.city as string);
 
   const ongoing = events.filter((e) => e.startDate <= now && e.endDate >= now);
   const upcoming = events.filter((e) => e.startDate > now);
@@ -102,6 +144,7 @@ export default async function EventsPage({
   const activeLabel = activeType
     ? EVENT_TYPE_TABS.find((t) => t.type === activeType)?.label
     : null;
+  const hasActiveFilters = Boolean(activeFormat || activePayment || activeCity);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
@@ -109,7 +152,7 @@ export default async function EventsPage({
         {activeLabel ?? "📅 Upcoming & ongoing events"}
       </h1>
 
-      <form className="mb-6 flex flex-wrap gap-2" action="/events">
+      <form className="mb-4 flex flex-wrap gap-2" action="/events">
         {activeType && <input type="hidden" name="type" value={activeType} />}
         <input
           type="text"
@@ -118,17 +161,60 @@ export default async function EventsPage({
           placeholder="Search by title or description..."
           className="min-w-[200px] flex-1 rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
         />
+        <select
+          name="format"
+          defaultValue={activeFormat ?? ""}
+          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+        >
+          <option value="">Any format</option>
+          {Object.entries(EVENT_FORMAT_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <select
+          name="payment"
+          defaultValue={activePayment ?? ""}
+          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+        >
+          {PAYMENT_OPTIONS.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+        <select
+          name="city"
+          defaultValue={activeCity ?? ""}
+          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+        >
+          <option value="">Any location</option>
+          {cities.map((city) => (
+            <option key={city} value={city}>
+              {city}
+            </option>
+          ))}
+        </select>
         <button
           type="submit"
           className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
         >
           Search
         </button>
+        {(q || hasActiveFilters) && (
+          <Link
+            href={activeType ? `/events?type=${activeType}` : "/events"}
+            className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            Clear filters
+          </Link>
+        )}
       </form>
 
       <div className="mb-8 flex flex-wrap gap-2">
         <Link
-          href={q ? `/events?q=${encodeURIComponent(q)}` : "/events"}
+          href={buildQuery(searchParams, { type: undefined })}
           className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
             !activeType
               ? "bg-brand-600 text-white"
@@ -140,7 +226,7 @@ export default async function EventsPage({
         {EVENT_TYPE_TABS.map(({ type, label }) => (
           <Link
             key={type}
-            href={q ? `/events?type=${type}&q=${encodeURIComponent(q)}` : `/events?type=${type}`}
+            href={buildQuery(searchParams, { type })}
             className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
               activeType === type
                 ? "bg-brand-600 text-white"
@@ -154,8 +240,8 @@ export default async function EventsPage({
 
       {events.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
-          👀 No {activeLabel ? activeLabel.toLowerCase() : "events"} published yet — check back
-          soon!
+          👀 No {activeLabel ? activeLabel.toLowerCase() : "events"}
+          {q || hasActiveFilters ? " match your search" : " published yet — check back soon!"}
         </p>
       ) : (
         <div className="flex flex-col gap-10">

@@ -14,6 +14,8 @@ const eventTypes = [
   "WEBINAR",
 ] as const;
 
+const eventFormats = ["ONLINE", "OFFLINE", "HYBRID"] as const;
+
 const optionalDate = z.preprocess(
   (val) => (val === "" || val == null ? undefined : val),
   z.coerce.date().optional()
@@ -29,7 +31,8 @@ const createEventSchema = z
     fee: z.coerce.number().min(0, "Fee can't be negative"),
     seatsTotal: z.coerce.number().int().min(1, "Must allow at least 1 seat"),
     venueOrLink: z.string().min(1, "Venue or link is required"),
-    isOnline: z.boolean().optional().default(false),
+    format: z.enum(eventFormats).default("OFFLINE"),
+    city: z.string().trim().optional().or(z.literal("")),
     thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
     brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
     shortDescription: z.string().trim().optional().or(z.literal("")),
@@ -46,6 +49,10 @@ const createEventSchema = z
   .refine((data) => data.endDate >= data.startDate, {
     message: "End date must be after the start date",
     path: ["endDate"],
+  })
+  .refine((data) => data.format === "ONLINE" || (data.city && data.city.trim().length > 0), {
+    message: "City is required for in-person or hybrid events",
+    path: ["city"],
   });
 
 export async function GET() {
@@ -89,7 +96,8 @@ export async function POST(request: Request) {
       fee,
       seatsTotal,
       venueOrLink,
-      isOnline,
+      format,
+      city,
       thumbnailUrl,
       brochureUrl,
       shortDescription,
@@ -122,7 +130,8 @@ export async function POST(request: Request) {
         fee,
         seatsTotal,
         venueOrLink,
-        isOnline,
+        format,
+        city: city || null,
         thumbnailUrl: thumbnailUrl || null,
         brochureUrl: brochureUrl || null,
         shortDescription: shortDescription || null,
