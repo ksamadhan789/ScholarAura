@@ -26,6 +26,7 @@ function CompetitionCard({
     title: string;
     submissionDeadline: Date;
     fee: unknown;
+    maxTeamSize: number;
     thumbnailUrl: string | null;
   };
 }) {
@@ -39,7 +40,8 @@ function CompetitionCard({
         <Badge variant="brand">Competition</Badge>
         <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{competition.title}</h3>
         <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-          Submit by {formatDeadline(competition.submissionDeadline)}
+          Submit by {formatDeadline(competition.submissionDeadline)} ·{" "}
+          {competition.maxTeamSize > 1 ? `Team of up to ${competition.maxTeamSize}` : "Individual"}
         </p>
         <p className="mt-2 font-semibold text-slate-900 dark:text-white">
           {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
@@ -49,16 +51,28 @@ function CompetitionCard({
   );
 }
 
+const TEAM_SIZE_OPTIONS = [
+  { value: "", label: "Any team size" },
+  { value: "individual", label: "Individual" },
+  { value: "team", label: "Team" },
+];
+
 export default async function CompetitionsPage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: { q?: string; team?: string };
 }) {
   const q = searchParams.q?.trim();
+  const activeTeam = searchParams.team;
 
   const competitions = await prisma.competition.findMany({
     where: {
       isPublished: true,
+      ...(activeTeam === "individual"
+        ? { maxTeamSize: 1 }
+        : activeTeam === "team"
+          ? { maxTeamSize: { gt: 1 } }
+          : {}),
       ...(q
         ? {
             OR: [
@@ -88,17 +102,36 @@ export default async function CompetitionsPage({
           placeholder="Search by title or description..."
           className="min-w-[200px] flex-1 rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
         />
+        <select
+          name="team"
+          defaultValue={activeTeam ?? ""}
+          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+        >
+          {TEAM_SIZE_OPTIONS.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
         <button
           type="submit"
           className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
         >
           Search
         </button>
+        {(q || activeTeam) && (
+          <Link
+            href="/competitions"
+            className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            Clear filters
+          </Link>
+        )}
       </form>
 
       {competitions.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
-          👀 No competitions {q ? "matched your search" : "published yet"} — check back soon!
+          👀 No competitions {q || activeTeam ? "matched your search" : "published yet"} — check back soon!
         </p>
       ) : (
         <div className="flex flex-col gap-10">

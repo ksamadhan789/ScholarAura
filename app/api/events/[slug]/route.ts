@@ -12,6 +12,8 @@ const optionalDate = z.preprocess(
   z.coerce.date().optional()
 );
 
+const eventFormats = ["ONLINE", "OFFLINE", "HYBRID"] as const;
+
 const updateEventSchema = z
   .object({
     isPublished: z.boolean().optional(),
@@ -25,7 +27,8 @@ const updateEventSchema = z
     fee: z.coerce.number().min(0).optional(),
     seatsTotal: z.coerce.number().int().min(1).optional(),
     venueOrLink: z.string().min(1).optional(),
-    isOnline: z.boolean().optional(),
+    format: z.enum(eventFormats).optional(),
+    city: z.string().trim().nullable().optional(),
     shortDescription: z.string().trim().nullable().optional(),
     eligibility: z.string().trim().nullable().optional(),
     registrationStartDate: optionalDate.nullable(),
@@ -110,6 +113,15 @@ export async function PATCH(
     );
   }
 
+  const effectiveFormat = d.format ?? event.format;
+  const effectiveCity = d.city !== undefined ? d.city : event.city;
+  if (effectiveFormat !== "ONLINE" && !effectiveCity?.trim()) {
+    return NextResponse.json(
+      { error: "City is required for in-person or hybrid events" },
+      { status: 400 }
+    );
+  }
+
   const effectiveAttendanceRequired = d.attendanceRequired ?? event.attendanceRequired;
   const effectiveMinAttendancePercent =
     d.minAttendancePercent !== undefined ? d.minAttendancePercent : event.minAttendancePercent;
@@ -134,7 +146,8 @@ export async function PATCH(
       ...(d.fee !== undefined && { fee: d.fee }),
       ...(d.seatsTotal !== undefined && { seatsTotal: d.seatsTotal }),
       ...(d.venueOrLink !== undefined && { venueOrLink: d.venueOrLink }),
-      ...(d.isOnline !== undefined && { isOnline: d.isOnline }),
+      ...(d.format !== undefined && { format: d.format }),
+      ...(d.city !== undefined && { city: d.city || null }),
       ...(d.shortDescription !== undefined && { shortDescription: d.shortDescription || null }),
       ...(d.eligibility !== undefined && { eligibility: d.eligibility || null }),
       ...(d.registrationStartDate !== undefined && { registrationStartDate: d.registrationStartDate }),
