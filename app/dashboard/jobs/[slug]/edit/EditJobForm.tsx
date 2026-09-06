@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EMPLOYMENT_TYPE_LABELS } from "@/lib/jobLabels";
+import { EMPLOYMENT_TYPE_LABELS, INTERNSHIP_PERKS } from "@/lib/jobLabels";
 
 type Initial = {
   title: string;
@@ -16,6 +16,10 @@ type Initial = {
   minExperienceYears: string;
   salaryRange: string;
   applicationDeadline: string;
+  stipendRange: string;
+  durationMonths: string;
+  internshipStartDate: string;
+  perks: string[];
 };
 
 export function EditJobForm({ slug, initial }: { slug: string; initial: Initial }) {
@@ -31,8 +35,17 @@ export function EditJobForm({ slug, initial }: { slug: string; initial: Initial 
   const [minExperienceYears, setMinExperienceYears] = useState(initial.minExperienceYears);
   const [salaryRange, setSalaryRange] = useState(initial.salaryRange);
   const [applicationDeadline, setApplicationDeadline] = useState(initial.applicationDeadline);
+  const [stipendRange, setStipendRange] = useState(initial.stipendRange);
+  const [durationMonths, setDurationMonths] = useState(initial.durationMonths);
+  const [internshipStartDate, setInternshipStartDate] = useState(initial.internshipStartDate);
+  const [perks, setPerks] = useState<string[]>(initial.perks);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const isInternship = employmentType === "INTERNSHIP";
+
+  function togglePerk(perk: string) {
+    setPerks((prev) => (prev.includes(perk) ? prev.filter((p) => p !== perk) : [...prev, perk]));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,6 +68,10 @@ export function EditJobForm({ slug, initial }: { slug: string; initial: Initial 
           minExperienceYears: minExperienceYears ? Number(minExperienceYears) : null,
           salaryRange: salaryRange || null,
           applicationDeadline: applicationDeadline || null,
+          stipendRange: isInternship ? stipendRange || null : null,
+          durationMonths: isInternship && durationMonths ? Number(durationMonths) : null,
+          internshipStartDate: isInternship ? internshipStartDate || null : null,
+          perks: isInternship && perks.length > 0 ? perks : null,
         }),
       });
 
@@ -197,6 +214,68 @@ export function EditJobForm({ slug, initial }: { slug: string; initial: Initial 
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
           />
         </div>
+
+        {isInternship && (
+          <div className="flex flex-col gap-4 rounded border border-gray-200 dark:border-slate-700 p-4">
+            <p className="text-sm font-medium">Internship details</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Stipend <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. ₹10,000/month, or Unpaid"
+                  value={stipendRange}
+                  onChange={(e) => setStipendRange(e.target.value)}
+                  className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Duration (months) <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="24"
+                  value={durationMonths}
+                  onChange={(e) => setDurationMonths(e.target.value)}
+                  className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                Start date{" "}
+                <span className="font-normal text-gray-400 dark:text-slate-500">
+                  (optional — leave blank for &quot;Immediately&quot;)
+                </span>
+              </label>
+              <input
+                type="date"
+                value={internshipStartDate}
+                onChange={(e) => setInternshipStartDate(e.target.value)}
+                className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Perks</label>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {INTERNSHIP_PERKS.map((perk) => (
+                  <label key={perk} className="flex items-center gap-1.5 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={perks.includes(perk)}
+                      onChange={() => togglePerk(perk)}
+                    />
+                    {perk}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 

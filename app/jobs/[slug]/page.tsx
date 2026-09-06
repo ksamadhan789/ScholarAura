@@ -47,6 +47,7 @@ export default async function JobDetailPage({ params }: { params: { slug: string
     : [null, null];
 
   const deadlinePassed = job.applicationDeadline ? new Date() > job.applicationDeadline : false;
+  const isInternship = job.employmentType === "INTERNSHIP";
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
@@ -74,9 +75,39 @@ export default async function JobDetailPage({ params }: { params: { slug: string
       <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
         <Badge variant="brand">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</Badge>
         <span>{job.isRemote ? "Remote" : job.location}</span>
-        {job.salaryRange && <span>· {job.salaryRange}</span>}
-        {job.minExperienceYears != null && <span>· {job.minExperienceYears}+ yrs experience</span>}
+        {isInternship ? (
+          <>
+            {job.stipendRange && <span>· {job.stipendRange}</span>}
+            {job.durationMonths && (
+              <span>
+                · {job.durationMonths} month{job.durationMonths === 1 ? "" : "s"}
+              </span>
+            )}
+          </>
+        ) : (
+          <>
+            {job.salaryRange && <span>· {job.salaryRange}</span>}
+            {job.minExperienceYears != null && <span>· {job.minExperienceYears}+ yrs experience</span>}
+          </>
+        )}
       </div>
+
+      {isInternship && (
+        <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
+          Start date:{" "}
+          {job.internshipStartDate ? formatJobDate(job.internshipStartDate) : "Immediately"}
+        </p>
+      )}
+
+      {isInternship && Array.isArray(job.perks) && job.perks.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {(job.perks as string[]).map((perk) => (
+            <Badge key={perk} variant="neutral">
+              {perk}
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {job.applicationDeadline && (
         <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">

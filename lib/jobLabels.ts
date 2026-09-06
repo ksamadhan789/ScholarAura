@@ -12,6 +12,16 @@ export const EMPLOYMENT_TYPE_TABS: { type: string; label: string }[] = [
   { type: "CONTRACT", label: "Contract" },
 ];
 
+export const INTERNSHIP_PERKS = [
+  "Certificate",
+  "Letter of recommendation",
+  "Flexible work hours",
+  "5 days a week",
+  "Informal dress code",
+  "Free snacks & beverages",
+  "Job offer",
+] as const;
+
 export const JOB_APPLICATION_STATUS_LABELS: Record<string, string> = {
   APPLIED: "Applied",
   SHORTLISTED: "Shortlisted",

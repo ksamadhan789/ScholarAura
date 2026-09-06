@@ -828,6 +828,14 @@ model Job {
   minExperienceYears  Int?
   salaryRange         String?
   applicationDeadline DateTime?
+  // Internship-specific — meaningful when employmentType is INTERNSHIP, but
+  // not DB-enforced to that case (same as every other optional Job field).
+  // internshipStartDate null reads as "Immediately", same as Internshala's
+  // convention, rather than a separate boolean flag.
+  stipendRange        String?
+  durationMonths      Int?
+  internshipStartDate DateTime?
+  perks               Json?
   isPublished         Boolean            @default(false)
   approvalStatus      JobApprovalStatus  @default(APPROVED)
   rejectionReason     String?

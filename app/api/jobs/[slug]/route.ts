@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendJobApprovedEmail, sendJobRejectedEmail } from "@/lib/email";
@@ -26,6 +27,13 @@ const updateJobSchema = z
       (val) => (val === "" ? null : val),
       z.coerce.date().nullable().optional()
     ),
+    stipendRange: z.string().trim().nullable().optional(),
+    durationMonths: z.coerce.number().int().min(1).max(24).nullable().optional(),
+    internshipStartDate: z.preprocess(
+      (val) => (val === "" ? null : val),
+      z.coerce.date().nullable().optional()
+    ),
+    perks: z.array(z.string().trim().min(1)).max(10).nullable().optional(),
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined), {
     message: "Nothing to update",
@@ -91,6 +99,10 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
       ...(d.minExperienceYears !== undefined && { minExperienceYears: d.minExperienceYears }),
       ...(d.salaryRange !== undefined && { salaryRange: d.salaryRange || null }),
       ...(d.applicationDeadline !== undefined && { applicationDeadline: d.applicationDeadline }),
+      ...(d.stipendRange !== undefined && { stipendRange: d.stipendRange || null }),
+      ...(d.durationMonths !== undefined && { durationMonths: d.durationMonths }),
+      ...(d.internshipStartDate !== undefined && { internshipStartDate: d.internshipStartDate }),
+      ...(d.perks !== undefined && { perks: d.perks && d.perks.length > 0 ? d.perks : Prisma.JsonNull }),
     },
   });
 
