@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPE_TABS, formatJobDate } from "@/lib/jobLabels";
 import { Badge } from "@/components/Badge";
+import { SaveButton } from "@/components/SaveButton";
 
 export const metadata: Metadata = {
   title: "Jobs",
@@ -11,8 +14,10 @@ export const metadata: Metadata = {
 
 function JobCard({
   job,
+  isSaved,
 }: {
   job: {
+    id: string;
     slug: string;
     title: string;
     companyName: string;
@@ -23,37 +28,45 @@ function JobCard({
     salaryRange: string | null;
     createdAt: Date;
   };
+  isSaved: boolean | null;
 }) {
   return (
-    <Link
-      href={`/jobs/${job.slug}`}
-      className="flex items-start gap-4 rounded-lg border border-gray-200 dark:border-slate-700 p-4 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
-    >
-      {job.companyLogoUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={job.companyLogoUrl}
-          alt=""
-          className="h-12 w-12 shrink-0 rounded object-contain"
-        />
-      ) : (
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-brand-50 text-xl dark:bg-slate-800">
-          💼
+    <div className="relative">
+      {isSaved !== null && (
+        <div className="absolute right-2 top-2 z-10">
+          <SaveButton endpoint={`/api/jobs/${job.slug}/wishlist`} isSaved={isSaved} variant="overlay" />
         </div>
       )}
-      <div className="min-w-0 flex-1">
-        <h3 className="font-medium text-slate-900 dark:text-white">{job.title}</h3>
-        <p className="text-sm text-gray-600 dark:text-slate-400">{job.companyName}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
-          <Badge variant="brand">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</Badge>
-          <span>{job.isRemote ? "Remote" : job.location}</span>
-          {job.salaryRange && <span>· {job.salaryRange}</span>}
+      <Link
+        href={`/jobs/${job.slug}`}
+        className="flex items-start gap-4 rounded-lg border border-gray-200 dark:border-slate-700 p-4 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
+      >
+        {job.companyLogoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={job.companyLogoUrl}
+            alt=""
+            className="h-12 w-12 shrink-0 rounded object-contain"
+          />
+        ) : (
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-brand-50 text-xl dark:bg-slate-800">
+            💼
+          </div>
+        )}
+        <div className="min-w-0 flex-1 pr-8">
+          <h3 className="font-medium text-slate-900 dark:text-white">{job.title}</h3>
+          <p className="text-sm text-gray-600 dark:text-slate-400">{job.companyName}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
+            <Badge variant="brand">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</Badge>
+            <span>{job.isRemote ? "Remote" : job.location}</span>
+            {job.salaryRange && <span>· {job.salaryRange}</span>}
+          </div>
+          <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
+            Posted {formatJobDate(job.createdAt)}
+          </p>
         </div>
-        <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
-          Posted {formatJobDate(job.createdAt)}
-        </p>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
 
@@ -62,6 +75,7 @@ export default async function JobsPage({
 }: {
   searchParams: { employmentType?: string; remote?: string; q?: string };
 }) {
+  const session = await getServerSession(authOptions);
   const activeType = searchParams.employmentType;
   const remoteOnly = searchParams.remote === "true";
   const q = searchParams.q?.trim();
@@ -83,6 +97,17 @@ export default async function JobsPage({
     },
     orderBy: { createdAt: "desc" },
   });
+
+  const savedJobIds = session
+    ? new Set(
+        (
+          await prisma.jobWishlist.findMany({
+            where: { userId: session.user.id, jobId: { in: jobs.map((j) => j.id) } },
+            select: { jobId: true },
+          })
+        ).map((w) => w.jobId)
+      )
+    : null;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-16">
@@ -152,7 +177,7 @@ export default async function JobsPage({
       ) : (
         <div className="flex flex-col gap-3">
           {jobs.map((job) => (
-            <JobCard key={job.slug} job={job} />
+            <JobCard key={job.slug} job={job} isSaved={savedJobIds ? savedJobIds.has(job.id) : null} />
           ))}
         </div>
       )}

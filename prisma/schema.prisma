@@ -158,6 +158,9 @@ model User {
   auditLogs         AuditLog[]
   quizAttempts      QuizAttempt[]
   bundlePurchases   BundlePurchase[]
+  eventWishlist       EventWishlist[]
+  competitionWishlist CompetitionWishlist[]
+  jobWishlist         JobWishlist[]
 
   @@map("users")
 }
@@ -326,6 +329,45 @@ model CourseWishlist {
   @@unique([userId, courseId])
   @@index([courseId])
   @@map("course_wishlist")
+}
+
+model EventWishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+  @@index([eventId])
+  @@map("event_wishlist")
+}
+
+model CompetitionWishlist {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  competitionId String
+  competition   Competition @relation(fields: [competitionId], references: [id])
+  createdAt     DateTime    @default(now())
+
+  @@unique([userId, competitionId])
+  @@index([competitionId])
+  @@map("competition_wishlist")
+}
+
+model JobWishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, jobId])
+  @@index([jobId])
+  @@map("job_wishlist")
 }
 
 model CourseVideo {
@@ -502,6 +544,7 @@ model Event {
   registrations EventRegistration[]
   certificates  Certificate[]
   waitlist      EventWaitlist[]
+  wishlistedBy  EventWishlist[]
 
   @@map("events")
 }
@@ -601,6 +644,7 @@ model Competition {
 
   entries            CompetitionEntry[]
   certificates        Certificate[]
+  wishlistedBy        CompetitionWishlist[]
 
   @@map("competitions")
 }
@@ -794,6 +838,7 @@ model Job {
   updatedAt           DateTime           @updatedAt
 
   applications        JobApplication[]
+  wishlistedBy        JobWishlist[]
 
   @@map("jobs")
 }

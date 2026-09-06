@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   EVENT_TYPE_LABELS,
@@ -10,6 +12,7 @@ import {
 } from "@/lib/eventLabels";
 import { Badge } from "@/components/Badge";
 import { Thumbnail } from "@/components/Thumbnail";
+import { SaveButton } from "@/components/SaveButton";
 
 export function generateMetadata({
   searchParams,
@@ -29,6 +32,7 @@ export function generateMetadata({
 
 function EventCard({
   event,
+  isSaved,
 }: {
   event: {
     id: string;
@@ -45,35 +49,43 @@ function EventCard({
     fee: unknown;
     thumbnailUrl: string | null;
   };
+  isSaved: boolean | null;
 }) {
   const seatsLeft = event.seatsTotal - event.seatsFilled;
   return (
-    <Link
-      href={`/events/${event.slug}`}
-      className="overflow-hidden rounded-lg border border-gray-200 dark:border-slate-700 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
-    >
-      <Thumbnail url={event.thumbnailUrl} alt={event.title} icon="📅" />
-      <div className="p-4">
-        <div className="flex flex-wrap gap-1.5">
-          <Badge variant="brand">{EVENT_TYPE_LABELS[event.type]}</Badge>
-          {event.audience !== "EVERYONE" && (
-            <Badge variant="neutral">{EVENT_AUDIENCE_LABELS[event.audience]}</Badge>
-          )}
+    <div className="relative">
+      {isSaved !== null && (
+        <div className="absolute right-2 top-2 z-10">
+          <SaveButton endpoint={`/api/events/${event.slug}/wishlist`} isSaved={isSaved} variant="overlay" />
         </div>
-        <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{event.title}</h3>
-        <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-          {formatDateRange(event.startDate, event.endDate)}
-        </p>
-        <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-          {EVENT_FORMAT_LABELS[event.format]}
-          {event.city && ` · ${event.city}`} ·{" "}
-          {seatsLeft > 0 ? `${seatsLeft} seats left` : "Full"}
-        </p>
-        <p className="mt-2 font-semibold text-slate-900 dark:text-white">
-          {Number(event.fee) === 0 ? "Free" : `₹${event.fee}`}
-        </p>
-      </div>
-    </Link>
+      )}
+      <Link
+        href={`/events/${event.slug}`}
+        className="block overflow-hidden rounded-lg border border-gray-200 dark:border-slate-700 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
+      >
+        <Thumbnail url={event.thumbnailUrl} alt={event.title} icon="📅" />
+        <div className="p-4">
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant="brand">{EVENT_TYPE_LABELS[event.type]}</Badge>
+            {event.audience !== "EVERYONE" && (
+              <Badge variant="neutral">{EVENT_AUDIENCE_LABELS[event.audience]}</Badge>
+            )}
+          </div>
+          <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{event.title}</h3>
+          <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
+            {formatDateRange(event.startDate, event.endDate)}
+          </p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
+            {EVENT_FORMAT_LABELS[event.format]}
+            {event.city && ` · ${event.city}`} ·{" "}
+            {seatsLeft > 0 ? `${seatsLeft} seats left` : "Full"}
+          </p>
+          <p className="mt-2 font-semibold text-slate-900 dark:text-white">
+            {Number(event.fee) === 0 ? "Free" : `₹${event.fee}`}
+          </p>
+        </div>
+      </Link>
+    </div>
   );
 }
 
@@ -112,6 +124,7 @@ export default async function EventsPage({
     audience?: string;
   };
 }) {
+  const session = await getServerSession(authOptions);
   const activeType = searchParams.type;
   const q = searchParams.q?.trim();
   const activeFormat = searchParams.format;
@@ -159,6 +172,17 @@ export default async function EventsPage({
     }),
   ]);
   const cities = cityRows.map((r) => r.city as string);
+
+  const savedEventIds = session
+    ? new Set(
+        (
+          await prisma.eventWishlist.findMany({
+            where: { userId: session.user.id, eventId: { in: events.map((e) => e.id) } },
+            select: { eventId: true },
+          })
+        ).map((w) => w.eventId)
+      )
+    : null;
 
   const ongoing = events.filter((e) => e.startDate <= now && e.endDate >= now);
   const upcoming = events.filter((e) => e.startDate > now);
@@ -286,7 +310,7 @@ export default async function EventsPage({
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {ongoing.map((event) => (
-                  <EventCard key={event.id} event={event} />
+                  <EventCard key={event.id} event={event} isSaved={savedEventIds ? savedEventIds.has(event.id) : null} />
                 ))}
               </div>
             </section>
@@ -299,7 +323,7 @@ export default async function EventsPage({
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {upcoming.map((event) => (
-                  <EventCard key={event.id} event={event} />
+                  <EventCard key={event.id} event={event} isSaved={savedEventIds ? savedEventIds.has(event.id) : null} />
                 ))}
               </div>
             </section>

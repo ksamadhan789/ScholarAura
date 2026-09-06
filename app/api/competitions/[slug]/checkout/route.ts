@@ -193,6 +193,10 @@ export async function POST(
               description: `Competition: ${competition.title}`,
             });
             await claimCouponRedemption(tx, couponId);
+            // An entered competition no longer needs to be "saved for later".
+            await tx.competitionWishlist.deleteMany({
+              where: { userId: session.user.id, competitionId: competition.id },
+            });
           }
 
           const settled = await tx.competitionEntry.findUniqueOrThrow({
