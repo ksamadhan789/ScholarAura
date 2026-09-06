@@ -17,6 +17,7 @@ export function LectureRow({
   slug,
   video,
   hasQuiz,
+  resourceCount,
   index,
   prev,
   next,
@@ -24,6 +25,7 @@ export function LectureRow({
   slug: string;
   video: VideoInfo;
   hasQuiz: boolean;
+  resourceCount: number;
   index: number;
   prev: { id: string; orderIndex: number } | null;
   next: { id: string; orderIndex: number } | null;
@@ -194,6 +196,12 @@ export function LectureRow({
           className="rounded border border-gray-300 dark:border-slate-600 px-2 py-1 text-xs"
         >
           {hasQuiz ? "Quiz" : "+ Quiz"}
+        </Link>
+        <Link
+          href={`/dashboard/courses/${slug}/lectures/${video.id}/resources`}
+          className="rounded border border-gray-300 dark:border-slate-600 px-2 py-1 text-xs"
+        >
+          {resourceCount > 0 ? `Resources (${resourceCount})` : "+ Resources"}
         </Link>
         <button
           onClick={remove}

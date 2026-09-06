@@ -68,15 +68,24 @@ export async function exportAsPdf(fileId: string): Promise<Buffer> {
   return Buffer.from(res.data as ArrayBuffer);
 }
 
-export async function uploadPdf(name: string, parentId: string, bytes: Uint8Array): Promise<string> {
+export async function uploadFile(
+  name: string,
+  parentId: string,
+  bytes: Uint8Array,
+  mimeType: string
+): Promise<string> {
   const drive = await driveClient();
   const res = await drive.files.create({
     requestBody: { name, parents: [parentId] },
-    media: { mimeType: "application/pdf", body: Readable.from(Buffer.from(bytes)) },
+    media: { mimeType, body: Readable.from(Buffer.from(bytes)) },
     fields: "id",
   });
-  if (!res.data.id) throw new Error("Failed to upload certificate PDF");
+  if (!res.data.id) throw new Error("Failed to upload file");
   return res.data.id;
+}
+
+export async function uploadPdf(name: string, parentId: string, bytes: Uint8Array): Promise<string> {
+  return uploadFile(name, parentId, bytes, "application/pdf");
 }
 
 /** Downloads the raw bytes of a binary file (as opposed to exporting a Google-native doc). */

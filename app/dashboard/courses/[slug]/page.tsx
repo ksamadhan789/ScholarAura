@@ -18,7 +18,12 @@ export default async function ManageCoursePage({
 
   const course = await prisma.course.findUnique({
     where: { slug: params.slug },
-    include: { videos: { orderBy: { orderIndex: "asc" }, include: { quiz: { select: { id: true } } } } },
+    include: {
+      videos: {
+        orderBy: { orderIndex: "asc" },
+        include: { quiz: { select: { id: true } }, _count: { select: { resources: true } } },
+      },
+    },
   });
 
   if (!course) {
@@ -34,6 +39,9 @@ export default async function ManageCoursePage({
   const finalQuiz = await prisma.quiz.findFirst({
     where: { courseId: course.id, courseVideoId: null },
     select: { id: true },
+  });
+  const courseResourceCount = await prisma.courseResource.count({
+    where: { courseId: course.id, courseVideoId: null },
   });
 
   return (
@@ -64,6 +72,12 @@ export default async function ManageCoursePage({
           >
             {finalQuiz ? "Final quiz" : "+ Final quiz"}
           </Link>
+          <Link
+            href={`/dashboard/courses/${course.slug}/resources`}
+            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          >
+            {courseResourceCount > 0 ? `Resources (${courseResourceCount})` : "+ Resources"}
+          </Link>
         </div>
       </div>
 
@@ -77,6 +91,7 @@ export default async function ManageCoursePage({
               slug={course.slug}
               video={video}
               hasQuiz={Boolean(video.quiz)}
+              resourceCount={video._count.resources}
               index={i}
               prev={i > 0 ? course.videos[i - 1] : null}
               next={i < course.videos.length - 1 ? course.videos[i + 1] : null}
