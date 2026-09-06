@@ -15,6 +15,7 @@ const eventTypes = [
 ] as const;
 
 const eventFormats = ["ONLINE", "OFFLINE", "HYBRID"] as const;
+const eventAudiences = ["STUDENT", "PROFESSIONAL", "EVERYONE"] as const;
 
 const optionalDate = z.preprocess(
   (val) => (val === "" || val == null ? undefined : val),
@@ -33,6 +34,7 @@ const createEventSchema = z
     venueOrLink: z.string().min(1, "Venue or link is required"),
     format: z.enum(eventFormats).default("OFFLINE"),
     city: z.string().trim().optional().or(z.literal("")),
+    audience: z.enum(eventAudiences).default("EVERYONE"),
     thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
     brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
     shortDescription: z.string().trim().optional().or(z.literal("")),
@@ -98,6 +100,7 @@ export async function POST(request: Request) {
       venueOrLink,
       format,
       city,
+      audience,
       thumbnailUrl,
       brochureUrl,
       shortDescription,
@@ -132,6 +135,7 @@ export async function POST(request: Request) {
         venueOrLink,
         format,
         city: city || null,
+        audience,
         thumbnailUrl: thumbnailUrl || null,
         brochureUrl: brochureUrl || null,
         shortDescription: shortDescription || null,

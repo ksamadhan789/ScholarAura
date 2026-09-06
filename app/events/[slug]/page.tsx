@@ -3,7 +3,13 @@ import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { EVENT_TYPE_LABELS, EVENT_FORMAT_LABELS, formatDateRange, formatDateTime } from "@/lib/eventLabels";
+import {
+  EVENT_TYPE_LABELS,
+  EVENT_FORMAT_LABELS,
+  EVENT_AUDIENCE_LABELS,
+  formatDateRange,
+  formatDateTime,
+} from "@/lib/eventLabels";
 import { RegisterButton } from "./RegisterButton";
 import { PeopleList } from "@/components/PeopleList";
 import { WaitlistButton } from "@/components/events/WaitlistButton";
@@ -77,7 +83,10 @@ export default async function EventDetailPage({
           Draft — not visible to the public yet
         </p>
       )}
-      <p className="text-sm text-gray-500 dark:text-slate-400">{EVENT_TYPE_LABELS[event.type]}</p>
+      <p className="text-sm text-gray-500 dark:text-slate-400">
+        {EVENT_TYPE_LABELS[event.type]}
+        {event.audience !== "EVERYONE" && ` · ${EVENT_AUDIENCE_LABELS[event.audience]}`}
+      </p>
       <h1 className="mt-1 text-2xl font-semibold">{event.title}</h1>
       {event.shortDescription && (
         <p className="mt-1 text-base text-gray-600 dark:text-slate-400">{event.shortDescription}</p>

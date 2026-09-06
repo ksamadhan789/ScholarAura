@@ -36,6 +36,7 @@ export default async function EditEventPage({ params }: { params: { slug: string
         venueOrLink: event.venueOrLink,
         format: event.format,
         city: event.city ?? "",
+        audience: event.audience,
         thumbnailUrl: event.thumbnailUrl ?? "",
         brochureUrl: event.brochureUrl ?? "",
         eligibility: event.eligibility ?? "",

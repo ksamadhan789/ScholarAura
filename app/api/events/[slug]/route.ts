@@ -13,6 +13,7 @@ const optionalDate = z.preprocess(
 );
 
 const eventFormats = ["ONLINE", "OFFLINE", "HYBRID"] as const;
+const eventAudiences = ["STUDENT", "PROFESSIONAL", "EVERYONE"] as const;
 
 const updateEventSchema = z
   .object({
@@ -29,6 +30,7 @@ const updateEventSchema = z
     venueOrLink: z.string().min(1).optional(),
     format: z.enum(eventFormats).optional(),
     city: z.string().trim().nullable().optional(),
+    audience: z.enum(eventAudiences).optional(),
     shortDescription: z.string().trim().nullable().optional(),
     eligibility: z.string().trim().nullable().optional(),
     registrationStartDate: optionalDate.nullable(),
@@ -148,6 +150,7 @@ export async function PATCH(
       ...(d.venueOrLink !== undefined && { venueOrLink: d.venueOrLink }),
       ...(d.format !== undefined && { format: d.format }),
       ...(d.city !== undefined && { city: d.city || null }),
+      ...(d.audience !== undefined && { audience: d.audience }),
       ...(d.shortDescription !== undefined && { shortDescription: d.shortDescription || null }),
       ...(d.eligibility !== undefined && { eligibility: d.eligibility || null }),
       ...(d.registrationStartDate !== undefined && { registrationStartDate: d.registrationStartDate }),
