@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/Badge";
 import { Thumbnail } from "@/components/Thumbnail";
 import { SaveButton } from "@/components/SaveButton";
+import { readLocationCookie } from "@/lib/location";
 
 export function generateMetadata({
   searchParams,
@@ -129,7 +130,11 @@ export default async function EventsPage({
   const q = searchParams.q?.trim();
   const activeFormat = searchParams.format;
   const activePayment = searchParams.payment;
-  const activeCity = searchParams.city;
+  // A city query param that's present but empty (the filter form submits
+  // "Any location" as city=) means the visitor explicitly wants no filter
+  // for this view — only fall back to their saved location when the key
+  // is absent entirely (a fresh visit to /events).
+  const activeCity = searchParams.city !== undefined ? searchParams.city || undefined : readLocationCookie();
   const activeAudience = searchParams.audience;
   const now = new Date();
 

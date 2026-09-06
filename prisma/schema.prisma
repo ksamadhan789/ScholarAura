@@ -623,6 +623,7 @@ model Competition {
   certificateLogoUrl      String?
   shortDescription       String?
   eligibility             String?
+  city                    String?
   registrationStartDate   DateTime?
   registrationDeadline    DateTime?
   resultDate              DateTime?

@@ -109,6 +109,7 @@ export default async function CompetitionDetailPage({
       <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
         {formatDate(competition.startDate)} – {formatDate(competition.endDate)} · Submit by{" "}
         {formatDate(competition.submissionDeadline)}
+        {competition.city && ` · 📍 ${competition.city}`}
       </p>
       <p className="mt-4 text-gray-700">{competition.description}</p>
 

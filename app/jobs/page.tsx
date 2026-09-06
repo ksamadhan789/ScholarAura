@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPE_TABS, formatJobDate } from "@/lib/jobLabels";
 import { Badge } from "@/components/Badge";
 import { SaveButton } from "@/components/SaveButton";
+import { readLocationCookie, getKnownCities } from "@/lib/location";
 
 export const metadata: Metadata = {
   title: "Jobs",
@@ -94,30 +95,40 @@ function JobCard({
 export default async function JobsPage({
   searchParams,
 }: {
-  searchParams: { employmentType?: string; remote?: string; q?: string };
+  searchParams: { employmentType?: string; remote?: string; q?: string; city?: string };
 }) {
   const session = await getServerSession(authOptions);
   const activeType = searchParams.employmentType;
   const remoteOnly = searchParams.remote === "true";
   const q = searchParams.q?.trim();
+  // Same "present but empty means explicitly cleared" rule as /events —
+  // only fall back to the saved location when the key is absent entirely.
+  const activeCity = searchParams.city !== undefined ? searchParams.city || undefined : readLocationCookie();
 
-  const jobs = await prisma.job.findMany({
-    where: {
-      isPublished: true,
-      ...(activeType ? { employmentType: activeType as never } : {}),
-      ...(remoteOnly ? { isRemote: true } : {}),
-      ...(q
-        ? {
-            OR: [
-              { title: { contains: q, mode: "insensitive" } },
-              { companyName: { contains: q, mode: "insensitive" } },
-              { location: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const [jobs, cities] = await Promise.all([
+    prisma.job.findMany({
+      where: {
+        isPublished: true,
+        ...(activeType ? { employmentType: activeType as never } : {}),
+        ...(remoteOnly ? { isRemote: true } : {}),
+        // Job.location is free text (e.g. "Bangalore, India"), not a clean
+        // city field like Event/Competition, so this is a loose text
+        // match against the chosen city rather than an exact filter.
+        ...(activeCity ? { location: { contains: activeCity, mode: "insensitive" } } : {}),
+        ...(q
+          ? {
+              OR: [
+                { title: { contains: q, mode: "insensitive" } },
+                { companyName: { contains: q, mode: "insensitive" } },
+                { location: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    getKnownCities(),
+  ]);
 
   const savedJobIds = session
     ? new Set(
@@ -154,6 +165,20 @@ export default async function JobsPage({
           placeholder="Search by title, company, or location..."
           className="min-w-[200px] flex-1 rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
         />
+        {activeType && <input type="hidden" name="employmentType" value={activeType} />}
+        {remoteOnly && <input type="hidden" name="remote" value="true" />}
+        <select
+          name="city"
+          defaultValue={activeCity ?? ""}
+          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+        >
+          <option value="">Any location</option>
+          {cities.map((city) => (
+            <option key={city} value={city}>
+              {city}
+            </option>
+          ))}
+        </select>
         <button
           type="submit"
           className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
