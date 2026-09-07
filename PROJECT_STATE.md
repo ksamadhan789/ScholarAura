@@ -22,8 +22,8 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 - **Jobs board:** admin- or recruiter-posted jobs. Recruiters need admin approval; every job is reviewed. Applications with PDF resume, status workflow (Applied → Shortlisted/Rejected/Hired), recruiter↔applicant messaging, internship-specific fields (stipend, duration, start date, perks), paid "Featured" boost (₹999 / 30 days, pins job to top).
 - **Save for later:** heart button on courses, events, competitions, jobs; one dashboard page.
 - **Referrals:** referral link, credit balance earned when invitees buy, affiliate rates, leaderboard.
-- **Location bar:** header widget sets a city (dropdown or "use my location"); pre-filters Events/Competitions/Jobs. Styled as an Amazon-style "Delivering to `<city>` / Update location" control next to the logo.
-- **Homepage:** Amazon-style tile grid (free courses, competitions closing soon, new jobs, events near you, bundle deals) instead of a hero banner. Header has a dark category strip below the search bar, and search has a category dropdown (All/Courses/Events/Competitions/Jobs/Bundles).
+- **Location bar:** header widget sets a city (dropdown or "use my location"); pre-filters Events/Competitions/Jobs. Shown as "Delivering to `<city>` / Update location" next to the logo.
+- **Homepage:** premium "academic ecosystem" redesign — hero (headline, CTAs, trust checklist, CSS-only ecosystem visual), trust strip, 6 platform category cards, a tabbed "Discover your next opportunity" explorer (real courses/events/competitions/jobs data), featured courses (real ratings/learner counts/duration), a "Why ScholarAura" section, 3 audience path cards, a certificate-verification lookup, an employer CTA, and a closing CTA (signed-out visitors only). Header nav is an Explore mega-menu (Learn/Connect/Showcase/Advance) + an Opportunities dropdown, both replacing the old flat nav links. Search has a category dropdown (All/Courses/Events/Competitions/Jobs/Bundles). Footer is multi-column, linking only to pages that actually exist.
 - **Coupons, refund requests, in-app notifications, admin audit log, public verifiable certificates, student portfolio page.**
 
 ## Project Structure (important parts only)
@@ -44,6 +44,8 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 - **Admin vs recruiter job pages are deliberately duplicated** (separate forms/routes). Adding a job field means editing both.
 - **Location cookie** is read only inside the three listing pages, never in the root layout (that would make every page dynamic and slow down static pages).
 - **Public listing pages that query the database** need `export const dynamic = "force-dynamic"` or the build fails.
+- **No testimonials/partner-logos/speaker-profile sections on the homepage** — there's no real data (no such tables), and no placeholder/fake content was built for them. Add them once real testimonials, partner logos, or instructor bios exist.
+- **"For Students/Faculty/Institutions" homepage links go to existing pages** (`/courses`, `/events?type=FDP`, `/recruiter/register`), not dedicated persona landing pages — none exist yet.
 
 ## Known Issues / Caveats
 

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -11,6 +10,8 @@ import { FeaturedCourses } from "@/components/FeaturedCourses";
 import { WhyScholarAura } from "@/components/WhyScholarAura";
 import { AudiencePaths } from "@/components/AudiencePaths";
 import { CertificateVerificationSection } from "@/components/CertificateVerificationSection";
+import { EmployerCTA } from "@/components/EmployerCTA";
+import { FinalCTA } from "@/components/FinalCTA";
 
 export const metadata: Metadata = {
   title: {
@@ -78,22 +79,8 @@ export default async function HomePage() {
       <WhyScholarAura />
       <AudiencePaths />
       <CertificateVerificationSection />
-
-      {!session && (
-        <section className="mx-auto w-full max-w-2xl px-4 pb-16 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Ready to get started?{" "}
-            <Link href="/register" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
-              Create a free account
-            </Link>{" "}
-            or{" "}
-            <Link href="/login" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
-              log in
-            </Link>
-            .
-          </p>
-        </section>
-      )}
+      <EmployerCTA />
+      {!session && <FinalCTA />}
     </main>
   );
 }
