@@ -47,15 +47,29 @@ const CATEGORIES = [
 
 export function PlatformCategories() {
   return (
-    <section id="platform-categories" className="mx-auto max-w-5xl px-4 py-8">
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <section id="platform-categories" className="mx-auto max-w-5xl px-4 py-16">
+      <div className="mx-auto max-w-2xl text-center">
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">
+          Everything academic. One platform.
+        </h2>
+        <p className="mt-3 text-slate-600 dark:text-slate-300">
+          One professional ecosystem for learning, networking, development and career opportunities.
+        </p>
+      </div>
+
+      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {CATEGORIES.map((category) => (
           <Link
             key={category.title}
             href={category.href}
             className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-brand-600"
           >
-            <span aria-hidden className="text-3xl">{category.icon}</span>
+            <span
+              aria-hidden
+              className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-2xl dark:bg-slate-700"
+            >
+              {category.icon}
+            </span>
             <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
               {category.title}
             </h3>
