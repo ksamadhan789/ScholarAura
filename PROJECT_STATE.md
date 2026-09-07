@@ -22,7 +22,8 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 - **Jobs board:** admin- or recruiter-posted jobs. Recruiters need admin approval; every job is reviewed. Applications with PDF resume, status workflow (Applied → Shortlisted/Rejected/Hired), recruiter↔applicant messaging, internship-specific fields (stipend, duration, start date, perks), paid "Featured" boost (₹999 / 30 days, pins job to top).
 - **Save for later:** heart button on courses, events, competitions, jobs; one dashboard page.
 - **Referrals:** referral link, credit balance earned when invitees buy, affiliate rates, leaderboard.
-- **Location bar:** header widget sets a city (dropdown or "use my location"); pre-filters Events/Competitions/Jobs.
+- **Location bar:** header widget sets a city (dropdown or "use my location"); pre-filters Events/Competitions/Jobs. Styled as an Amazon-style "Delivering to `<city>` / Update location" control next to the logo.
+- **Homepage:** Amazon-style tile grid (free courses, competitions closing soon, new jobs, events near you, bundle deals) instead of a hero banner. Header has a dark category strip below the search bar, and search has a category dropdown (All/Courses/Events/Competitions/Jobs/Bundles).
 - **Coupons, refund requests, in-app notifications, admin audit log, public verifiable certificates, student portfolio page.**
 
 ## Project Structure (important parts only)

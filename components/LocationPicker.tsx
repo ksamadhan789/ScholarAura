@@ -107,9 +107,17 @@ export function LocationPicker() {
           if (!open) ensureCitiesLoaded();
         }}
         aria-expanded={open}
-        className="flex items-center gap-1 text-sm hover:text-brand-600 dark:hover:text-brand-400"
+        className="flex items-start gap-1 text-left hover:text-brand-600 dark:hover:text-brand-400"
       >
-        📍 {city ?? "Select location"}
+        <span aria-hidden className="mt-0.5">📍</span>
+        <span className="leading-tight">
+          <span className="block text-[11px] text-slate-500 dark:text-slate-400">
+            {city ? `Delivering to ${city}` : "Hello, select your"}
+          </span>
+          <span className="block text-sm font-semibold text-slate-900 dark:text-white">
+            Update location
+          </span>
+        </span>
       </button>
 
       {open && (
