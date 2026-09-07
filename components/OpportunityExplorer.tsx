@@ -217,7 +217,7 @@ export function OpportunityExplorer({
   const visibleCards = tab === "ALL" ? allCards : allCards.filter((c) => c.tab === tab);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
+    <section id="opportunities" className="mx-auto max-w-6xl px-4 py-16">
       <h2 className="text-center text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl">
         Discover your next opportunity
       </h2>
