@@ -16,8 +16,8 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Recruiter monetization — paid "Featured" job boosts
 - Universal save-for-later (courses, events, competitions, jobs)
 - Referral program with credit balance and leaderboard
-- Site-wide location bar (city filter) with "Delivering to `<city>`" header control
-- Premium homepage redesign (hero, mega-menu nav, platform categories, dynamic opportunity explorer, featured courses, why/audience/certificate-verification sections, employer + closing CTAs, multi-column footer)
+- Amazon-style location bar (site-wide city filter)
+- Coupons, refund requests, notifications, audit log, multi-currency display
 - Persistent project memory files (PROJECT_STATE.md, TODO.md, CHANGELOG.md)
 
 ## In Progress
@@ -29,8 +29,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Recruiter subscription plan (monthly/annual — build on top of the existing JobBoost model)
 - Structured city field for jobs (would replace the loose text match)
 - Placement-guarantee course tier (pair a course/bundle with a job outcome)
-- Homepage testimonials, partner/institution logos, instructor "experts" section — once real data exists for any of these (no tables for them yet, deliberately not built with placeholder content)
-- Dedicated persona landing pages (For Students / For Faculty / For Institutions) if the current links to existing pages aren't enough
+- Homepage trust signals (stats bar, partner logos) once real numbers exist
 - Reconnect Google sign-in: the Google Cloud OAuth client was deleted and must be recreated (config task, not code — see CHANGELOG 2026-09-06 note)
 
 ## Known Issues to Revisit
