@@ -23,7 +23,6 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 - **Save for later:** heart button on courses, events, competitions, jobs; one dashboard page.
 - **Referrals:** referral link, credit balance earned when invitees buy, affiliate rates, leaderboard.
 - **Location bar:** header widget sets a city (dropdown or "use my location"); pre-filters Events/Competitions/Jobs.
-- **Homepage:** simple hero (headline, description, two CTA buttons) + 6 platform category cards, above the existing tabbed browse section. Header nav is plain links (Courses/Competitions/Jobs/Bundles/Events dropdown), no mega-menu.
 - **Coupons, refund requests, in-app notifications, admin audit log, public verifiable certificates, student portfolio page.**
 
 ## Project Structure (important parts only)
@@ -64,8 +63,6 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 - Develop on branch `claude/search-results-visibility-dr0eae`, open a PR to `master`, merge (squash) once CI is green.
 - Before shipping: `npx tsc --noEmit`, `npx vitest run`, `npx next build`.
 - After a schema change: `npx prisma generate`.
-- **Squash merges rewrite history**, so `git merge origin/master` on this branch almost always shows a conflict even when content actually matches — resolve by keeping this branch's version (`git checkout --ours <file>`) unless it's a genuine new conflict. When deliberately reverting something already on `master`, use `git merge -s ours origin/master` instead so the PR's mergeable_state comes back "clean" (a plain revert commit still shows as conflicting to GitHub for the same history-rewriting reason).
-- **Large/uncertain redesigns:** ship big visual changes in small phases (separate PRs) and check scope with the owner before a full rebuild — a full homepage redesign was shipped and reverted the same day (2026-09-07) before landing on a smaller version.
 
 ## How Claude Works on This Project
 
