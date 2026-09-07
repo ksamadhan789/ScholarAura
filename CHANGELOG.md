@@ -2,6 +2,12 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-07
+
+### Changed
+- Homepage got a simple redesign: a clean hero (headline, description, two buttons — no gradient background or sign-in form) plus 6 platform category cards (Courses, Conferences, Faculty Development, Hands-on Training, Competitions, Career Opportunities), sitting above the existing tabbed browse section (PR #146). Header nav is unchanged (plain links, no mega-menu).
+- Earlier the same day: an Amazon-style tile-grid redesign was built and merged (PR #140), then replaced by a much larger 4-phase "premium academic ecosystem" redesign — new hero with a floating-card graphic, mega-menu header, a dynamic opportunity explorer, featured courses, why-ScholarAura, audience paths, certificate verification, employer CTA, final CTA, and a rebuilt footer (PRs #141-144). All of that was reverted the same day (PR #145) back to the Sep 6 baseline, then rebuilt as the smaller version described above. Net effect: only the simple hero + category cards are live.
+
 ## 2026-09-06
 
 ### Changed

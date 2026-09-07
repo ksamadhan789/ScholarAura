@@ -16,7 +16,8 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Recruiter monetization — paid "Featured" job boosts
 - Universal save-for-later (courses, events, competitions, jobs)
 - Referral program with credit balance and leaderboard
-- Amazon-style location bar (site-wide city filter)
+- Site-wide location bar (city filter)
+- Simplified homepage redesign (hero + platform category cards, above the existing browse tabs)
 - Coupons, refund requests, notifications, audit log, multi-currency display
 - Persistent project memory files (PROJECT_STATE.md, TODO.md, CHANGELOG.md)
 
@@ -30,6 +31,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Structured city field for jobs (would replace the loose text match)
 - Placement-guarantee course tier (pair a course/bundle with a job outcome)
 - Homepage trust signals (stats bar, partner logos) once real numbers exist
+- More homepage sections (dynamic opportunity explorer, featured courses, certificate verification, employer CTA, etc.) — built once already (2026-09-07), reverted the same day in favor of a simpler version; revisit if there's a specific need
 - Reconnect Google sign-in: the Google Cloud OAuth client was deleted and must be recreated (config task, not code — see CHANGELOG 2026-09-06 note)
 
 ## Known Issues to Revisit
