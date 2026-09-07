@@ -16,7 +16,6 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 ## Current Features
 
 - **Courses:** video lectures, free previews, enrollment (free or paid), progress tracking, reviews, Q&A, per-lecture and final quizzes (must pass to get a certificate), downloadable resources, completion certificates.
-- **Course bundles / learning paths:** admin groups courses at one price; shows cross-course progress.
 - **Events:** conferences, FDPs, hands-on trainings, webinars. Online/offline/hybrid, city, audience, seats + waitlist, paid/free registration, attendance-based certificates.
 - **Competitions:** entries (individual or team), submissions, prizes, winners, certificates, optional city.
 - **Jobs board:** admin- or recruiter-posted jobs. Recruiters need admin approval; every job is reviewed. Applications with PDF resume, status workflow (Applied → Shortlisted/Rejected/Hired), recruiter↔applicant messaging, internship-specific fields (stipend, duration, start date, perks), paid "Featured" boost (₹999 / 30 days, pins job to top).
@@ -29,14 +28,13 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 
 - `app/` — pages and API routes (Next.js App Router). Public pages at `app/<section>/`, admin/user pages under `app/dashboard/`, APIs under `app/api/`.
 - `components/` — shared UI (Header, LocationPicker, SaveButton, quiz/message/boost components, etc.).
-- `lib/` — business logic and helpers (payments, referrals, certificates, quizzes, bundles, location, email, Google integrations).
+- `lib/` — business logic and helpers (payments, referrals, certificates, quizzes, location, email, Google integrations).
 - `prisma/` — database schema and migrations.
 - `test/` — test helpers (Prisma mock). Tests live next to code as `*.test.ts` (Vitest).
 
 ## Important Decisions
 
-- **Payments:** every paid thing (course, event, competition, bundle, job boost) uses the same one-time Razorpay flow: create order → pay → verify signature → settle. A Razorpay webhook re-settles if the browser drops. Settlement is idempotent.
-- **Bundles grant access by fan-out:** buying a bundle creates a normal course purchase for each course, so all existing course logic works unchanged. Bundles skip coupons/credit (v1 scope).
+- **Payments:** every paid thing (course, event, competition, job boost) uses the same one-time Razorpay flow: create order → pay → verify signature → settle. A Razorpay webhook re-settles if the browser drops. Settlement is idempotent.
 - **Job boosts** are their own product (`JobBoost` table + `featuredUntil` on Job) so a recruiter subscription tier can be added later without reshaping it.
 - **Files** (resumes, course resources) live in Google Drive; only the Drive file ID is stored in the database.
 - **Lists of things** stored inside one record (quiz questions, event people, job perks) use a JSON column validated in code, not extra tables.
@@ -46,6 +44,7 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 
 ## Known Issues / Caveats
 
+- **Bundles feature removed from the site (2026-09-07)**, but its database tables (`CourseBundle`, `CourseBundleItem`, `BundlePurchase`) and any existing purchase records were deliberately kept, not dropped. The audit-log `BUNDLE_CREATED/UPDATED/DELETED` action types and labels are also kept so historical audit-log entries stay readable. No new code reads or writes these tables.
 - Job location is free text, so the location filter for jobs is a loose text match (e.g. "Bangalore" won't match "Bengaluru").
 - Recruiter subscriptions and job-boost refunds are not built.
 - The `/events` and `/competitions` "Clear filters" link resets to the saved location rather than "all cities" — intended, but slightly different from the in-page "Any location" option.

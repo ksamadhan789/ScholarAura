@@ -7,7 +7,6 @@ import {
   settleCompetitionEntry,
   EventFullError,
 } from "@/lib/paymentSettlement";
-import { settleBundlePurchase } from "@/lib/bundlePurchase";
 import { settleJobBoost } from "@/lib/jobBoost";
 
 // Server-to-server safety net for payment confirmation: the checkout flow
@@ -81,14 +80,6 @@ export async function POST(request: Request) {
     });
     if (competitionEntry) {
       await settleCompetitionEntry(competitionEntry.id, paymentId);
-      return NextResponse.json({ received: true });
-    }
-
-    const bundlePurchase = await prisma.bundlePurchase.findFirst({
-      where: { razorpayOrderId: orderId },
-    });
-    if (bundlePurchase) {
-      await settleBundlePurchase(bundlePurchase.id, paymentId);
       return NextResponse.json({ received: true });
     }
 

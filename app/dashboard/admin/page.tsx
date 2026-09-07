@@ -183,12 +183,6 @@ export default async function AdminHomePage() {
           Coupons
         </Link>
         <Link
-          href="/dashboard/bundles"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Manage bundles
-        </Link>
-        <Link
           href="/dashboard/external-courses"
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >

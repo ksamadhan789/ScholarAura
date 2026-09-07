@@ -7,7 +7,6 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Courses (lectures, previews, enrollment, progress, reviews, Q&A, certificates)
 - Course quizzes (per-lecture + final, gating certificates)
 - Downloadable course resources
-- Course bundles / learning paths
 - Events (registration, waitlist, format/city/audience filters, certificates)
 - Competitions (entries, teams, prizes, winners, certificates, city)
 - Jobs board (admin + recruiter posting, approval workflow, applications with resumes)
@@ -28,7 +27,8 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 
 - Recruiter subscription plan (monthly/annual — build on top of the existing JobBoost model)
 - Structured city field for jobs (would replace the loose text match)
-- Placement-guarantee course tier (pair a course/bundle with a job outcome)
+- Placement-guarantee course tier (pair a course with a job outcome)
+- Bundles / learning paths — removed 2026-09-07; revisit only if there's a specific need (see CHANGELOG)
 - Homepage trust signals (stats bar, partner logos) once real numbers exist
 - Reconnect Google sign-in: the Google Cloud OAuth client was deleted and must be recreated (config task, not code — see CHANGELOG 2026-09-06 note)
 

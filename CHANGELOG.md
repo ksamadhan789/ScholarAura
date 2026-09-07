@@ -2,6 +2,12 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-07
+
+### Changed
+- Removed the Bundles / learning-paths feature: public bundle pages, admin bundle management, the bundle checkout/purchase flow, and all "Bundles" links across the header and admin dashboard are gone. The database tables and any existing purchase records were kept (not dropped), as were the audit-log entries for historical bundle actions, so nothing here is a data deletion — just removing the feature from the live site.
+- The homepage also went through several redesign attempts today (an Amazon-style layout, then a larger "premium academic ecosystem" redesign, then a smaller rebuild) — all were reverted the same day. Net effect: the homepage is unchanged from its Sep 6 form.
+
 ## 2026-09-06
 
 ### Changed
