@@ -5,7 +5,12 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-07
 
 ### Changed
-- Redesigned the homepage and header in an Amazon-style layout (PR #140): the gradient hero was replaced with a tile grid (free courses, competitions closing soon, new jobs, events near you, bundle deals), the location picker moved next to the logo as a two-line "Delivering to `<city>` / Update location" control, a dark category strip was added below the header search bar, and search gained a category dropdown (bundles are now included in search results too).
+- Redesigned the homepage into a premium "academic ecosystem" platform, per an owner-supplied design spec, in four phases (PRs #141-143, #144 — supersedes the Amazon-style layout from PR #140, shipped and replaced the same day):
+  - **Phase 1 (#141):** new hero (headline, CTAs, trust checklist, CSS-only ecosystem visual — no stock imagery), a "built for the academic community" trust strip, 6 platform category cards, and a header rebuilt around an Explore mega-menu (Learn/Connect/Showcase/Advance) plus an Opportunities dropdown. Sign-up button renamed to "Get Started"; the homepage no longer opens with an inline sign-in form.
+  - **Phase 2 (#142):** a dynamic, tabbed "Discover your next opportunity" explorer and a "Featured Courses" section, both backed entirely by real database queries (ratings, learner counts from `CoursePurchase`, duration summed from `CourseVideo`) — no fabricated stats.
+  - **Phase 3 (#143):** "Why ScholarAura" benefits, 3 audience-path cards (Students/Faculty & Researchers/Institutions & Employers — linking to existing pages, not new persona pages), and a certificate-verification form wired to the existing `/verify/[code]` route.
+  - **Phase 4 (#144):** an employer CTA linking to recruiter registration, a closing CTA (signed-out visitors only), and a multi-column footer linking only to pages that actually exist (no About/Contact/FAQ/Cookie-Policy links or social icons — none of those exist yet).
+  - Deliberately not built: testimonials, partner/institution logos, instructor "experts" profiles — no real data exists for any of them yet.
 
 ## 2026-09-06
 
