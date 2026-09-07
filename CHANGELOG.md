@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-07
+
+### Changed
+- Redesigned the homepage and header in an Amazon-style layout (PR #140): the gradient hero was replaced with a tile grid (free courses, competitions closing soon, new jobs, events near you, bundle deals), the location picker moved next to the logo as a two-line "Delivering to `<city>` / Update location" control, a dark category strip was added below the header search bar, and search gained a category dropdown (bundles are now included in search results too).
+
 ## 2026-09-06
 
 ### Changed
