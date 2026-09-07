@@ -8,6 +8,9 @@ import { TrustStrip } from "@/components/TrustStrip";
 import { PlatformCategories } from "@/components/PlatformCategories";
 import { OpportunityExplorer } from "@/components/OpportunityExplorer";
 import { FeaturedCourses } from "@/components/FeaturedCourses";
+import { WhyScholarAura } from "@/components/WhyScholarAura";
+import { AudiencePaths } from "@/components/AudiencePaths";
+import { CertificateVerificationSection } from "@/components/CertificateVerificationSection";
 
 export const metadata: Metadata = {
   title: {
@@ -72,8 +75,12 @@ export default async function HomePage() {
 
       <FeaturedCourses courses={featuredCourses} />
 
+      <WhyScholarAura />
+      <AudiencePaths />
+      <CertificateVerificationSection />
+
       {!session && (
-        <section className="mx-auto w-full max-w-2xl px-4 pb-16 pt-16 text-center">
+        <section className="mx-auto w-full max-w-2xl px-4 pb-16 text-center">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Ready to get started?{" "}
             <Link href="/register" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
