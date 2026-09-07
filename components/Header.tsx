@@ -26,10 +26,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
         <Link
           href="/"
-          className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"
+          className="flex shrink-0 items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -41,73 +41,15 @@ export function Header() {
           ScholarAura
         </Link>
 
-        <nav className="hidden items-center gap-4 text-sm text-slate-600 dark:text-slate-300 md:flex">
-          <Link href="/courses" className="hover:text-brand-600 dark:hover:text-brand-400">
-            📚 Courses
-          </Link>
-
-          <Link href="/competitions" className="hover:text-brand-600 dark:hover:text-brand-400">
-            🏆 Competitions
-          </Link>
-
-          <Link href="/jobs" className="hover:text-brand-600 dark:hover:text-brand-400">
-            💼 Jobs
-          </Link>
-
-          <Link href="/bundles" className="hover:text-brand-600 dark:hover:text-brand-400">
-            🎁 Bundles
-          </Link>
-
-          <div
-            className="relative"
-            onMouseEnter={openEventsMenu}
-            onMouseLeave={scheduleCloseEventsMenu}
-          >
-            <button
-              type="button"
-              onClick={() => setEventsOpen((v) => !v)}
-              className="flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400"
-              aria-expanded={eventsOpen}
-            >
-              📅 Events
-              <span aria-hidden className="text-[10px]">▾</span>
-            </button>
-
-            {eventsOpen && (
-              <div
-                className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-slate-200 bg-white py-2 shadow-lg dark:border-slate-700 dark:bg-slate-800"
-                onMouseEnter={openEventsMenu}
-                onMouseLeave={scheduleCloseEventsMenu}
-              >
-                <Link
-                  href="/events"
-                  onClick={() => setEventsOpen(false)}
-                  className="block px-4 py-2 font-medium hover:bg-brand-50 dark:hover:bg-slate-700"
-                >
-                  ✨ All Events
-                </Link>
-                <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
-                {EVENT_TYPE_TABS.map(({ type, label }) => (
-                  <Link
-                    key={type}
-                    href={`/events?type=${type}`}
-                    onClick={() => setEventsOpen(false)}
-                    className="block px-4 py-2 hover:bg-brand-50 dark:hover:bg-slate-700"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </nav>
+        <div className="hidden shrink-0 md:block">
+          <LocationPicker />
+        </div>
 
         <div className="hidden min-w-0 flex-1 md:block">
           <SearchBar />
         </div>
 
         <div className="hidden items-center gap-3 text-sm md:flex">
-          <LocationPicker />
           <ThemeToggle />
           <NotificationBell />
           {status === "loading" ? null : session ? (
@@ -158,6 +100,73 @@ export function Header() {
           >
             {mobileOpen ? "✕" : "☰"}
           </button>
+        </div>
+      </div>
+
+      <div className="hidden border-t border-slate-800 bg-slate-800 dark:border-slate-950 dark:bg-slate-950 md:block">
+        <div className="mx-auto flex max-w-5xl items-center gap-5 px-4 py-2 text-sm text-slate-200">
+          <span className="flex shrink-0 items-center gap-1 font-medium text-white">
+            <span aria-hidden>☰</span> All
+          </span>
+          <Link href="/courses" className="hover:text-brand-300">
+            📚 Courses
+          </Link>
+          <Link href="/competitions" className="hover:text-brand-300">
+            🏆 Competitions
+          </Link>
+          <Link href="/jobs" className="hover:text-brand-300">
+            💼 Jobs
+          </Link>
+          <Link href="/bundles" className="hover:text-brand-300">
+            🎁 Bundles
+          </Link>
+
+          <div
+            className="relative"
+            onMouseEnter={openEventsMenu}
+            onMouseLeave={scheduleCloseEventsMenu}
+          >
+            <button
+              type="button"
+              onClick={() => setEventsOpen((v) => !v)}
+              className="flex items-center gap-1 hover:text-brand-300"
+              aria-expanded={eventsOpen}
+            >
+              📅 Events
+              <span aria-hidden className="text-[10px]">▾</span>
+            </button>
+
+            {eventsOpen && (
+              <div
+                className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-slate-200 bg-white py-2 text-slate-700 shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                onMouseEnter={openEventsMenu}
+                onMouseLeave={scheduleCloseEventsMenu}
+              >
+                <Link
+                  href="/events"
+                  onClick={() => setEventsOpen(false)}
+                  className="block px-4 py-2 font-medium hover:bg-brand-50 dark:hover:bg-slate-700"
+                >
+                  ✨ All Events
+                </Link>
+                <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+                {EVENT_TYPE_TABS.map(({ type, label }) => (
+                  <Link
+                    key={type}
+                    href={`/events?type=${type}`}
+                    onClick={() => setEventsOpen(false)}
+                    className="block px-4 py-2 hover:bg-brand-50 dark:hover:bg-slate-700"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Link href="/dashboard/wishlist" className="hover:text-brand-300">
+            ❤️ Saved for later
+          </Link>
         </div>
       </div>
 
