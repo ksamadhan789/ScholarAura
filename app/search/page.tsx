@@ -8,12 +8,18 @@ import { EMPLOYMENT_TYPE_LABELS } from "@/lib/jobLabels";
 
 export const dynamic = "force-dynamic";
 
-export function generateMetadata({ searchParams }: { searchParams: { q?: string } }): Metadata {
+export function generateMetadata({
+  searchParams,
+}: {
+  searchParams: { q?: string; type?: string };
+}): Metadata {
   const q = searchParams.q?.trim();
   return { title: q ? `Search: ${q}` : "Search" };
 }
 
 const RESULT_LIMIT = 15;
+const SEARCH_TYPES: readonly string[] = ["course", "event", "competition", "job"];
+type SearchType = (typeof SEARCH_TYPES)[number];
 
 function insensitive(q: string) {
   return { contains: q, mode: Prisma.QueryMode.insensitive };
@@ -42,8 +48,14 @@ function ResultRow({
   );
 }
 
-export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: { q?: string; type?: string };
+}) {
   const q = searchParams.q?.trim() ?? "";
+  const rawType = searchParams.type ?? "";
+  const type = SEARCH_TYPES.includes(rawType) ? (rawType as SearchType) : undefined;
 
   if (!q) {
     return (
@@ -56,13 +68,18 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
     );
   }
 
+  const includeCourses = !type || type === "course";
+  const includeEvents = !type || type === "event";
+  const includeCompetitions = !type || type === "competition";
+  const includeJobs = !type || type === "job";
+
   const [courses, events, competitions, jobs] = await Promise.all([
     prisma.course.findMany({
       where: {
         isPublished: true,
         OR: [{ title: insensitive(q) }, { description: insensitive(q) }, { category: insensitive(q) }],
       },
-      take: RESULT_LIMIT,
+      take: includeCourses ? RESULT_LIMIT : 0,
       orderBy: { createdAt: "desc" },
     }),
     prisma.event.findMany({
@@ -74,7 +91,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           { shortDescription: insensitive(q) },
         ],
       },
-      take: RESULT_LIMIT,
+      take: includeEvents ? RESULT_LIMIT : 0,
       orderBy: { startDate: "asc" },
     }),
     prisma.competition.findMany({
@@ -86,7 +103,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           { shortDescription: insensitive(q) },
         ],
       },
-      take: RESULT_LIMIT,
+      take: includeCompetitions ? RESULT_LIMIT : 0,
       orderBy: { startDate: "asc" },
     }),
     prisma.job.findMany({
@@ -99,7 +116,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           { description: insensitive(q) },
         ],
       },
-      take: RESULT_LIMIT,
+      take: includeJobs ? RESULT_LIMIT : 0,
       orderBy: { createdAt: "desc" },
     }),
   ]);
