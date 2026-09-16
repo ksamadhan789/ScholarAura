@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS, COLLEGE_TYPE_OPTIONS } from "@/lib/onboardingOptions";
+import { COUNTRY_CODES, flagEmoji } from "@/lib/countryCodes";
 
 type CollegeSuggestion = { name: string; city: string | null; state: string | null };
 
@@ -18,6 +19,7 @@ export default function OnboardingPage() {
   const [middleName, setMiddleName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryIso, setCountryIso] = useState("IN");
   const [userType, setUserType] = useState<string | null>(null);
   const [fieldOfStudy, setFieldOfStudy] = useState("");
   const [fieldOfStudyOther, setFieldOfStudyOther] = useState("");
@@ -128,7 +130,9 @@ export default function OnboardingPage() {
           firstName,
           middleName: middleName || undefined,
           lastName,
-          phone: phone ? `+91${phone}` : phone,
+          phone: phone
+            ? `${COUNTRY_CODES.find((c) => c.iso2 === countryIso)?.dial ?? "+91"}${phone}`
+            : phone,
           userType,
           fieldOfStudy: userType === "COLLEGE_STUDENT" ? resolvedFieldOfStudy : undefined,
           organization: userType === "COLLEGE_STUDENT" ? organization.trim() : undefined,
@@ -208,15 +212,24 @@ export default function OnboardingPage() {
         <div>
           <label className="mb-1 block text-sm font-medium">Mobile number</label>
           <div className="flex overflow-hidden rounded border border-gray-300 focus-within:border-brand-500 dark:border-slate-600 dark:focus-within:border-brand-400">
-            <span className="flex shrink-0 items-center border-r border-gray-300 bg-gray-50 px-3 text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300">
-              🇮🇳 +91
-            </span>
+            <select
+              value={countryIso}
+              onChange={(e) => setCountryIso(e.target.value)}
+              aria-label="Country code"
+              className="w-28 shrink-0 border-r border-gray-300 bg-gray-50 px-2 text-sm text-gray-600 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 sm:w-40"
+            >
+              {COUNTRY_CODES.map((c) => (
+                <option key={c.iso2} value={c.iso2}>
+                  {flagEmoji(c.iso2)} {c.name} ({c.dial})
+                </option>
+              ))}
+            </select>
             <input
               type="tel"
               inputMode="numeric"
               placeholder="9876543210"
               value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 15))}
               className="w-full min-w-0 flex-1 px-3 py-2 focus:outline-none dark:bg-slate-800 dark:text-white"
             />
           </div>
