@@ -128,7 +128,7 @@ export default function OnboardingPage() {
           firstName,
           middleName: middleName || undefined,
           lastName,
-          phone,
+          phone: phone ? `+91${phone}` : phone,
           userType,
           fieldOfStudy: userType === "COLLEGE_STUDENT" ? resolvedFieldOfStudy : undefined,
           organization: userType === "COLLEGE_STUDENT" ? organization.trim() : undefined,
@@ -207,13 +207,19 @@ export default function OnboardingPage() {
 
         <div>
           <label className="mb-1 block text-sm font-medium">Mobile number</label>
-          <input
-            type="tel"
-            placeholder="e.g. 9876543210"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
-          />
+          <div className="flex overflow-hidden rounded border border-gray-300 focus-within:border-brand-500 dark:border-slate-600 dark:focus-within:border-brand-400">
+            <span className="flex shrink-0 items-center border-r border-gray-300 bg-gray-50 px-3 text-sm text-gray-600 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300">
+              🇮🇳 +91
+            </span>
+            <input
+              type="tel"
+              inputMode="numeric"
+              placeholder="9876543210"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              className="w-full min-w-0 flex-1 px-3 py-2 focus:outline-none dark:bg-slate-800 dark:text-white"
+            />
+          </div>
         </div>
 
         <div>
