@@ -119,6 +119,14 @@ export function Header() {
             💼 Jobs
           </Link>
 
+          <Link href="/jobs?employmentType=INTERNSHIP" className="hover:text-white">
+            🧑‍🎓 Internships
+          </Link>
+
+          <Link href="/events?type=ALUMNI_MEET" className="hover:text-white">
+            🎉 Alumni Meet
+          </Link>
+
           <div
             className="relative"
             onMouseEnter={openEventsMenu}
@@ -195,6 +203,20 @@ export function Header() {
               className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               💼 Jobs
+            </Link>
+            <Link
+              href="/jobs?employmentType=INTERNSHIP"
+              onClick={() => setMobileOpen(false)}
+              className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              🧑‍🎓 Internships
+            </Link>
+            <Link
+              href="/events?type=ALUMNI_MEET"
+              onClick={() => setMobileOpen(false)}
+              className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              🎉 Alumni Meet
             </Link>
 
             <button

@@ -4,6 +4,7 @@ export const EVENT_TYPE_LABELS: Record<string, string> = {
   FDP: "🎓 Faculty Development Program",
   HANDS_ON_TRAINING: "🧪 VR Hands-on Training",
   WEBINAR: "💻 Webinar",
+  ALUMNI_MEET: "🎉 Alumni Meet",
 };
 
 // Plural labels + stable order, used for nav/tab lists.
@@ -13,6 +14,7 @@ export const EVENT_TYPE_TABS: { type: string; label: string }[] = [
   { type: "WEBINAR", label: "💻 Webinars" },
   { type: "FDP", label: "🎓 Faculty Development Programs" },
   { type: "HANDS_ON_TRAINING", label: "🧪 VR Hands-on Trainings" },
+  { type: "ALUMNI_MEET", label: "🎉 Alumni Meets" },
 ];
 
 export const EVENT_FORMAT_LABELS: Record<string, string> = {
