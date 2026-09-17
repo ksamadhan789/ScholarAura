@@ -12,6 +12,7 @@ const eventTypes = [
   "FDP",
   "HANDS_ON_TRAINING",
   "WEBINAR",
+  "ALUMNI_MEET",
 ] as const;
 
 const eventFormats = ["ONLINE", "OFFLINE", "HYBRID"] as const;
