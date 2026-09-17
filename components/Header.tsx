@@ -24,6 +24,8 @@ export function Header() {
     closeTimer.current = setTimeout(() => setEventsOpen(false), 150);
   }
 
+  const firstName = session?.user?.name?.split(" ")[0] ?? "there";
+
   return (
     <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
@@ -41,63 +43,6 @@ export function Header() {
           ScholarAura
         </Link>
 
-        <nav className="hidden items-center gap-4 text-sm text-slate-600 dark:text-slate-300 md:flex">
-          <Link href="/courses" className="hover:text-brand-600 dark:hover:text-brand-400">
-            📚 Courses
-          </Link>
-
-          <Link href="/competitions" className="hover:text-brand-600 dark:hover:text-brand-400">
-            🏆 Competitions
-          </Link>
-
-          <Link href="/jobs" className="hover:text-brand-600 dark:hover:text-brand-400">
-            💼 Jobs
-          </Link>
-
-          <div
-            className="relative"
-            onMouseEnter={openEventsMenu}
-            onMouseLeave={scheduleCloseEventsMenu}
-          >
-            <button
-              type="button"
-              onClick={() => setEventsOpen((v) => !v)}
-              className="flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400"
-              aria-expanded={eventsOpen}
-            >
-              📅 Events
-              <span aria-hidden className="text-[10px]">▾</span>
-            </button>
-
-            {eventsOpen && (
-              <div
-                className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-slate-200 bg-white py-2 shadow-lg dark:border-slate-700 dark:bg-slate-800"
-                onMouseEnter={openEventsMenu}
-                onMouseLeave={scheduleCloseEventsMenu}
-              >
-                <Link
-                  href="/events"
-                  onClick={() => setEventsOpen(false)}
-                  className="block px-4 py-2 font-medium hover:bg-brand-50 dark:hover:bg-slate-700"
-                >
-                  ✨ All Events
-                </Link>
-                <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
-                {EVENT_TYPE_TABS.map(({ type, label }) => (
-                  <Link
-                    key={type}
-                    href={`/events?type=${type}`}
-                    onClick={() => setEventsOpen(false)}
-                    className="block px-4 py-2 hover:bg-brand-50 dark:hover:bg-slate-700"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </nav>
-
         <div className="hidden min-w-0 flex-1 md:block">
           <SearchBar />
         </div>
@@ -110,13 +55,13 @@ export function Header() {
             <>
               <Link
                 href="/dashboard"
-                className="text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400"
+                className="flex flex-col leading-tight text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400"
               >
-                Dashboard
+                <span className="text-xs text-slate-400 dark:text-slate-500">
+                  Hello, {firstName}
+                </span>
+                <span className="font-semibold">Dashboard</span>
               </Link>
-              <span className="hidden text-slate-400 sm:inline dark:text-slate-500">
-                {session.user?.name}
-              </span>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="rounded border border-slate-300 px-3 py-1.5 text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -128,9 +73,10 @@ export function Header() {
             <>
               <Link
                 href="/login"
-                className="rounded border border-slate-300 px-3 py-1.5 text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="flex flex-col leading-tight text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400"
               >
-                Log in
+                <span className="text-xs text-slate-400 dark:text-slate-500">Hello, sign in</span>
+                <span className="font-semibold">Log in</span>
               </Link>
               <Link
                 href="/register"
@@ -156,6 +102,67 @@ export function Header() {
           </button>
         </div>
       </div>
+
+      {/* Category strip — deliberately always dark, independent of the site
+          theme, matching the reference marketplace header's static navy bar. */}
+      <nav className="hidden border-t border-slate-800 bg-slate-900 md:block">
+        <div className="mx-auto flex max-w-5xl items-center gap-5 px-4 py-2 text-sm text-slate-200">
+          <Link href="/courses" className="hover:text-white">
+            📚 Courses
+          </Link>
+
+          <Link href="/competitions" className="hover:text-white">
+            🏆 Competitions
+          </Link>
+
+          <Link href="/jobs" className="hover:text-white">
+            💼 Jobs
+          </Link>
+
+          <div
+            className="relative"
+            onMouseEnter={openEventsMenu}
+            onMouseLeave={scheduleCloseEventsMenu}
+          >
+            <button
+              type="button"
+              onClick={() => setEventsOpen((v) => !v)}
+              className="flex items-center gap-1 hover:text-white"
+              aria-expanded={eventsOpen}
+            >
+              📅 Events
+              <span aria-hidden className="text-[10px]">▾</span>
+            </button>
+
+            {eventsOpen && (
+              <div
+                className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-slate-200 bg-white py-2 text-slate-700 shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                onMouseEnter={openEventsMenu}
+                onMouseLeave={scheduleCloseEventsMenu}
+              >
+                <Link
+                  href="/events"
+                  onClick={() => setEventsOpen(false)}
+                  className="block px-4 py-2 font-medium hover:bg-brand-50 dark:hover:bg-slate-700"
+                >
+                  ✨ All Events
+                </Link>
+                <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+                {EVENT_TYPE_TABS.map(({ type, label }) => (
+                  <Link
+                    key={type}
+                    href={`/events?type=${type}`}
+                    onClick={() => setEventsOpen(false)}
+                    className="block px-4 py-2 hover:bg-brand-50 dark:hover:bg-slate-700"
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
 
       {mobileOpen && (
         <div className="border-t border-slate-200 px-4 py-4 dark:border-slate-700 md:hidden">
@@ -230,7 +237,10 @@ export function Header() {
                   onClick={() => setMobileOpen(false)}
                   className="rounded px-2 py-2 text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
-                  Dashboard ({session.user?.name})
+                  <span className="block text-xs text-slate-400 dark:text-slate-500">
+                    Hello, {firstName}
+                  </span>
+                  Dashboard
                 </Link>
                 <button
                   onClick={() => {
@@ -244,6 +254,9 @@ export function Header() {
               </>
             ) : (
               <>
+                <span className="px-2 text-xs text-slate-400 dark:text-slate-500">
+                  Hello, sign in
+                </span>
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
