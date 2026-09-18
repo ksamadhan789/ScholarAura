@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
+import { ContactButton } from "@/components/freelance/ContactButton";
 
 export const dynamic = "force-dynamic";
 
@@ -89,16 +90,19 @@ export default async function FreelanceListingPage({
         </a>
       )}
 
-      <div className="mt-8">
-        <a
-          href={`mailto:${listing.contactEmail}?subject=${encodeURIComponent(
-            `Re: ${listing.title} on ScholarAura`
-          )}`}
-          className="inline-block rounded bg-brand-600 px-4 py-2 text-white transition-colors hover:bg-brand-700"
-        >
-          Contact {listing.postedByUser.name.split(" ")[0]}
-        </a>
-      </div>
+      {!isOwner && (
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <ContactButton slug={listing.slug} firstName={listing.postedByUser.name.split(" ")[0]} />
+          <a
+            href={`mailto:${listing.contactEmail}?subject=${encodeURIComponent(
+              `Re: ${listing.title} on ScholarAura`
+            )}`}
+            className="text-sm text-gray-500 underline hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300"
+          >
+            or email directly
+          </a>
+        </div>
+      )}
     </main>
   );
 }

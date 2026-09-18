@@ -165,6 +165,8 @@ model User {
   sentJobMessages     JobMessage[]
   jobBoosts           JobBoost[]
   freelanceListings   FreelanceListing[]
+  freelanceThreadsStarted FreelanceThread[] @relation("FreelanceThreadInitiator")
+  sentFreelanceMessages   FreelanceMessage[] @relation("FreelanceMessageSender")
 
   @@map("users")
 }
@@ -1104,7 +1106,41 @@ model FreelanceListing {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  threads        FreelanceThread[]
+
   @@index([category])
   @@index([postedByUserId])
   @@map("freelance_listings")
+}
+
+// One thread per (listing, interested person) — the listing owner replies
+// into the same thread rather than a separate one per message, and a second
+// visit from the same person reuses their existing thread instead of
+// spawning a duplicate (enforced by the unique constraint below).
+model FreelanceThread {
+  id          String   @id @default(uuid())
+  listingId   String
+  listing     FreelanceListing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  initiatorId String
+  initiator   User               @relation("FreelanceThreadInitiator", fields: [initiatorId], references: [id])
+  createdAt   DateTime           @default(now())
+  messages    FreelanceMessage[]
+
+  @@unique([listingId, initiatorId])
+  @@index([listingId])
+  @@index([initiatorId])
+  @@map("freelance_threads")
+}
+
+model FreelanceMessage {
+  id        String          @id @default(uuid())
+  threadId  String
+  thread    FreelanceThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User            @relation("FreelanceMessageSender", fields: [senderId], references: [id])
+  body      String
+  createdAt DateTime        @default(now())
+
+  @@index([threadId, createdAt])
+  @@map("freelance_messages")
 }

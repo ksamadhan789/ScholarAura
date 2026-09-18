@@ -20,12 +20,20 @@ export default async function MyFreelanceListingsPage() {
     <main className="mx-auto max-w-3xl px-4 py-16">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">🧰 My freelance listings</h1>
-        <Link
-          href="/dashboard/freelance/new"
-          className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
-        >
-          + New listing
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/freelance/messages"
+            className="text-sm text-brand-600 underline dark:text-brand-400"
+          >
+            💬 My messages
+          </Link>
+          <Link
+            href="/dashboard/freelance/new"
+            className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
+          >
+            + New listing
+          </Link>
+        </div>
       </div>
 
       {listings.length === 0 ? (

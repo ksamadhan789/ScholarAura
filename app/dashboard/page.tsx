@@ -160,6 +160,7 @@ export default async function DashboardPage() {
         <NavGroup title="Freelance">
           <NavLink href="/freelance">🧰 Browse freelance</NavLink>
           <NavLink href="/dashboard/freelance">🧰 My listings</NavLink>
+          <NavLink href="/dashboard/freelance/messages">💬 My messages</NavLink>
         </NavGroup>
 
         <NavGroup title="Other">
