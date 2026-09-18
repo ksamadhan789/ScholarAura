@@ -39,9 +39,9 @@ export const AURA_FAQ: FaqEntry[] = [
   },
   {
     keywords: ["alumni"],
-    answer: "Alumni Meets are a type of event for networking with fellow alumni.",
+    answer: "Meet Alumni is a type of event for networking with fellow alumni.",
     href: "/events?type=ALUMNI_MEET",
-    linkLabel: "Browse Alumni Meets",
+    linkLabel: "Browse Meet Alumni events",
   },
   {
     keywords: ["referral", "refer a friend", "earn credit"],

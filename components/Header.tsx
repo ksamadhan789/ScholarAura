@@ -128,7 +128,7 @@ export function Header() {
           </Link>
 
           <Link href="/events?type=ALUMNI_MEET" className="hover:text-white">
-            🎉 Alumni Meet
+            🎉 Meet Alumni
           </Link>
 
           <div
@@ -231,7 +231,7 @@ export function Header() {
               onClick={() => setMobileOpen(false)}
               className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
-              🎉 Alumni Meet
+              🎉 Meet Alumni
             </Link>
 
             <button

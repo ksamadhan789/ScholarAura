@@ -24,7 +24,7 @@ const SUGGESTED_PROMPTS = [
   "Find an event",
   "How do certificates work?",
   "How do I get a refund?",
-  "What is Alumni Meet?",
+  "What is Meet Alumni?",
   "How do I post freelance work?",
 ];
 
