@@ -46,6 +46,7 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 - **Admin vs recruiter job pages are deliberately duplicated** (separate forms/routes). Adding a job field means editing both.
 - **Location cookie** is read only inside the three listing pages, never in the root layout (that would make every page dynamic and slow down static pages).
 - **Public listing pages that query the database** need `export const dynamic = "force-dynamic"` or the build fails.
+- **Default theme is dark.** `app/layout.tsx`'s inline theme-init script applies `dark` unless `localStorage.theme === "light"` — so a first-time visitor gets dark regardless of OS preference, and only an explicit choice via the header toggle (`components/ThemeToggle.tsx`) is remembered otherwise.
 - **Freelance listings are unmoderated by design** — unlike recruiter job postings (which need admin approval since they're a company claim), a freelance listing is just the poster describing themselves, so it publishes immediately. If abuse becomes a problem, add a report/moderation flow rather than reusing the job approval queue.
 - **Aura is deliberately not an LLM** — it's a keyword-matched FAQ dictionary plus a live DB search, single-turn (no conversation memory). Don't quietly wire it to a real model without the owner explicitly asking — that has ongoing API cost and needs an `ANTHROPIC_API_KEY`.
 
