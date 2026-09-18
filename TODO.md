@@ -26,6 +26,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Floating Aura chat widget (site-wide, like the language picker) alongside the full /aura page
 - Mobile nav redesigned as a touch-swipeable horizontal strip (Amazon-app style), replacing the vertical list
 - Homepage banner carousel: auto-scrolling featured courses/events/competitions cards below the hero, Amazon-app promo style
+- Homepage category carousel ("Explore ScholarAura"): large user-controlled carousel, one card per platform category, linking to real existing routes, real stat counts
 
 ## In Progress
 
