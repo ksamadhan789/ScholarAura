@@ -24,6 +24,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Aura guided helper (canned FAQ + live search, not an LLM), later redesigned as a real chat-bubble interface
 - In-app messaging for freelance listings
 - Floating Aura chat widget (site-wide, like the language picker) alongside the full /aura page
+- Mobile nav redesigned as a self-scrolling horizontal ticker (Amazon-app style), replacing the vertical list
 
 ## In Progress
 
