@@ -10,6 +10,8 @@ export type HomeCategory = {
   icon: string;
   /** Optional real photo/illustration — falls back to the icon + gradient panel when unset. */
   image?: string;
+  /** Optional short looping clip — takes priority over `image` when both are set. */
+  video?: string;
   /** Key into the stats map returned by getHomeCategoryStats(). */
   statKey: string;
   statLabel: string;
@@ -137,6 +139,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
     cta: "Meet Alumni",
     href: "/events?type=ALUMNI_MEET",
     icon: "🎉",
+    video: "/videos/meet-alumni.mp4",
     statKey: "meetAlumni",
     statLabel: "upcoming",
   },
