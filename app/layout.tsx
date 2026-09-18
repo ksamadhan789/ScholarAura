@@ -34,11 +34,13 @@ export const metadata: Metadata = {
   },
 };
 
+// Dark is the default theme — a first-time visitor (no stored preference)
+// gets dark regardless of OS preference. Someone who explicitly picked
+// light via the toggle keeps seeing light on their next visit.
 const themeInitScript = `
   (function () {
     var stored = localStorage.getItem("theme");
-    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (stored === "dark" || (!stored && prefersDark)) {
+    if (stored !== "light") {
       document.documentElement.classList.add("dark");
     }
   })();
