@@ -5,7 +5,7 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 ## Project
 
 - **Website name:** ScholarAura
-- **Purpose:** E-learning + events + competitions + jobs platform for students and professionals, primarily in India. Single admin runs the platform; instructors post courses, recruiters post jobs.
+- **Purpose:** E-learning + events + competitions + jobs + freelance platform for students and professionals, primarily in India. Single admin runs the platform; instructors post courses, recruiters post jobs, students/professionals post their own freelance listings.
 - **Framework:** Next.js 14 (App Router), React, TypeScript, Tailwind CSS
 - **Database:** PostgreSQL via Prisma (schema in `prisma/schema.prisma`, migrations in `prisma/migrations/`)
 - **Authentication:** NextAuth — email/password plus Google sign-in. Roles: `STUDENT`, `INSTRUCTOR`, `ADMIN`, `RECRUITER`.
@@ -16,9 +16,11 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 ## Current Features
 
 - **Courses:** video lectures, free previews, enrollment (free or paid), progress tracking, reviews, Q&A, per-lecture and final quizzes (must pass to get a certificate), downloadable resources, completion certificates.
-- **Events:** conferences, FDPs, hands-on trainings, webinars. Online/offline/hybrid, city, audience, seats + waitlist, paid/free registration, attendance-based certificates.
+- **Events:** conferences, FDPs, hands-on trainings, webinars, alumni meets. Online/offline/hybrid, city, audience, seats + waitlist, paid/free registration, attendance-based certificates.
 - **Competitions:** entries (individual or team), submissions, prizes, winners, certificates, optional city.
-- **Jobs board:** admin- or recruiter-posted jobs. Recruiters need admin approval; every job is reviewed. Applications with PDF resume, status workflow (Applied → Shortlisted/Rejected/Hired), recruiter↔applicant messaging, internship-specific fields (stipend, duration, start date, perks), paid "Featured" boost (₹999 / 30 days, pins job to top).
+- **Jobs board:** admin- or recruiter-posted jobs, including internships (own header tab, filters `/jobs?employmentType=INTERNSHIP`). Recruiters need admin approval; every job is reviewed. Applications with PDF resume, status workflow (Applied → Shortlisted/Rejected/Hired), recruiter↔applicant messaging, internship-specific fields (stipend, duration, start date, perks), paid "Featured" boost (₹999 / 30 days, pins job to top).
+- **Freelance marketplace:** any logged-in user posts their own services (design, tutoring, dev work, ...) — the reverse of a job posting. Public browse/search at `/freelance`, managed at `/dashboard/freelance`. Unmoderated — publishes immediately, no admin approval queue. Contact is a `mailto:` link, no in-app messaging.
+- **Aura:** a guided helper at `/aura` — not an LLM. Matches queries against a small canned-FAQ dictionary (`lib/auraFaq.ts`) first, falls back to a live keyword search across courses/events/competitions/jobs/freelance listings.
 - **Save for later:** heart button on courses, events, competitions, jobs; one dashboard page.
 - **Referrals:** referral link, credit balance earned when invitees buy, affiliate rates, leaderboard.
 - **Location bar:** header widget sets a city (dropdown or "use my location"); pre-filters Events/Competitions/Jobs.
@@ -41,6 +43,8 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 - **Admin vs recruiter job pages are deliberately duplicated** (separate forms/routes). Adding a job field means editing both.
 - **Location cookie** is read only inside the three listing pages, never in the root layout (that would make every page dynamic and slow down static pages).
 - **Public listing pages that query the database** need `export const dynamic = "force-dynamic"` or the build fails.
+- **Freelance listings are unmoderated by design** — unlike recruiter job postings (which need admin approval since they're a company claim), a freelance listing is just the poster describing themselves, so it publishes immediately. If abuse becomes a problem, add a report/moderation flow rather than reusing the job approval queue.
+- **Aura is deliberately not an LLM** — it's a keyword-matched FAQ dictionary plus a live DB search, single-turn (no conversation memory). Don't quietly wire it to a real model without the owner explicitly asking — that has ongoing API cost and needs an `ANTHROPIC_API_KEY`.
 
 ## Known Issues / Caveats
 

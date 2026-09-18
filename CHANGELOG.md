@@ -2,6 +2,28 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-18
+
+### Added
+- Freelance gig marketplace: any logged-in user can post their own services (design, tutoring, dev work, ...) — the reverse of a job posting. Public browse/search at `/freelance`, managed at `/dashboard/freelance`. Deliberately unmoderated (publishes immediately, unlike recruiter jobs which need approval), contact via `mailto:` link. New header tab.
+- Aura: a guided helper at `/aura` — not an LLM, by deliberate choice. Matches a query against a small canned-FAQ dictionary first, falls back to a live keyword search across courses/events/competitions/jobs/freelance listings. New header tab.
+
+## 2026-09-17
+
+### Changed
+- Restructured the header into a two-row layout: main row (logo, search, location, sign-in) plus a second, always-dark category strip holding the nav links — matching the structure of a reference marketplace header the owner shared. Sign-in area restyled to a two-line "Hello, sign in / Log in" block.
+- Added Internships (filters `/jobs?employmentType=INTERNSHIP`) and Alumni Meet (new `EventType`) as their own header tabs, alongside the existing Courses/Competitions/Jobs/Events.
+
+## 2026-09-16
+
+### Changed
+- Added a country-code picker to the onboarding mobile number field — started as a fixed +91, then expanded to all ~190 countries with names/flags per the owner's request, defaulting to India.
+
+## 2026-09-11
+
+### Added
+- An Amazon.in-style search bar in the header: category dropdown (All/Courses/Events/Competitions/Jobs) + input + search button, with `/search` filtering by the selected category via a `type` param.
+
 ## 2026-09-07
 
 ### Changed
