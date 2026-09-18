@@ -24,7 +24,8 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 - **Save for later:** heart button on courses, events, competitions, jobs; one dashboard page.
 - **Referrals:** referral link, credit balance earned when invitees buy, affiliate rates, leaderboard.
 - **Location bar:** header widget sets a city (dropdown or "use my location"); pre-filters Events/Competitions/Jobs.
-- **Mobile nav:** the header's mobile menu shows the category list as a self-scrolling horizontal ticker (Amazon-app style, `.animate-nav-ticker` in `app/globals.css`) below the sign-in/account block, instead of a vertical list. Desktop keeps the dark category strip unchanged.
+- **Mobile nav:** the header's mobile menu shows the category list as a static, touch-swipeable horizontal strip (Amazon-app style, dark navy `#131a22`, scrollbar hidden via `.no-scrollbar` in `app/globals.css`) below the sign-in/account block, instead of a vertical list or an auto-scrolling animation. Desktop keeps the dark category strip unchanged.
+- **Homepage banner carousel:** `components/HomeBannerCarousel.tsx`, below the hero on `/`. Auto-scrolling row of image cards pulled from the homepage's existing featured courses/events/competitions query (2 of each, `app/page.tsx`), with a play/pause button and pause-on-touch. Reuses `components/Thumbnail.tsx` for images/fallback icon.
 - **Coupons, refund requests, in-app notifications, admin audit log, public verifiable certificates, student portfolio page.**
 
 ## Project Structure (important parts only)

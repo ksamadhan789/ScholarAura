@@ -64,10 +64,22 @@ body {
   color: #0f172a;
 }
 
-/* Mobile nav ticker: the track is the nav item list duplicated exactly
-   twice back-to-back, so translating by exactly half its width loops
-   seamlessly back to the start with no visible seam or jump. */
-@keyframes nav-ticker {
+/* Mobile nav category strip: hide the scrollbar so a touch-swipeable row
+   reads as a clean bar, Amazon-app style, instead of showing a scrollbar. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Homepage featured carousel: the track is the item list duplicated
+   exactly twice, so translating by exactly half its width loops seamlessly
+   with no visible seam. animation-play-state (not removing the class) is
+   used to pause, so resuming continues from the same position instead of
+   snapping back to the start. */
+@keyframes home-banner-scroll {
   from {
     transform: translateX(0);
   }
@@ -75,11 +87,14 @@ body {
     transform: translateX(-50%);
   }
 }
-.animate-nav-ticker {
-  animation: nav-ticker 16s linear infinite;
+.animate-home-banner {
+  animation: home-banner-scroll 40s linear infinite;
+}
+.home-banner-paused {
+  animation-play-state: paused;
 }
 @media (prefers-reduced-motion: reduce) {
-  .animate-nav-ticker {
+  .animate-home-banner {
     animation: none;
   }
 }

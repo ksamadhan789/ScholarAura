@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { HeroSignInCard } from "@/components/HeroSignInCard";
 import { HomeExploreTabs } from "@/components/HomeExploreTabs";
+import { HomeBannerCarousel, type BannerItem } from "@/components/HomeBannerCarousel";
+import { COURSE_CATEGORY_ICONS } from "@/lib/courseCategories";
+import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
@@ -39,6 +42,45 @@ export default async function HomePage() {
     ...c,
     rating: ratingByCourseId.get(c.id) ?? null,
   }));
+
+  const bannerItems: BannerItem[] = [
+    ...coursesWithRatings.slice(0, 2).map((c) => ({
+      key: `course-${c.id}`,
+      href: `/courses/${c.slug}`,
+      badge: "Course",
+      title: c.title,
+      subtitle: c.category,
+      priceLabel: Number(c.price) === 0 ? "Free" : `₹${c.price}`,
+      thumbnailUrl: c.thumbnailUrl,
+      icon: COURSE_CATEGORY_ICONS[c.category] ?? "📘",
+    })),
+    ...events.slice(0, 2).map((e) => ({
+      key: `event-${e.id}`,
+      href: `/events/${e.slug}`,
+      badge: EVENT_TYPE_LABELS[e.type] ?? "Event",
+      title: e.title,
+      subtitle: new Date(e.startDate).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+      }),
+      priceLabel: Number(e.fee) === 0 ? "Free" : `₹${e.fee}`,
+      thumbnailUrl: e.thumbnailUrl,
+      icon: "🎉",
+    })),
+    ...competitions.slice(0, 2).map((c) => ({
+      key: `competition-${c.id}`,
+      href: `/competitions/${c.slug}`,
+      badge: "Competition",
+      title: c.title,
+      subtitle: `Submit by ${new Date(c.submissionDeadline).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+      })}`,
+      priceLabel: Number(c.fee) === 0 ? "Free" : `₹${c.fee}`,
+      thumbnailUrl: c.thumbnailUrl,
+      icon: "🏆",
+    })),
+  ];
 
   return (
     <main className="flex flex-1 flex-col">
@@ -106,6 +148,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <HomeBannerCarousel items={bannerItems} />
 
       <HomeExploreTabs courses={coursesWithRatings} events={events} competitions={competitions} jobs={jobs} />
     </main>
