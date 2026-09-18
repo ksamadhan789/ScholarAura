@@ -18,6 +18,10 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Amazon-style location bar (site-wide city filter)
 - Coupons, refund requests, notifications, audit log, multi-currency display
 - Persistent project memory files (PROJECT_STATE.md, TODO.md, CHANGELOG.md)
+- Amazon-style search bar with category dropdown; two-row Amazon-style header with dark category strip
+- Alumni Meet event type; Internships header tab
+- Freelance gig marketplace (post/browse/manage own service listings)
+- Aura guided helper (canned FAQ + live search, not an LLM)
 
 ## In Progress
 
@@ -31,6 +35,9 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Bundles / learning paths — removed 2026-09-07; revisit only if there's a specific need (see CHANGELOG)
 - Homepage trust signals (stats bar, partner logos) once real numbers exist
 - Reconnect Google sign-in: the Google Cloud OAuth client was deleted and must be recreated (config task, not code — see CHANGELOG 2026-09-06 note)
+- Upgrade Aura to a real LLM-backed chatbot (deliberately kept as canned FAQ + search for now — needs an `ANTHROPIC_API_KEY` and has ongoing per-message cost)
+- Freelance: in-app contact/messaging instead of `mailto:`, and reviews/ratings for freelancers
+- Freelance: a report/moderation flow if abuse becomes a problem (currently unmoderated by design)
 
 ## Known Issues to Revisit
 
