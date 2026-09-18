@@ -128,6 +128,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
     cta: "Explore Freelance",
     href: "/freelance",
     icon: "🧰",
+    video: "/videos/freelance.mp4",
     statKey: "freelance",
     statLabel: "listings",
   },
