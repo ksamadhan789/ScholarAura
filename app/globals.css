@@ -63,3 +63,23 @@ body {
 .translate-widget select.goog-te-combo option {
   color: #0f172a;
 }
+
+/* Mobile nav ticker: the track is the nav item list duplicated exactly
+   twice back-to-back, so translating by exactly half its width loops
+   seamlessly back to the start with no visible seam or jump. */
+@keyframes nav-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-nav-ticker {
+  animation: nav-ticker 16s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-nav-ticker {
+    animation: none;
+  }
+}
