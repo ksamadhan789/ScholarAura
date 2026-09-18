@@ -19,6 +19,8 @@ import { SaveButton } from "@/components/SaveButton";
 import { Badge } from "@/components/Badge";
 import { DetailHero } from "@/components/DetailHero";
 import { InfoCard } from "@/components/InfoCard";
+import { DateCards } from "@/components/DateCards";
+import { PrizeCards } from "@/components/PrizeCards";
 import type { EventPerson } from "@/lib/eventPeople";
 
 export async function generateMetadata({
@@ -83,8 +85,18 @@ export default async function EventDetailPage({
   const isRegistered = registration?.status === "CONFIRMED";
   const seatsLeft = event.seatsTotal - event.seatsFilled;
   const canSeeVenue = isRegistered || isAdmin;
+  const feeLabel = Number(event.fee) === 0 ? "Free" : `₹${event.fee}`;
 
   const urgency = event.registrationDeadline ? getDeadlineUrgency(event.registrationDeadline) : null;
+
+  const dateMilestones = [
+    event.registrationDeadline && {
+      label: "Registration deadline",
+      date: event.registrationDeadline,
+      emphasize: true,
+    },
+    event.resultDate && { label: "Result declaration", date: event.resultDate },
+  ].filter((m): m is { label: string; date: Date; emphasize?: boolean } => Boolean(m));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:py-16">
@@ -103,6 +115,7 @@ export default async function EventDetailPage({
               <Badge variant="neutral">{EVENT_AUDIENCE_LABELS[event.audience]}</Badge>
             )}
             {urgency && <Badge variant={urgency.variant}>⏰ {urgency.label} to register</Badge>}
+            <Badge variant="brand">{feeLabel === "Free" ? "Free entry" : `Entry ${feeLabel}`}</Badge>
           </>
         }
         title={event.title}
@@ -116,6 +129,26 @@ export default async function EventDetailPage({
             <span>{seatsLeft > 0 ? `${seatsLeft} of ${event.seatsTotal} seats left` : "Fully booked"}</span>
           </>
         }
+        actions={
+          <>
+            <a
+              href="#register"
+              className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50"
+            >
+              Register Now ↓
+            </a>
+            {event.brochureUrl && (
+              <a
+                href={event.brochureUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-white/40 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                📄 Download Brochure
+              </a>
+            )}
+          </>
+        }
       />
 
       {event.shortDescription && (
@@ -123,43 +156,23 @@ export default async function EventDetailPage({
       )}
       <p className="mt-4 text-gray-700 dark:text-slate-300">{event.description}</p>
 
-      {event.brochureUrl && (
-        <a
-          href={event.brochureUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:border-brand-800 dark:bg-slate-800 dark:text-brand-300 dark:hover:bg-slate-700"
-        >
-          📄 Download brochure
-        </a>
+      <DateCards milestones={dateMilestones} />
+      {event.registrationStartDate && (
+        <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
+          Registration opens {formatDateTime(event.registrationStartDate)}
+        </p>
       )}
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        {(event.registrationStartDate || event.registrationDeadline || event.resultDate) && (
-          <InfoCard icon="🗓️" title="Important dates">
-            {event.registrationStartDate && (
-              <p>Registration opens: {formatDateTime(event.registrationStartDate)}</p>
-            )}
-            {event.registrationDeadline && (
-              <p>Registration deadline: {formatDateTime(event.registrationDeadline)}</p>
-            )}
-            {event.resultDate && <p>Result declaration: {formatDateTime(event.resultDate)}</p>}
-          </InfoCard>
-        )}
-
-        {(event.prizeFirst || event.prizeSecond || event.prizeThird || event.prizeDescription) && (
-          <InfoCard icon="🏆" title="Prizes" tone="amber">
-            {event.prizeFirst && <p>🥇 1st Prize: {event.prizeFirst}</p>}
-            {event.prizeSecond && <p>🥈 2nd Prize: {event.prizeSecond}</p>}
-            {event.prizeThird && <p>🥉 3rd Prize: {event.prizeThird}</p>}
-            {event.prizeDescription && <p>{event.prizeDescription}</p>}
-          </InfoCard>
-        )}
-      </div>
+      <PrizeCards
+        first={event.prizeFirst}
+        second={event.prizeSecond}
+        third={event.prizeThird}
+        description={event.prizeDescription}
+      />
 
       {event.eligibility && (
         <div className="mt-4">
-          <InfoCard icon="🎓" title="Who can participate">
+          <InfoCard icon="🎓" title="Who can participate?" tone="success">
             <p>{event.eligibility}</p>
           </InfoCard>
         </div>
@@ -175,12 +188,14 @@ export default async function EventDetailPage({
             : "The venue address will be shared here once you register."}
       </p>
 
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/60">
-        <p className="text-2xl font-bold text-slate-900 dark:text-white">
-          {Number(event.fee) === 0 ? "Free" : `₹${event.fee}`}
-        </p>
+      <div
+        id="register"
+        className="mt-8 scroll-mt-24 rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800/60"
+      >
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Ready to join?</h2>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Registration fee: {feeLabel}</p>
 
-        <div>
+        <div className="mt-4">
           {!session ? (
             <a href="/login" className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-5 py-2.5 text-white">
               Log in to register
@@ -215,6 +230,17 @@ export default async function EventDetailPage({
             </>
           )}
         </div>
+
+        {event.brochureUrl && (
+          <a
+            href={event.brochureUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
+          >
+            📄 Download brochure
+          </a>
+        )}
       </div>
 
       {session && !isRegistered && (

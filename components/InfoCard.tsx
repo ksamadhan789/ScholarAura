@@ -9,6 +9,11 @@ const TONE_STYLES = {
     title: "text-amber-900 dark:text-amber-200",
     body: "text-amber-800 dark:text-amber-300",
   },
+  success: {
+    card: "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20",
+    title: "text-green-900 dark:text-green-200",
+    body: "text-green-800 dark:text-green-300",
+  },
 } as const;
 
 /** A rounded, shadowed card for a labeled block of detail-page info (dates, prizes, winners, requirements). */

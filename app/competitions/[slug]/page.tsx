@@ -10,7 +10,10 @@ import { SaveButton } from "@/components/SaveButton";
 import { Badge } from "@/components/Badge";
 import { DetailHero } from "@/components/DetailHero";
 import { InfoCard } from "@/components/InfoCard";
+import { DateCards } from "@/components/DateCards";
+import { PrizeCards } from "@/components/PrizeCards";
 import { formatDateTime, getDeadlineUrgency } from "@/lib/eventLabels";
+import { parseThemeTopic } from "@/lib/competitionCopy";
 import type { EventPerson } from "@/lib/eventPeople";
 
 export async function generateMetadata({
@@ -96,6 +99,17 @@ export default async function CompetitionDetailPage({
   const isEntered = entry?.status === "SUCCESS";
   const deadlinePassed = new Date() > competition.submissionDeadline;
   const urgency = getDeadlineUrgency(competition.submissionDeadline);
+  const feeLabel = Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`;
+  const themeTopic = parseThemeTopic(competition.description);
+
+  const dateMilestones = [
+    competition.registrationDeadline && {
+      label: "Registration deadline",
+      date: competition.registrationDeadline,
+    },
+    { label: "Submission deadline", date: competition.submissionDeadline, emphasize: true },
+    competition.resultDate && { label: "Result declaration", date: competition.resultDate },
+  ].filter((m): m is { label: string; date: Date; emphasize?: boolean } => Boolean(m));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:py-16">
@@ -108,7 +122,13 @@ export default async function CompetitionDetailPage({
       <DetailHero
         image={competition.thumbnailUrl}
         eyebrow="Competition"
-        badges={<Badge variant={urgency.variant}>⏰ {urgency.label} to submit</Badge>}
+        badges={
+          <>
+            <Badge variant={urgency.variant}>⏰ {urgency.label} to submit</Badge>
+            {competition.eligibility && <Badge variant="neutral">🎓 {competition.eligibility}</Badge>}
+            <Badge variant="brand">{feeLabel === "Free" ? "Free entry" : `Entry ${feeLabel}`}</Badge>
+          </>
+        }
         title={competition.title}
         meta={
           <>
@@ -118,60 +138,70 @@ export default async function CompetitionDetailPage({
             {competition.city && <span>📍 {competition.city}</span>}
           </>
         }
+        actions={
+          <>
+            <a
+              href="#register"
+              className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50"
+            >
+              Register Now ↓
+            </a>
+            {competition.brochureUrl && (
+              <a
+                href={competition.brochureUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-white/40 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                📄 Download Brochure
+              </a>
+            )}
+          </>
+        }
       />
 
-      {competition.shortDescription && (
-        <p className="mt-4 text-base text-gray-600 dark:text-slate-400">
-          {competition.shortDescription}
+      {themeTopic ? (
+        <>
+          {themeTopic.lead && (
+            <p className="mt-4 text-gray-700 dark:text-slate-300">{themeTopic.lead}</p>
+          )}
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <InfoCard icon="🎯" title="Competition Theme">
+              <p>{themeTopic.theme}</p>
+            </InfoCard>
+            <InfoCard icon="🖌️" title="Poster Topic">
+              <p>{themeTopic.topic}</p>
+            </InfoCard>
+          </div>
+        </>
+      ) : (
+        <>
+          {competition.shortDescription && (
+            <p className="mt-4 text-base text-gray-600 dark:text-slate-400">
+              {competition.shortDescription}
+            </p>
+          )}
+          <p className="mt-4 text-gray-700 dark:text-slate-300">{competition.description}</p>
+        </>
+      )}
+
+      <DateCards milestones={dateMilestones} />
+      {competition.registrationStartDate && (
+        <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
+          Registration opens {formatDateTime(competition.registrationStartDate)}
         </p>
       )}
-      <p className="mt-4 text-gray-700 dark:text-slate-300">{competition.description}</p>
 
-      {competition.brochureUrl && (
-        <a
-          href={competition.brochureUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:border-brand-800 dark:bg-slate-800 dark:text-brand-300 dark:hover:bg-slate-700"
-        >
-          📄 Download brochure
-        </a>
-      )}
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        {(competition.registrationStartDate ||
-          competition.registrationDeadline ||
-          competition.resultDate) && (
-          <InfoCard icon="🗓️" title="Important dates">
-            {competition.registrationStartDate && (
-              <p>Registration opens: {formatDateTime(competition.registrationStartDate)}</p>
-            )}
-            {competition.registrationDeadline && (
-              <p>Registration deadline: {formatDateTime(competition.registrationDeadline)}</p>
-            )}
-            <p>Submission deadline: {formatDate(competition.submissionDeadline)}</p>
-            {competition.resultDate && (
-              <p>Result declaration: {formatDateTime(competition.resultDate)}</p>
-            )}
-          </InfoCard>
-        )}
-
-        {(competition.prizeFirst ||
-          competition.prizeSecond ||
-          competition.prizeThird ||
-          competition.prizeDescription) && (
-          <InfoCard icon="🏆" title="Prizes" tone="amber">
-            {competition.prizeFirst && <p>🥇 1st Prize: {competition.prizeFirst}</p>}
-            {competition.prizeSecond && <p>🥈 2nd Prize: {competition.prizeSecond}</p>}
-            {competition.prizeThird && <p>🥉 3rd Prize: {competition.prizeThird}</p>}
-            {competition.prizeDescription && <p>{competition.prizeDescription}</p>}
-          </InfoCard>
-        )}
-      </div>
+      <PrizeCards
+        first={competition.prizeFirst}
+        second={competition.prizeSecond}
+        third={competition.prizeThird}
+        description={competition.prizeDescription}
+      />
 
       {competition.eligibility && (
         <div className="mt-4">
-          <InfoCard icon="🎓" title="Who can participate">
+          <InfoCard icon="🎓" title="Who can participate?" tone="success">
             <p>{competition.eligibility}</p>
           </InfoCard>
         </div>
@@ -201,12 +231,14 @@ export default async function CompetitionDetailPage({
         </p>
       )}
 
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/60">
-        <p className="text-2xl font-bold text-slate-900 dark:text-white">
-          {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
-        </p>
+      <div
+        id="register"
+        className="mt-8 scroll-mt-24 rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800/60"
+      >
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Ready to take part?</h2>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Entry fee: {feeLabel}</p>
 
-        <div>
+        <div className="mt-4">
           {!session ? (
             <a
               href="/login"
@@ -251,6 +283,17 @@ export default async function CompetitionDetailPage({
             </>
           )}
         </div>
+
+        {competition.brochureUrl && (
+          <a
+            href={competition.brochureUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
+          >
+            📄 Download brochure
+          </a>
+        )}
       </div>
 
       {session && !isEntered && (

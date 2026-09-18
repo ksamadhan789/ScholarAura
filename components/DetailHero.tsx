@@ -8,12 +8,14 @@ export function DetailHero({
   badges,
   title,
   meta,
+  actions,
 }: {
   image?: string | null;
   eyebrow?: string;
   badges?: React.ReactNode;
   title: string;
   meta?: React.ReactNode;
+  actions?: React.ReactNode;
 }) {
   return (
     <div
@@ -42,6 +44,7 @@ export function DetailHero({
             {meta}
           </div>
         )}
+        {actions && <div className="mt-6 flex flex-wrap items-center gap-3">{actions}</div>}
       </div>
     </div>
   );
