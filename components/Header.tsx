@@ -9,11 +9,23 @@ import { NotificationBell } from "./NotificationBell";
 import { LocationPicker } from "./LocationPicker";
 import { EVENT_TYPE_TABS } from "@/lib/eventLabels";
 
+// Mirrors the desktop category strip — shown as a self-scrolling ticker in
+// the mobile menu instead of a tall vertical list, Amazon-app style.
+const MOBILE_NAV_ITEMS = [
+  { href: "/courses", emoji: "📚", label: "Courses" },
+  { href: "/competitions", emoji: "🏆", label: "Competitions" },
+  { href: "/jobs", emoji: "💼", label: "Jobs" },
+  { href: "/jobs?employmentType=INTERNSHIP", emoji: "🧑‍🎓", label: "Internships" },
+  { href: "/freelance", emoji: "🧰", label: "Freelance" },
+  { href: "/events?type=ALUMNI_MEET", emoji: "🎉", label: "Meet Alumni" },
+  { href: "/events", emoji: "📅", label: "Events" },
+];
+
 export function Header() {
   const { data: session, status } = useSession();
   const [eventsOpen, setEventsOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mobileEventsOpen, setMobileEventsOpen] = useState(false);
+  const [tickerPaused, setTickerPaused] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function openEventsMenu() {
@@ -186,83 +198,7 @@ export function Header() {
             <LocationPicker />
           </div>
 
-          <nav className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-300">
-            <Link
-              href="/courses"
-              onClick={() => setMobileOpen(false)}
-              className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              📚 Courses
-            </Link>
-            <Link
-              href="/competitions"
-              onClick={() => setMobileOpen(false)}
-              className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              🏆 Competitions
-            </Link>
-            <Link
-              href="/jobs"
-              onClick={() => setMobileOpen(false)}
-              className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              💼 Jobs
-            </Link>
-            <Link
-              href="/jobs?employmentType=INTERNSHIP"
-              onClick={() => setMobileOpen(false)}
-              className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              🧑‍🎓 Internships
-            </Link>
-            <Link
-              href="/freelance"
-              onClick={() => setMobileOpen(false)}
-              className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              🧰 Freelance
-            </Link>
-            <Link
-              href="/events?type=ALUMNI_MEET"
-              onClick={() => setMobileOpen(false)}
-              className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              🎉 Meet Alumni
-            </Link>
-
-            <button
-              type="button"
-              onClick={() => setMobileEventsOpen((v) => !v)}
-              aria-expanded={mobileEventsOpen}
-              className="flex items-center justify-between rounded px-2 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              📅 Events
-              <span aria-hidden className="text-[10px]">{mobileEventsOpen ? "▴" : "▾"}</span>
-            </button>
-            {mobileEventsOpen && (
-              <div className="ml-4 flex flex-col gap-1 border-l border-slate-200 pl-3 dark:border-slate-700">
-                <Link
-                  href="/events"
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded px-2 py-1.5 font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  ✨ All Events
-                </Link>
-                {EVENT_TYPE_TABS.map(({ type, label }) => (
-                  <Link
-                    key={type}
-                    href={`/events?type=${type}`}
-                    onClick={() => setMobileOpen(false)}
-                    className="rounded px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-800"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </nav>
-
-          <div className="mt-4 flex flex-col gap-2 border-t border-slate-200 pt-4 text-sm dark:border-slate-700">
+          <div className="flex flex-col gap-2 text-sm">
             {status === "loading" ? null : session ? (
               <>
                 <Link
@@ -306,6 +242,32 @@ export function Header() {
                 </Link>
               </>
             )}
+          </div>
+
+          {/* Self-scrolling category ticker, Amazon-app style — the track is
+              the item list duplicated twice; see .animate-nav-ticker in
+              globals.css for how that loops seamlessly. Paused on touch/press
+              so a tap actually lands on the link the user meant to hit. */}
+          <div className="relative mt-4 overflow-hidden rounded-lg bg-slate-900">
+            <div
+              className={`flex w-max gap-6 px-4 py-3 ${tickerPaused ? "" : "animate-nav-ticker"}`}
+              onPointerDown={() => setTickerPaused(true)}
+              onPointerUp={() => setTickerPaused(false)}
+              onPointerCancel={() => setTickerPaused(false)}
+              onPointerLeave={() => setTickerPaused(false)}
+            >
+              {[...MOBILE_NAV_ITEMS, ...MOBILE_NAV_ITEMS].map((item, i) => (
+                <Link
+                  key={`${item.href}-${i}`}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm text-slate-200 hover:text-white"
+                >
+                  <span aria-hidden>{item.emoji}</span>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       )}
