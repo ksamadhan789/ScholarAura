@@ -13,6 +13,8 @@ Short entries for meaningful changes. Newest first. No source code here.
 ### Changed
 - Renamed the "Alumni Meet" label to "Meet Alumni" everywhere it appears in the UI (event type value and URL unchanged).
 - Redesigned Aura's page as an actual chat interface (avatar, message bubbles, quick-reply chips) — the original form-and-results-cards layout read as a plain search page, not a chat bot.
+- Removed the "Aura" header tab — now redundant since the Aura floating widget is available on every page already.
+- Mobile menu: replaced the tall vertical Courses/Competitions/Jobs/Internships/Freelance/Meet Alumni/Events list with a single dark, self-scrolling horizontal ticker (Amazon-app style), sitting below the sign-in/account block. Pure CSS animation, pauses on touch so taps land correctly, respects `prefers-reduced-motion`. Desktop header unchanged.
 
 ### Incident
 - Site-wide outage: every page that queries the database (home, `/events`, `/jobs`, etc.) returned a 500 for about half an hour. Root cause was the Neon database hitting its plan's usage quota (`PrismaClientInitializationError: ... exceeded the quota`) — nothing to do with the day's code changes, no redeploy needed. Fixed by upgrading the Neon plan. See PROJECT_STATE.md "Known Issues / Caveats" for how to recognize this again.
