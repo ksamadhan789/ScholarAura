@@ -141,7 +141,7 @@ export default async function JobDetailPage({ params }: { params: { slug: string
         </div>
       )}
 
-      <div className="mt-8 border-t border-gray-200 dark:border-slate-700 pt-6">
+      <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/60">
         {isAdmin && (
           <Link
             href={`/dashboard/jobs/${job.slug}/edit`}

@@ -164,40 +164,43 @@ export default async function CourseDetailPage({
       />
 
       <p className="mt-4 text-gray-700 dark:text-slate-300">{course.description}</p>
-      <p className="mt-4 text-lg font-semibold">
-        {Number(course.price) === 0 ? "Free" : `₹${course.price}`}
-      </p>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        {!session ? (
-          <Link href="/login" className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-5 py-2.5 text-white">
-            Log in to enroll
-          </Link>
-        ) : isEnrolled ? (
-          <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
-            You&apos;re enrolled in this course
-          </p>
-        ) : (
-          <>
-            {Number(course.price) > 0 && currentUser && Number(currentUser.creditBalance) > 0 && (
-              <p className="mb-2 w-full text-sm text-green-700 dark:text-green-400">
-                You have ₹{Number(currentUser.creditBalance).toFixed(2)} credit — applied
-                automatically when paying in INR.
-              </p>
-            )}
-            <EnrollButton
-              slug={course.slug}
-              isPaid={Number(course.price) > 0}
-              price={Number(course.price)}
-              rates={serializedRates}
-              userName={session.user.name}
-              userEmail={session.user.email}
-            />
-          </>
-        )}
-        {session && !isEnrolled && (
-          <WishlistButton slug={course.slug} isWishlisted={!!wishlistEntry} />
-        )}
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/60">
+        <p className="text-2xl font-bold text-slate-900 dark:text-white">
+          {Number(course.price) === 0 ? "Free" : `₹${course.price}`}
+        </p>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {!session ? (
+            <Link href="/login" className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-5 py-2.5 text-white">
+              Log in to enroll
+            </Link>
+          ) : isEnrolled ? (
+            <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
+              You&apos;re enrolled in this course
+            </p>
+          ) : (
+            <>
+              {Number(course.price) > 0 && currentUser && Number(currentUser.creditBalance) > 0 && (
+                <p className="mb-2 w-full text-sm text-green-700 dark:text-green-400">
+                  You have ₹{Number(currentUser.creditBalance).toFixed(2)} credit — applied
+                  automatically when paying in INR.
+                </p>
+              )}
+              <EnrollButton
+                slug={course.slug}
+                isPaid={Number(course.price) > 0}
+                price={Number(course.price)}
+                rates={serializedRates}
+                userName={session.user.name}
+                userEmail={session.user.email}
+              />
+            </>
+          )}
+          {session && !isEnrolled && (
+            <WishlistButton slug={course.slug} isWishlisted={!!wishlistEntry} />
+          )}
+        </div>
       </div>
 
       <div className="mt-10">

@@ -132,7 +132,7 @@ export default async function CompetitionDetailPage({
           href={competition.brochureUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 inline-block text-sm font-medium text-brand-600 underline hover:text-brand-700 dark:text-brand-400"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:border-brand-800 dark:bg-slate-800 dark:text-brand-300 dark:hover:bg-slate-700"
         >
           📄 Download brochure
         </a>
@@ -170,10 +170,11 @@ export default async function CompetitionDetailPage({
       </div>
 
       {competition.eligibility && (
-        <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">
-          <span className="font-medium text-gray-900 dark:text-white">Who can participate: </span>
-          {competition.eligibility}
-        </p>
+        <div className="mt-4">
+          <InfoCard icon="🎓" title="Who can participate">
+            <p>{competition.eligibility}</p>
+          </InfoCard>
+        </div>
       )}
 
       {winners.length > 0 && (
@@ -200,54 +201,56 @@ export default async function CompetitionDetailPage({
         </p>
       )}
 
-      <p className="mt-4 text-lg font-semibold">
-        {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
-      </p>
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/60">
+        <p className="text-2xl font-bold text-slate-900 dark:text-white">
+          {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
+        </p>
 
-      <div className="mt-6">
-        {!session ? (
-          <a
-            href="/login"
-            className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-5 py-2.5 text-white"
-          >
-            Log in to enter
-          </a>
-        ) : isEntered ? (
-          <div className="flex flex-col gap-4">
-            <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
-              🎉 You&apos;re entered in this competition!
-              {entry?.rank ? ` — Result: #${entry.rank}` : ""}
-            </p>
-            <SubmissionForm
-              slug={competition.slug}
-              initialUrl={entry?.submissionUrl ?? ""}
-              initialNotes={entry?.submissionNotes ?? ""}
-              deadlinePassed={deadlinePassed}
-            />
-          </div>
-        ) : deadlinePassed ? (
-          <p className="rounded bg-gray-100 dark:bg-slate-700 px-4 py-2.5 text-sm text-gray-600 dark:text-slate-400">
-            Entries are closed for this competition
-          </p>
-        ) : (
-          <>
-            {Number(competition.fee) > 0 && currentUser && Number(currentUser.creditBalance) > 0 && (
-              <p className="mb-2 text-sm text-green-700 dark:text-green-400">
-                You have ₹{Number(currentUser.creditBalance).toFixed(2)} credit — applied
-                automatically when paying in INR.
+        <div>
+          {!session ? (
+            <a
+              href="/login"
+              className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-5 py-2.5 text-white"
+            >
+              Log in to enter
+            </a>
+          ) : isEntered ? (
+            <div className="flex flex-col gap-4">
+              <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
+                🎉 You&apos;re entered in this competition!
+                {entry?.rank ? ` — Result: #${entry.rank}` : ""}
               </p>
-            )}
-            <EntryButton
-              slug={competition.slug}
-              isPaid={Number(competition.fee) > 0}
-              price={Number(competition.fee)}
-              rates={serializedRates}
-              allowTeam={competition.maxTeamSize > 1}
-              userName={session.user.name}
-              userEmail={session.user.email}
-            />
-          </>
-        )}
+              <SubmissionForm
+                slug={competition.slug}
+                initialUrl={entry?.submissionUrl ?? ""}
+                initialNotes={entry?.submissionNotes ?? ""}
+                deadlinePassed={deadlinePassed}
+              />
+            </div>
+          ) : deadlinePassed ? (
+            <p className="rounded bg-gray-100 dark:bg-slate-700 px-4 py-2.5 text-sm text-gray-600 dark:text-slate-400">
+              Entries are closed for this competition
+            </p>
+          ) : (
+            <>
+              {Number(competition.fee) > 0 && currentUser && Number(currentUser.creditBalance) > 0 && (
+                <p className="mb-2 text-sm text-green-700 dark:text-green-400">
+                  You have ₹{Number(currentUser.creditBalance).toFixed(2)} credit — applied
+                  automatically when paying in INR.
+                </p>
+              )}
+              <EntryButton
+                slug={competition.slug}
+                isPaid={Number(competition.fee) > 0}
+                price={Number(competition.fee)}
+                rates={serializedRates}
+                allowTeam={competition.maxTeamSize > 1}
+                userName={session.user.name}
+                userEmail={session.user.email}
+              />
+            </>
+          )}
+        </div>
       </div>
 
       {session && !isEntered && (

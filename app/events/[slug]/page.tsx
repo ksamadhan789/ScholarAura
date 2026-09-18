@@ -128,7 +128,7 @@ export default async function EventDetailPage({
           href={event.brochureUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 inline-block text-sm font-medium text-brand-600 underline hover:text-brand-700 dark:text-brand-400"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 transition-colors hover:bg-brand-100 dark:border-brand-800 dark:bg-slate-800 dark:text-brand-300 dark:hover:bg-slate-700"
         >
           📄 Download brochure
         </a>
@@ -158,10 +158,11 @@ export default async function EventDetailPage({
       </div>
 
       {event.eligibility && (
-        <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">
-          <span className="font-medium text-gray-900 dark:text-white">Who can participate: </span>
-          {event.eligibility}
-        </p>
+        <div className="mt-4">
+          <InfoCard icon="🎓" title="Who can participate">
+            <p>{event.eligibility}</p>
+          </InfoCard>
+        </div>
       )}
 
       <PeopleList people={(event.people as unknown as EventPerson[] | null) ?? []} />
@@ -174,44 +175,46 @@ export default async function EventDetailPage({
             : "The venue address will be shared here once you register."}
       </p>
 
-      <p className="mt-4 text-lg font-semibold">
-        {Number(event.fee) === 0 ? "Free" : `₹${event.fee}`}
-      </p>
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/60">
+        <p className="text-2xl font-bold text-slate-900 dark:text-white">
+          {Number(event.fee) === 0 ? "Free" : `₹${event.fee}`}
+        </p>
 
-      <div className="mt-6">
-        {!session ? (
-          <a href="/login" className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-5 py-2.5 text-white">
-            Log in to register
-          </a>
-        ) : isRegistered ? (
-          <div className="flex flex-col items-start gap-2">
-            <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
-              🎉 You&apos;re registered for this event!
-            </p>
-            {Number(event.fee) === 0 && event.startDate > new Date() && (
-              <CancelRegistrationButton slug={event.slug} />
-            )}
-          </div>
-        ) : seatsLeft <= 0 ? (
-          <WaitlistButton slug={event.slug} isWaitlisted={!!waitlistEntry} />
-        ) : (
-          <>
-            {Number(event.fee) > 0 && currentUser && Number(currentUser.creditBalance) > 0 && (
-              <p className="mb-2 text-sm text-green-700 dark:text-green-400">
-                You have ₹{Number(currentUser.creditBalance).toFixed(2)} credit — applied
-                automatically when paying in INR.
+        <div>
+          {!session ? (
+            <a href="/login" className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-5 py-2.5 text-white">
+              Log in to register
+            </a>
+          ) : isRegistered ? (
+            <div className="flex flex-col items-start gap-2">
+              <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
+                🎉 You&apos;re registered for this event!
               </p>
-            )}
-            <RegisterButton
-              slug={event.slug}
-              isPaid={Number(event.fee) > 0}
-              price={Number(event.fee)}
-              rates={serializedRates}
-              userName={session.user.name}
-              userEmail={session.user.email}
-            />
-          </>
-        )}
+              {Number(event.fee) === 0 && event.startDate > new Date() && (
+                <CancelRegistrationButton slug={event.slug} />
+              )}
+            </div>
+          ) : seatsLeft <= 0 ? (
+            <WaitlistButton slug={event.slug} isWaitlisted={!!waitlistEntry} />
+          ) : (
+            <>
+              {Number(event.fee) > 0 && currentUser && Number(currentUser.creditBalance) > 0 && (
+                <p className="mb-2 text-sm text-green-700 dark:text-green-400">
+                  You have ₹{Number(currentUser.creditBalance).toFixed(2)} credit — applied
+                  automatically when paying in INR.
+                </p>
+              )}
+              <RegisterButton
+                slug={event.slug}
+                isPaid={Number(event.fee) > 0}
+                price={Number(event.fee)}
+                rates={serializedRates}
+                userName={session.user.name}
+                userEmail={session.user.email}
+              />
+            </>
+          )}
+        </div>
       </div>
 
       {session && !isRegistered && (
