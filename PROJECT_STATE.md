@@ -52,6 +52,7 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 - Job location is free text, so the location filter for jobs is a loose text match (e.g. "Bangalore" won't match "Bengaluru").
 - Recruiter subscriptions and job-boost refunds are not built.
 - The `/events` and `/competitions` "Clear filters" link resets to the saved location rather than "all cities" — intended, but slightly different from the in-page "Any location" option.
+- **The database (Neon) is on a plan with a usage quota.** If it's exceeded, every DB-backed page site-wide 500s with `PrismaClientInitializationError: ... Your account or project has exceeded the quota. Upgrade your plan to increase limits.` — pages that don't touch the database (`/login`, `/register`) keep working, which is the tell. This happened once (2026-09-18) and was fixed by upgrading the Neon plan — not a code bug, don't go looking for one if this recurs. Check the Neon dashboard's Usage/Billing tab first.
 
 ## Do Not Change
 
