@@ -24,7 +24,8 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Aura guided helper (canned FAQ + live search, not an LLM), later redesigned as a real chat-bubble interface
 - In-app messaging for freelance listings
 - Floating Aura chat widget (site-wide, like the language picker) alongside the full /aura page
-- Mobile nav redesigned as a self-scrolling horizontal ticker (Amazon-app style), replacing the vertical list
+- Mobile nav redesigned as a touch-swipeable horizontal strip (Amazon-app style), replacing the vertical list
+- Homepage banner carousel: auto-scrolling featured courses/events/competitions cards below the hero, Amazon-app promo style
 
 ## In Progress
 

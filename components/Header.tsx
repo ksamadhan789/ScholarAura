@@ -9,8 +9,8 @@ import { NotificationBell } from "./NotificationBell";
 import { LocationPicker } from "./LocationPicker";
 import { EVENT_TYPE_TABS } from "@/lib/eventLabels";
 
-// Mirrors the desktop category strip — shown as a self-scrolling ticker in
-// the mobile menu instead of a tall vertical list, Amazon-app style.
+// Mirrors the desktop category strip — shown as a swipeable horizontal
+// strip in the mobile menu instead of a tall vertical list, Amazon-app style.
 const MOBILE_NAV_ITEMS = [
   { href: "/courses", emoji: "📚", label: "Courses" },
   { href: "/competitions", emoji: "🏆", label: "Competitions" },
@@ -25,7 +25,6 @@ export function Header() {
   const { data: session, status } = useSession();
   const [eventsOpen, setEventsOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [tickerPaused, setTickerPaused] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function openEventsMenu() {
@@ -244,21 +243,14 @@ export function Header() {
             )}
           </div>
 
-          {/* Self-scrolling category ticker, Amazon-app style — the track is
-              the item list duplicated twice; see .animate-nav-ticker in
-              globals.css for how that loops seamlessly. Paused on touch/press
-              so a tap actually lands on the link the user meant to hit. */}
-          <div className="relative mt-4 overflow-hidden rounded-lg bg-slate-900">
-            <div
-              className={`flex w-max gap-6 px-4 py-3 ${tickerPaused ? "" : "animate-nav-ticker"}`}
-              onPointerDown={() => setTickerPaused(true)}
-              onPointerUp={() => setTickerPaused(false)}
-              onPointerCancel={() => setTickerPaused(false)}
-              onPointerLeave={() => setTickerPaused(false)}
-            >
-              {[...MOBILE_NAV_ITEMS, ...MOBILE_NAV_ITEMS].map((item, i) => (
+          {/* Swipeable category strip, Amazon-app style — a static row the
+              user scrolls horizontally by touch, no auto-animation.
+              Scrollbar hidden via .no-scrollbar in globals.css. */}
+          <div className="mt-4 overflow-x-auto rounded-lg bg-[#131a22] no-scrollbar">
+            <div className="flex w-max gap-6 px-4 py-3">
+              {MOBILE_NAV_ITEMS.map((item) => (
                 <Link
-                  key={`${item.href}-${i}`}
+                  key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm text-slate-200 hover:text-white"

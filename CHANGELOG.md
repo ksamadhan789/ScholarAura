@@ -9,12 +9,13 @@ Short entries for meaningful changes. Newest first. No source code here.
 - Aura: a guided helper at `/aura` — not an LLM, by deliberate choice. Matches a query against a small canned-FAQ dictionary first, falls back to a live keyword search across courses/events/competitions/jobs/freelance listings. New header tab.
 - In-app messaging for freelance listings: a "Message `<name>`" button starts a real conversation (`FreelanceThread`/`FreelanceMessage`) instead of just opening an email client — `mailto:` stays as a fallback. Managed at `/dashboard/freelance/messages`, notifies the other participant on each reply.
 - Aura floating widget: a chat bubble in the bottom-right corner (mirroring the Translate widget's bottom-left placement) on every page, backed by a new `GET /api/aura` endpoint and real client-side multi-turn state — no more one full-page reload per question. The full `/aura` page still exists alongside it.
+- Homepage banner carousel: a large auto-scrolling row of image cards ("Featured on ScholarAura") below the hero, pulling from the same featured courses/events/competitions the page already queries — Amazon-app-style promo carousel, with a play/pause control and pause-on-touch so a tap reliably lands on a card.
 
 ### Changed
 - Renamed the "Alumni Meet" label to "Meet Alumni" everywhere it appears in the UI (event type value and URL unchanged).
 - Redesigned Aura's page as an actual chat interface (avatar, message bubbles, quick-reply chips) — the original form-and-results-cards layout read as a plain search page, not a chat bot.
 - Removed the "Aura" header tab — now redundant since the Aura floating widget is available on every page already.
-- Mobile menu: replaced the tall vertical Courses/Competitions/Jobs/Internships/Freelance/Meet Alumni/Events list with a single dark, self-scrolling horizontal ticker (Amazon-app style), sitting below the sign-in/account block. Pure CSS animation, pauses on touch so taps land correctly, respects `prefers-reduced-motion`. Desktop header unchanged.
+- Mobile menu: replaced the tall vertical Courses/Competitions/Jobs/Internships/Freelance/Meet Alumni/Events list with a single dark horizontal strip (Amazon-app style, `#131a22` navy), sitting below the sign-in/account block. Started as an auto-scrolling ticker, then changed same-day to a static, touch-swipeable row (no auto-animation) to match the real Amazon app strip more closely. Desktop header unchanged.
 
 ### Incident
 - Site-wide outage: every page that queries the database (home, `/events`, `/jobs`, etc.) returned a 500 for about half an hour. Root cause was the Neon database hitting its plan's usage quota (`PrismaClientInitializationError: ... exceeded the quota`) — nothing to do with the day's code changes, no redeploy needed. Fixed by upgrading the Neon plan. See PROJECT_STATE.md "Known Issues / Caveats" for how to recognize this again.
