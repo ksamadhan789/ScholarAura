@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { HeroSignInCard } from "@/components/HeroSignInCard";
-import { HomeExploreTabs } from "@/components/HomeExploreTabs";
 import { HomeBannerCarousel, type BannerItem } from "@/components/HomeBannerCarousel";
 import { HomeCategoryCarousel, type HomeCategoryItem } from "@/components/HomeCategoryCarousel";
 import { COURSE_CATEGORY_ICONS } from "@/lib/courseCategories";
@@ -14,7 +13,7 @@ export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
   const now = new Date();
-  const [courses, events, competitions, jobs, ratingGroups, categoryStats] = await Promise.all([
+  const [courses, events, competitions, categoryStats] = await Promise.all([
     prisma.course.findMany({
       where: { isPublished: true },
       include: { instructor: { select: { name: true } } },
@@ -30,28 +29,15 @@ export default async function HomePage() {
       orderBy: { startDate: "asc" },
       take: 4,
     }),
-    prisma.job.findMany({
-      where: { isPublished: true },
-      orderBy: { createdAt: "desc" },
-      take: 4,
-    }),
-    prisma.courseReview.groupBy({ by: ["courseId"], _avg: { rating: true }, _count: { _all: true } }),
     getHomeCategoryStats(),
   ]);
   const categoryItems: HomeCategoryItem[] = HOME_CATEGORIES.map((c) => ({
     ...c,
     count: categoryStats[c.statKey],
   }));
-  const ratingByCourseId = new Map(
-    ratingGroups.map((g) => [g.courseId, { average: g._avg.rating ?? 0, count: g._count._all }])
-  );
-  const coursesWithRatings = courses.map((c) => ({
-    ...c,
-    rating: ratingByCourseId.get(c.id) ?? null,
-  }));
 
   const bannerItems: BannerItem[] = [
-    ...coursesWithRatings.slice(0, 2).map((c) => ({
+    ...courses.slice(0, 2).map((c) => ({
       key: `course-${c.id}`,
       href: `/courses/${c.slug}`,
       badge: "Course",
@@ -159,8 +145,6 @@ export default async function HomePage() {
       <HomeCategoryCarousel categories={categoryItems} />
 
       <HomeBannerCarousel items={bannerItems} />
-
-      <HomeExploreTabs courses={coursesWithRatings} events={events} competitions={competitions} jobs={jobs} />
     </main>
   );
 }
