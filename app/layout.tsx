@@ -6,6 +6,7 @@ import { Providers } from "./providers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { TranslateWidget } from "@/components/TranslateWidget";
+import { AuraWidget } from "@/components/aura/AuraWidget";
 import { SITE_URL } from "@/lib/siteUrl";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="flex flex-1 flex-col">{children}</div>
           <Footer />
           <TranslateWidget />
+          <AuraWidget />
         </Providers>
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
