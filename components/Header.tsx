@@ -173,10 +173,6 @@ export function Header() {
               </div>
             )}
           </div>
-
-          <Link href="/aura" className="hover:text-white">
-            🤖 Aura
-          </Link>
         </div>
       </nav>
 
@@ -264,14 +260,6 @@ export function Header() {
                 ))}
               </div>
             )}
-
-            <Link
-              href="/aura"
-              onClick={() => setMobileOpen(false)}
-              className="rounded px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              🤖 Aura
-            </Link>
           </nav>
 
           <div className="mt-4 flex flex-col gap-2 border-t border-slate-200 pt-4 text-sm dark:border-slate-700">
