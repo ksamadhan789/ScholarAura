@@ -21,7 +21,8 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Amazon-style search bar with category dropdown; two-row Amazon-style header with dark category strip
 - Alumni Meet event type; Internships header tab
 - Freelance gig marketplace (post/browse/manage own service listings)
-- Aura guided helper (canned FAQ + live search, not an LLM)
+- Aura guided helper (canned FAQ + live search, not an LLM), later redesigned as a real chat-bubble interface
+- In-app messaging for freelance listings
 
 ## In Progress
 
@@ -36,7 +37,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Homepage trust signals (stats bar, partner logos) once real numbers exist
 - Reconnect Google sign-in: the Google Cloud OAuth client was deleted and must be recreated (config task, not code — see CHANGELOG 2026-09-06 note)
 - Upgrade Aura to a real LLM-backed chatbot (deliberately kept as canned FAQ + search for now — needs an `ANTHROPIC_API_KEY` and has ongoing per-message cost)
-- Freelance: in-app contact/messaging instead of `mailto:`, and reviews/ratings for freelancers
+- Freelance: reviews/ratings for freelancers
 - Freelance: a report/moderation flow if abuse becomes a problem (currently unmoderated by design)
 
 ## Known Issues to Revisit
