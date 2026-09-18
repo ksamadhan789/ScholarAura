@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/Badge";
 import { Thumbnail } from "@/components/Thumbnail";
 import { SaveButton } from "@/components/SaveButton";
+import { FilterPill, FilterPillBar } from "@/components/FilterPill";
 import { readLocationCookie } from "@/lib/location";
 
 export function generateMetadata({
@@ -275,31 +276,16 @@ export default async function EventsPage({
         )}
       </form>
 
-      <div className="mb-8 flex flex-wrap gap-2">
-        <Link
-          href={buildQuery(searchParams, { type: undefined })}
-          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-            !activeType
-              ? "bg-brand-600 text-white"
-              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-          }`}
-        >
+      <FilterPillBar>
+        <FilterPill href={buildQuery(searchParams, { type: undefined })} active={!activeType}>
           ✨ All
-        </Link>
+        </FilterPill>
         {EVENT_TYPE_TABS.map(({ type, label }) => (
-          <Link
-            key={type}
-            href={buildQuery(searchParams, { type })}
-            className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-              activeType === type
-                ? "bg-brand-600 text-white"
-                : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-            }`}
-          >
+          <FilterPill key={type} href={buildQuery(searchParams, { type })} active={activeType === type}>
             {label}
-          </Link>
+          </FilterPill>
         ))}
-      </div>
+      </FilterPillBar>
 
       {events.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">

@@ -7,6 +7,7 @@ import { Badge } from "@/components/Badge";
 import { Thumbnail } from "@/components/Thumbnail";
 import { StarRating } from "@/components/StarRating";
 import { WishlistButton } from "@/components/courses/WishlistButton";
+import { FilterPill, FilterPillBar } from "@/components/FilterPill";
 import { COURSE_CATEGORIES, COURSE_CATEGORY_ICONS } from "@/lib/courseCategories";
 
 type CourseItem = {
@@ -72,43 +73,16 @@ export function CoursesExplorer({
         </div>
       </div>
 
-      <div className="mb-10 flex flex-wrap justify-center gap-x-6 gap-y-4">
-        <button
-          onClick={() => setCategory(null)}
-          className="flex w-20 flex-col items-center gap-1.5 text-center"
-        >
-          <span
-            className={`flex h-12 w-12 items-center justify-center rounded-full text-xl transition-colors ${
-              category === null
-                ? "bg-brand-600 text-white"
-                : "bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-300"
-            }`}
-          >
-            ⭐
-          </span>
-          <span className="text-xs text-slate-600 dark:text-slate-400">All</span>
-        </button>
+      <FilterPillBar>
+        <FilterPill active={category === null} onClick={() => setCategory(null)}>
+          ⭐ All
+        </FilterPill>
         {categoryOptions.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCategory(c)}
-            className="flex w-20 flex-col items-center gap-1.5 text-center"
-          >
-            <span
-              className={`flex h-12 w-12 items-center justify-center rounded-full text-xl transition-colors ${
-                category === c
-                  ? "bg-brand-600 text-white"
-                  : "bg-brand-50 text-brand-700 dark:bg-slate-800 dark:text-brand-300"
-              }`}
-            >
-              {COURSE_CATEGORY_ICONS[c] ?? "📘"}
-            </span>
-            <span className="text-xs leading-tight text-slate-600 dark:text-slate-400">
-              {c}
-            </span>
-          </button>
+          <FilterPill key={c} active={category === c} onClick={() => setCategory(c)}>
+            {COURSE_CATEGORY_ICONS[c] ?? "📘"} {c}
+          </FilterPill>
         ))}
-      </div>
+      </FilterPillBar>
 
       {filtered.length === 0 ? (
         <p className="text-center text-gray-500 dark:text-slate-400">
