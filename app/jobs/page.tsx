@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPE_TABS, formatJobDate } from "@/lib/jobLabels";
 import { Badge } from "@/components/Badge";
+import { FilterPill, FilterPillBar } from "@/components/FilterPill";
 import { SaveButton } from "@/components/SaveButton";
 import { readLocationCookie, getKnownCities } from "@/lib/location";
 
@@ -187,41 +188,19 @@ export default async function JobsPage({
         </button>
       </form>
 
-      <div className="mb-8 flex flex-wrap gap-2">
-        <Link
-          href="/jobs"
-          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-            !activeType && !remoteOnly
-              ? "bg-brand-600 text-white"
-              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-          }`}
-        >
+      <FilterPillBar>
+        <FilterPill href="/jobs" active={!activeType && !remoteOnly}>
           ✨ All
-        </Link>
+        </FilterPill>
         {EMPLOYMENT_TYPE_TABS.map(({ type, label }) => (
-          <Link
-            key={type}
-            href={`/jobs?employmentType=${type}`}
-            className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-              activeType === type
-                ? "bg-brand-600 text-white"
-                : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-            }`}
-          >
+          <FilterPill key={type} href={`/jobs?employmentType=${type}`} active={activeType === type}>
             {label}
-          </Link>
+          </FilterPill>
         ))}
-        <Link
-          href="/jobs?remote=true"
-          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-            remoteOnly
-              ? "bg-brand-600 text-white"
-              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-          }`}
-        >
+        <FilterPill href="/jobs?remote=true" active={remoteOnly}>
           🌐 Remote
-        </Link>
-      </div>
+        </FilterPill>
+      </FilterPillBar>
 
       {jobs.length === 0 ? (
         <p className="text-gray-500 dark:text-slate-400">
