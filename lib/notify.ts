@@ -11,7 +11,8 @@ export type NotificationType =
   | "JOB_APPROVAL_STATUS"
   | "REFUND_REQUEST_STATUS"
   | "COMPETITION_RESULT"
-  | "JOB_MESSAGE";
+  | "JOB_MESSAGE"
+  | "FREELANCE_MESSAGE";
 
 /**
  * Creates an in-app notification alongside (never instead of) the existing
