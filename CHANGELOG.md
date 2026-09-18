@@ -8,6 +8,9 @@ Short entries for meaningful changes. Newest first. No source code here.
 - Freelance gig marketplace: any logged-in user can post their own services (design, tutoring, dev work, ...) — the reverse of a job posting. Public browse/search at `/freelance`, managed at `/dashboard/freelance`. Deliberately unmoderated (publishes immediately, unlike recruiter jobs which need approval), contact via `mailto:` link. New header tab.
 - Aura: a guided helper at `/aura` — not an LLM, by deliberate choice. Matches a query against a small canned-FAQ dictionary first, falls back to a live keyword search across courses/events/competitions/jobs/freelance listings. New header tab.
 
+### Incident
+- Site-wide outage: every page that queries the database (home, `/events`, `/jobs`, etc.) returned a 500 for about half an hour. Root cause was the Neon database hitting its plan's usage quota (`PrismaClientInitializationError: ... exceeded the quota`) — nothing to do with the day's code changes, no redeploy needed. Fixed by upgrading the Neon plan. See PROJECT_STATE.md "Known Issues / Caveats" for how to recognize this again.
+
 ## 2026-09-17
 
 ### Changed
