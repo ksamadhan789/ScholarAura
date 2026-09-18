@@ -164,6 +164,7 @@ model User {
   jobWishlist         JobWishlist[]
   sentJobMessages     JobMessage[]
   jobBoosts           JobBoost[]
+  freelanceListings   FreelanceListing[]
 
   @@map("users")
 }
@@ -1080,4 +1081,30 @@ model RefundRequest {
   resolvedAt          DateTime?
 
   @@map("refund_requests")
+}
+
+// A student/professional advertising their own freelance services (design,
+// tutoring, writing, dev work, ...) rather than a company posting a role —
+// the reverse direction of Job. Deliberately unmoderated (unlike recruiter
+// job postings): it's a listing about the poster themselves, not a company
+// claim that needs verifying, so it publishes immediately.
+model FreelanceListing {
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  title          String
+  category       String
+  description    String
+  skills         Json?
+  rate           String?
+  portfolioUrl   String?
+  contactEmail   String
+  isPublished    Boolean  @default(true)
+  postedByUserId String
+  postedByUser   User     @relation(fields: [postedByUserId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([category])
+  @@index([postedByUserId])
+  @@map("freelance_listings")
 }

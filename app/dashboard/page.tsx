@@ -157,6 +157,11 @@ export default async function DashboardPage() {
           <NavLink href="/dashboard/job-applications">💼 My applications</NavLink>
         </NavGroup>
 
+        <NavGroup title="Freelance">
+          <NavLink href="/freelance">🧰 Browse freelance</NavLink>
+          <NavLink href="/dashboard/freelance">🧰 My listings</NavLink>
+        </NavGroup>
+
         <NavGroup title="Other">
           <NavLink href="/dashboard/referrals">🎁 Refer & earn</NavLink>
         </NavGroup>
