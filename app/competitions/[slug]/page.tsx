@@ -7,7 +7,10 @@ import { EntryButton } from "./EntryButton";
 import { SubmissionForm } from "./SubmissionForm";
 import { PeopleList } from "@/components/PeopleList";
 import { SaveButton } from "@/components/SaveButton";
-import { formatDateTime } from "@/lib/eventLabels";
+import { Badge } from "@/components/Badge";
+import { DetailHero } from "@/components/DetailHero";
+import { InfoCard } from "@/components/InfoCard";
+import { formatDateTime, getDeadlineUrgency } from "@/lib/eventLabels";
 import type { EventPerson } from "@/lib/eventPeople";
 
 export async function generateMetadata({
@@ -92,26 +95,37 @@ export default async function CompetitionDetailPage({
 
   const isEntered = entry?.status === "SUCCESS";
   const deadlinePassed = new Date() > competition.submissionDeadline;
+  const urgency = getDeadlineUrgency(competition.submissionDeadline);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-3xl px-4 py-10 sm:py-16">
       {!competition.isPublished && (
         <p className="mb-4 inline-block rounded bg-amber-100 dark:bg-amber-900/40 px-3 py-1 text-sm text-amber-800 dark:text-amber-300">
           Draft — not visible to the public yet
         </p>
       )}
-      <h1 className="text-2xl font-semibold">{competition.title}</h1>
+
+      <DetailHero
+        image={competition.thumbnailUrl}
+        eyebrow="Competition"
+        badges={<Badge variant={urgency.variant}>⏰ {urgency.label} to submit</Badge>}
+        title={competition.title}
+        meta={
+          <>
+            <span>
+              📅 {formatDate(competition.startDate)} – {formatDate(competition.endDate)}
+            </span>
+            {competition.city && <span>📍 {competition.city}</span>}
+          </>
+        }
+      />
+
       {competition.shortDescription && (
-        <p className="mt-1 text-base text-gray-600 dark:text-slate-400">
+        <p className="mt-4 text-base text-gray-600 dark:text-slate-400">
           {competition.shortDescription}
         </p>
       )}
-      <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-        {formatDate(competition.startDate)} – {formatDate(competition.endDate)} · Submit by{" "}
-        {formatDate(competition.submissionDeadline)}
-        {competition.city && ` · 📍 ${competition.city}`}
-      </p>
-      <p className="mt-4 text-gray-700">{competition.description}</p>
+      <p className="mt-4 text-gray-700 dark:text-slate-300">{competition.description}</p>
 
       {competition.brochureUrl && (
         <a
@@ -124,12 +138,11 @@ export default async function CompetitionDetailPage({
         </a>
       )}
 
-      {(competition.registrationStartDate ||
-        competition.registrationDeadline ||
-        competition.resultDate) && (
-        <div className="mt-4 rounded border border-gray-200 dark:border-slate-700 p-4 text-sm">
-          <p className="font-medium">Important dates</p>
-          <div className="mt-2 flex flex-col gap-1 text-gray-600 dark:text-slate-400">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {(competition.registrationStartDate ||
+          competition.registrationDeadline ||
+          competition.resultDate) && (
+          <InfoCard icon="🗓️" title="Important dates">
             {competition.registrationStartDate && (
               <p>Registration opens: {formatDateTime(competition.registrationStartDate)}</p>
             )}
@@ -140,9 +153,21 @@ export default async function CompetitionDetailPage({
             {competition.resultDate && (
               <p>Result declaration: {formatDateTime(competition.resultDate)}</p>
             )}
-          </div>
-        </div>
-      )}
+          </InfoCard>
+        )}
+
+        {(competition.prizeFirst ||
+          competition.prizeSecond ||
+          competition.prizeThird ||
+          competition.prizeDescription) && (
+          <InfoCard icon="🏆" title="Prizes" tone="amber">
+            {competition.prizeFirst && <p>🥇 1st Prize: {competition.prizeFirst}</p>}
+            {competition.prizeSecond && <p>🥈 2nd Prize: {competition.prizeSecond}</p>}
+            {competition.prizeThird && <p>🥉 3rd Prize: {competition.prizeThird}</p>}
+            {competition.prizeDescription && <p>{competition.prizeDescription}</p>}
+          </InfoCard>
+        )}
+      </div>
 
       {competition.eligibility && (
         <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">
@@ -151,39 +176,19 @@ export default async function CompetitionDetailPage({
         </p>
       )}
 
-      {(competition.prizeFirst ||
-        competition.prizeSecond ||
-        competition.prizeThird ||
-        competition.prizeDescription) && (
-        <div className="mt-4 rounded bg-brand-50 dark:bg-slate-800 px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
-          <p className="font-medium">🏆 Prizes</p>
-          <div className="mt-1 flex flex-col gap-1">
-            {competition.prizeFirst && <p>🥇 1st Prize: {competition.prizeFirst}</p>}
-            {competition.prizeSecond && <p>🥈 2nd Prize: {competition.prizeSecond}</p>}
-            {competition.prizeThird && <p>🥉 3rd Prize: {competition.prizeThird}</p>}
-            {competition.prizeDescription && <p>{competition.prizeDescription}</p>}
-          </div>
-        </div>
-      )}
-
       {winners.length > 0 && (
-        <div className="mt-4 rounded border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4 text-sm">
-          <p className="font-medium text-amber-900 dark:text-amber-200">🏆 Winners</p>
-          <div className="mt-2 flex flex-col gap-2">
+        <div className="mt-6">
+          <InfoCard icon="🏆" title="Winners" tone="amber">
             {winners.map((winner) => (
               <div key={winner.id} className="flex items-center justify-between">
                 <span>
                   {medalByRank[winner.rank as number] ?? "🏅"}{" "}
                   {winner.teamName ?? winner.user.name}
                 </span>
-                {winner.rank && prizeByRank[winner.rank] && (
-                  <span className="text-gray-600 dark:text-slate-400">
-                    {prizeByRank[winner.rank]}
-                  </span>
-                )}
+                {winner.rank && prizeByRank[winner.rank] && <span>{prizeByRank[winner.rank]}</span>}
               </div>
             ))}
-          </div>
+          </InfoCard>
         </div>
       )}
 

@@ -5,9 +5,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EMPLOYMENT_TYPE_LABELS, formatJobDate } from "@/lib/jobLabels";
+import { getDeadlineUrgency } from "@/lib/eventLabels";
 import { Badge } from "@/components/Badge";
 import { WithdrawApplicationButton } from "@/components/WithdrawApplicationButton";
 import { SaveButton } from "@/components/SaveButton";
+import { DetailHero } from "@/components/DetailHero";
+import { InfoCard } from "@/components/InfoCard";
 
 export async function generateMetadata({
   params,
@@ -49,50 +52,65 @@ export default async function JobDetailPage({ params }: { params: { slug: string
   const deadlinePassed = job.applicationDeadline ? new Date() > job.applicationDeadline : false;
   const isInternship = job.employmentType === "INTERNSHIP";
   const isFeatured = Boolean(job.featuredUntil && job.featuredUntil > new Date());
+  const urgency = job.applicationDeadline ? getDeadlineUrgency(job.applicationDeadline) : null;
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-3xl px-4 py-10 sm:py-16">
       {!job.isPublished && (
         <p className="mb-4 inline-block rounded bg-amber-100 dark:bg-amber-900/40 px-3 py-1 text-sm text-amber-800 dark:text-amber-300">
           Draft — not visible to the public yet
         </p>
       )}
 
-      <div className="flex items-start gap-4">
-        {job.companyLogoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={job.companyLogoUrl} alt="" className="h-14 w-14 rounded object-contain" />
-        ) : (
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-brand-50 text-2xl dark:bg-slate-800">
-            💼
-          </div>
-        )}
-        <div>
-          <h1 className="text-2xl font-semibold">{job.title}</h1>
-          <p className="text-gray-600 dark:text-slate-400">{job.companyName}</p>
-        </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
-        {isFeatured && <Badge variant="warning">⭐ Featured</Badge>}
-        <Badge variant="brand">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</Badge>
-        <span>{job.isRemote ? "Remote" : job.location}</span>
-        {isInternship ? (
+      <DetailHero
+        eyebrow={EMPLOYMENT_TYPE_LABELS[job.employmentType]}
+        badges={
           <>
-            {job.stipendRange && <span>· {job.stipendRange}</span>}
-            {job.durationMonths && (
-              <span>
-                · {job.durationMonths} month{job.durationMonths === 1 ? "" : "s"}
-              </span>
+            {isFeatured && <Badge variant="warning">⭐ Featured</Badge>}
+            {urgency && <Badge variant={urgency.variant}>⏰ {urgency.label} to apply</Badge>}
+          </>
+        }
+        title={job.title}
+        meta={
+          <>
+            <span className="inline-flex items-center gap-1.5">
+              {job.companyLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={job.companyLogoUrl}
+                  alt=""
+                  className="h-5 w-5 rounded bg-white object-contain"
+                />
+              ) : (
+                <span aria-hidden>💼</span>
+              )}
+              {job.companyName}
+            </span>
+            <span>{job.isRemote ? "Remote" : job.location}</span>
+            {isInternship ? (
+              <>
+                {job.stipendRange && <span>{job.stipendRange}</span>}
+                {job.durationMonths && (
+                  <span>
+                    {job.durationMonths} month{job.durationMonths === 1 ? "" : "s"}
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                {job.salaryRange && <span>{job.salaryRange}</span>}
+                {job.minExperienceYears != null && <span>{job.minExperienceYears}+ yrs experience</span>}
+              </>
             )}
           </>
-        ) : (
-          <>
-            {job.salaryRange && <span>· {job.salaryRange}</span>}
-            {job.minExperienceYears != null && <span>· {job.minExperienceYears}+ yrs experience</span>}
-          </>
-        )}
-      </div>
+        }
+      />
+
+      {job.applicationDeadline && (
+        <p className="mt-4 text-sm text-gray-500 dark:text-slate-400">
+          Apply by {formatJobDate(job.applicationDeadline)}
+        </p>
+      )}
 
       {isInternship && (
         <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
@@ -111,22 +129,15 @@ export default async function JobDetailPage({ params }: { params: { slug: string
         </div>
       )}
 
-      {job.applicationDeadline && (
-        <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
-          Apply by {formatJobDate(job.applicationDeadline)}
-        </p>
-      )}
-
       <div className="mt-6 whitespace-pre-wrap text-slate-800 dark:text-slate-200">
         {job.description}
       </div>
 
       {job.requirements && (
         <div className="mt-6">
-          <h2 className="mb-2 font-semibold">Requirements</h2>
-          <div className="whitespace-pre-wrap text-slate-800 dark:text-slate-200">
-            {job.requirements}
-          </div>
+          <InfoCard icon="📋" title="Requirements">
+            <div className="whitespace-pre-wrap">{job.requirements}</div>
+          </InfoCard>
         </div>
       )}
 

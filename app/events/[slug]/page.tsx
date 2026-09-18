@@ -9,12 +9,16 @@ import {
   EVENT_AUDIENCE_LABELS,
   formatDateRange,
   formatDateTime,
+  getDeadlineUrgency,
 } from "@/lib/eventLabels";
 import { RegisterButton } from "./RegisterButton";
 import { PeopleList } from "@/components/PeopleList";
 import { WaitlistButton } from "@/components/events/WaitlistButton";
 import { CancelRegistrationButton } from "@/components/events/CancelRegistrationButton";
 import { SaveButton } from "@/components/SaveButton";
+import { Badge } from "@/components/Badge";
+import { DetailHero } from "@/components/DetailHero";
+import { InfoCard } from "@/components/InfoCard";
 import type { EventPerson } from "@/lib/eventPeople";
 
 export async function generateMetadata({
@@ -80,25 +84,44 @@ export default async function EventDetailPage({
   const seatsLeft = event.seatsTotal - event.seatsFilled;
   const canSeeVenue = isRegistered || isAdmin;
 
+  const urgency = event.registrationDeadline ? getDeadlineUrgency(event.registrationDeadline) : null;
+
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-3xl px-4 py-10 sm:py-16">
       {!event.isPublished && (
         <p className="mb-4 inline-block rounded bg-amber-100 dark:bg-amber-900/40 px-3 py-1 text-sm text-amber-800 dark:text-amber-300">
           Draft — not visible to the public yet
         </p>
       )}
-      <p className="text-sm text-gray-500 dark:text-slate-400">
-        {EVENT_TYPE_LABELS[event.type]}
-        {event.audience !== "EVERYONE" && ` · ${EVENT_AUDIENCE_LABELS[event.audience]}`}
-      </p>
-      <h1 className="mt-1 text-2xl font-semibold">{event.title}</h1>
+
+      <DetailHero
+        image={event.thumbnailUrl}
+        eyebrow={EVENT_TYPE_LABELS[event.type]}
+        badges={
+          <>
+            {event.audience !== "EVERYONE" && (
+              <Badge variant="neutral">{EVENT_AUDIENCE_LABELS[event.audience]}</Badge>
+            )}
+            {urgency && <Badge variant={urgency.variant}>⏰ {urgency.label} to register</Badge>}
+          </>
+        }
+        title={event.title}
+        meta={
+          <>
+            <span>📅 {formatDateRange(event.startDate, event.endDate)}</span>
+            <span>
+              {EVENT_FORMAT_LABELS[event.format]}
+              {event.city && ` · ${event.city}`}
+            </span>
+            <span>{seatsLeft > 0 ? `${seatsLeft} of ${event.seatsTotal} seats left` : "Fully booked"}</span>
+          </>
+        }
+      />
+
       {event.shortDescription && (
-        <p className="mt-1 text-base text-gray-600 dark:text-slate-400">{event.shortDescription}</p>
+        <p className="mt-4 text-base text-gray-600 dark:text-slate-400">{event.shortDescription}</p>
       )}
-      <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-        {formatDateRange(event.startDate, event.endDate)}
-      </p>
-      <p className="mt-4 text-gray-700">{event.description}</p>
+      <p className="mt-4 text-gray-700 dark:text-slate-300">{event.description}</p>
 
       {event.brochureUrl && (
         <a
@@ -111,10 +134,9 @@ export default async function EventDetailPage({
         </a>
       )}
 
-      {(event.registrationStartDate || event.registrationDeadline || event.resultDate) && (
-        <div className="mt-4 rounded border border-gray-200 dark:border-slate-700 p-4 text-sm">
-          <p className="font-medium">Important dates</p>
-          <div className="mt-2 flex flex-col gap-1 text-gray-600 dark:text-slate-400">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        {(event.registrationStartDate || event.registrationDeadline || event.resultDate) && (
+          <InfoCard icon="🗓️" title="Important dates">
             {event.registrationStartDate && (
               <p>Registration opens: {formatDateTime(event.registrationStartDate)}</p>
             )}
@@ -122,9 +144,18 @@ export default async function EventDetailPage({
               <p>Registration deadline: {formatDateTime(event.registrationDeadline)}</p>
             )}
             {event.resultDate && <p>Result declaration: {formatDateTime(event.resultDate)}</p>}
-          </div>
-        </div>
-      )}
+          </InfoCard>
+        )}
+
+        {(event.prizeFirst || event.prizeSecond || event.prizeThird || event.prizeDescription) && (
+          <InfoCard icon="🏆" title="Prizes" tone="amber">
+            {event.prizeFirst && <p>🥇 1st Prize: {event.prizeFirst}</p>}
+            {event.prizeSecond && <p>🥈 2nd Prize: {event.prizeSecond}</p>}
+            {event.prizeThird && <p>🥉 3rd Prize: {event.prizeThird}</p>}
+            {event.prizeDescription && <p>{event.prizeDescription}</p>}
+          </InfoCard>
+        )}
+      </div>
 
       {event.eligibility && (
         <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">
@@ -133,34 +164,15 @@ export default async function EventDetailPage({
         </p>
       )}
 
-      {(event.prizeFirst || event.prizeSecond || event.prizeThird || event.prizeDescription) && (
-        <div className="mt-4 rounded border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4 text-sm text-amber-900 dark:text-amber-200">
-          <p className="font-medium">🏆 Prizes</p>
-          <div className="mt-1 flex flex-col gap-1">
-            {event.prizeFirst && <p>🥇 1st Prize: {event.prizeFirst}</p>}
-            {event.prizeSecond && <p>🥈 2nd Prize: {event.prizeSecond}</p>}
-            {event.prizeThird && <p>🥉 3rd Prize: {event.prizeThird}</p>}
-            {event.prizeDescription && <p>{event.prizeDescription}</p>}
-          </div>
-        </div>
-      )}
-
       <PeopleList people={(event.people as unknown as EventPerson[] | null) ?? []} />
 
-      <div className="mt-4 flex flex-col gap-1 text-sm text-gray-600 dark:text-slate-400">
-        <p>
-          {EVENT_FORMAT_LABELS[event.format]}
-          {event.city && ` · ${event.city}`}
-        </p>
-        <p>
-          {canSeeVenue
-            ? event.venueOrLink
-            : event.format === "ONLINE"
-              ? "The Zoom link will be shared here once you register."
-              : "The venue address will be shared here once you register."}
-        </p>
-        <p>{seatsLeft > 0 ? `${seatsLeft} of ${event.seatsTotal} seats left` : "Fully booked"}</p>
-      </div>
+      <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">
+        {canSeeVenue
+          ? event.venueOrLink
+          : event.format === "ONLINE"
+            ? "The Zoom link will be shared here once you register."
+            : "The venue address will be shared here once you register."}
+      </p>
 
       <p className="mt-4 text-lg font-semibold">
         {Number(event.fee) === 0 ? "Free" : `₹${event.fee}`}

@@ -82,3 +82,17 @@ export function formatDateTime(date: Date): string {
     timeZone: IST_TIME_ZONE,
   });
 }
+
+/** A real, deadline-derived urgency label for a detail-page hero — never a fabricated countdown. */
+export function getDeadlineUrgency(deadline: Date): {
+  label: string;
+  variant: "success" | "warning" | "neutral";
+} {
+  const msLeft = deadline.getTime() - Date.now();
+  if (msLeft <= 0) return { label: "Closed", variant: "neutral" };
+  const daysLeft = Math.ceil(msLeft / 86_400_000);
+  return {
+    label: daysLeft <= 1 ? "1 day left" : `${daysLeft} days left`,
+    variant: daysLeft <= 3 ? "warning" : "success",
+  };
+}

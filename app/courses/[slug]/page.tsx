@@ -9,6 +9,7 @@ import { CourseReviewSection } from "./CourseReviewSection";
 import { CourseQASection } from "./CourseQASection";
 import { StarRating } from "@/components/StarRating";
 import { WishlistButton } from "@/components/courses/WishlistButton";
+import { DetailHero } from "@/components/DetailHero";
 
 export async function generateMetadata({
   params,
@@ -138,26 +139,31 @@ export default async function CourseDetailPage({
     : null;
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-3xl px-4 py-10 sm:py-16">
       {!course.isPublished && (
         <p className="mb-4 inline-block rounded bg-amber-100 dark:bg-amber-900/40 px-3 py-1 text-sm text-amber-800 dark:text-amber-300">
           Draft — not visible to the public yet
         </p>
       )}
-      <h1 className="text-2xl font-semibold">{course.title}</h1>
-      <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-        {course.category} · By {course.instructor.name}
-      </p>
-      {reviewCount > 0 && (
-        <div className="mt-2 flex items-center gap-2">
-          <StarRating value={reviewAverage} />
-          <span className="text-sm font-medium">{reviewAverage.toFixed(1)}</span>
-          <span className="text-sm text-gray-500 dark:text-slate-400">
-            ({reviewCount} review{reviewCount === 1 ? "" : "s"})
-          </span>
-        </div>
-      )}
-      <p className="mt-4 text-gray-700">{course.description}</p>
+
+      <DetailHero
+        image={course.thumbnailUrl}
+        eyebrow={course.category}
+        title={course.title}
+        meta={
+          <>
+            <span>By {course.instructor.name}</span>
+            {reviewCount > 0 && (
+              <span className="inline-flex items-center gap-1.5">
+                <StarRating value={reviewAverage} />
+                {reviewAverage.toFixed(1)} ({reviewCount} review{reviewCount === 1 ? "" : "s"})
+              </span>
+            )}
+          </>
+        }
+      />
+
+      <p className="mt-4 text-gray-700 dark:text-slate-300">{course.description}</p>
       <p className="mt-4 text-lg font-semibold">
         {Number(course.price) === 0 ? "Free" : `₹${course.price}`}
       </p>
