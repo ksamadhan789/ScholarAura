@@ -23,6 +23,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Freelance gig marketplace (post/browse/manage own service listings)
 - Aura guided helper (canned FAQ + live search, not an LLM), later redesigned as a real chat-bubble interface
 - In-app messaging for freelance listings
+- Floating Aura chat widget (site-wide, like the language picker) alongside the full /aura page
 
 ## In Progress
 

@@ -8,6 +8,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 - Freelance gig marketplace: any logged-in user can post their own services (design, tutoring, dev work, ...) — the reverse of a job posting. Public browse/search at `/freelance`, managed at `/dashboard/freelance`. Deliberately unmoderated (publishes immediately, unlike recruiter jobs which need approval), contact via `mailto:` link. New header tab.
 - Aura: a guided helper at `/aura` — not an LLM, by deliberate choice. Matches a query against a small canned-FAQ dictionary first, falls back to a live keyword search across courses/events/competitions/jobs/freelance listings. New header tab.
 - In-app messaging for freelance listings: a "Message `<name>`" button starts a real conversation (`FreelanceThread`/`FreelanceMessage`) instead of just opening an email client — `mailto:` stays as a fallback. Managed at `/dashboard/freelance/messages`, notifies the other participant on each reply.
+- Aura floating widget: a chat bubble in the bottom-right corner (mirroring the Translate widget's bottom-left placement) on every page, backed by a new `GET /api/aura` endpoint and real client-side multi-turn state — no more one full-page reload per question. The full `/aura` page still exists alongside it.
 
 ### Changed
 - Renamed the "Alumni Meet" label to "Meet Alumni" everywhere it appears in the UI (event type value and URL unchanged).
