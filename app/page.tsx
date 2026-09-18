@@ -5,14 +5,16 @@ import { prisma } from "@/lib/prisma";
 import { HeroSignInCard } from "@/components/HeroSignInCard";
 import { HomeExploreTabs } from "@/components/HomeExploreTabs";
 import { HomeBannerCarousel, type BannerItem } from "@/components/HomeBannerCarousel";
+import { HomeCategoryCarousel, type HomeCategoryItem } from "@/components/HomeCategoryCarousel";
 import { COURSE_CATEGORY_ICONS } from "@/lib/courseCategories";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
+import { HOME_CATEGORIES, getHomeCategoryStats } from "@/lib/homeCategories";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
 
   const now = new Date();
-  const [courses, events, competitions, jobs, ratingGroups] = await Promise.all([
+  const [courses, events, competitions, jobs, ratingGroups, categoryStats] = await Promise.all([
     prisma.course.findMany({
       where: { isPublished: true },
       include: { instructor: { select: { name: true } } },
@@ -34,7 +36,12 @@ export default async function HomePage() {
       take: 4,
     }),
     prisma.courseReview.groupBy({ by: ["courseId"], _avg: { rating: true }, _count: { _all: true } }),
+    getHomeCategoryStats(),
   ]);
+  const categoryItems: HomeCategoryItem[] = HOME_CATEGORIES.map((c) => ({
+    ...c,
+    count: categoryStats[c.statKey],
+  }));
   const ratingByCourseId = new Map(
     ratingGroups.map((g) => [g.courseId, { average: g._avg.rating ?? 0, count: g._count._all }])
   );
@@ -148,6 +155,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <HomeCategoryCarousel categories={categoryItems} />
 
       <HomeBannerCarousel items={bannerItems} />
 
