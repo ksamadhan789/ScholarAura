@@ -16,6 +16,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 - The homepage's pill-tab "Discover" section (`components/HomeExploreTabs.tsx`, the row of Courses/Competitions/event-type pill buttons + a filtered listing below) — it duplicated the new "Explore ScholarAura" category carousel above it, which does the same category-browsing job with larger, more visual cards. Deleted the component outright (nothing else referenced it); `app/page.tsx` no longer fetches jobs or course ratings, since those were only used by this section.
 
 ### Changed
+- Terms of Service §8 (Intellectual Property): added an explicit clause covering the Platform's own name, logo, design, and source code as ScholarAura's copyright — the existing clause only covered content licensed *to* users (course videos, competition briefs), not the Platform itself. "Last updated" date bumped.
 - Renamed the "Alumni Meet" label to "Meet Alumni" everywhere it appears in the UI (event type value and URL unchanged).
 - Redesigned Aura's page as an actual chat interface (avatar, message bubbles, quick-reply chips) — the original form-and-results-cards layout read as a plain search page, not a chat bot.
 - Removed the "Aura" header tab — now redundant since the Aura floating widget is available on every page already.

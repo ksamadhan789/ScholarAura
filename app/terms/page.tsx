@@ -7,7 +7,7 @@ export default function TermsPage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
       <h1 className="mb-2 text-3xl font-semibold">Terms of Service</h1>
-      <p className="mb-8 text-sm text-gray-500 dark:text-slate-400">Last updated: August 13, 2026</p>
+      <p className="mb-8 text-sm text-gray-500 dark:text-slate-400">Last updated: September 18, 2026</p>
 
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
         <p>
@@ -106,6 +106,11 @@ export default function TermsPage() {
             competition entry, but grant us a non-exclusive, royalty-free licence to display, reproduce, and
             promote that submission (e.g. showcasing winning entries) in connection with the competition and the
             Platform.
+          </p>
+          <p className="mt-2">
+            The ScholarAura name and logo, and the Platform's design, page layouts, and underlying source code, are
+            the property of ScholarAura and protected by copyright. You may not copy, reproduce, or redistribute
+            them, in whole or in part, without our prior written permission.
           </p>
         </section>
 
