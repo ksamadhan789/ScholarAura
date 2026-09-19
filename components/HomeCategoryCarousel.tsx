@@ -154,7 +154,7 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
   if (categories.length === 0) return null;
 
   return (
-    <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-brand-50 to-white py-12 dark:border-slate-700 dark:from-slate-800/60 dark:to-slate-900 sm:py-16">
+    <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-brand-50 to-white pb-12 pt-6 dark:border-slate-700 dark:from-slate-800/60 dark:to-slate-900 sm:pb-16 sm:pt-8">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-70 dark:opacity-20"
