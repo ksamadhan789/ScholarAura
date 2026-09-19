@@ -52,7 +52,7 @@ function CategoryMedia({ category }: { category: HomeCategoryItem }) {
   return (
     <div
       ref={containerRef}
-      className="relative flex h-40 shrink-0 items-center justify-center overflow-hidden sm:h-44"
+      className="relative flex h-44 shrink-0 items-center justify-center overflow-hidden sm:h-48"
       style={
         showVideo || showImage
           ? undefined
@@ -103,14 +103,14 @@ function CategoryCard({ category }: { category: HomeCategoryItem }) {
       href={category.href}
       data-category-card
       role="listitem"
-      className="group flex w-[85%] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg focus-visible:-translate-y-1 focus-visible:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-slate-700 dark:bg-slate-800 sm:w-64 md:w-72"
+      className="group flex w-[85%] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-200 hover:-translate-y-1.5 hover:shadow-xl hover:ring-1 hover:ring-brand-200 focus-visible:-translate-y-1.5 focus-visible:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-brand-800 sm:w-64 md:w-72"
     >
       <CategoryMedia category={category} />
 
-      <div className="flex flex-1 flex-col gap-1.5 p-4">
-        <h3 className="font-semibold text-slate-900 dark:text-white">{category.title}</h3>
+      <div className="flex flex-1 flex-col gap-1.5 p-5">
+        <h3 className="text-base font-bold text-slate-900 dark:text-white">{category.title}</h3>
         <p className="flex-1 text-sm text-slate-600 dark:text-slate-400">{category.description}</p>
-        <span className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-brand-600 transition-transform duration-200 group-hover:translate-x-0.5 dark:text-brand-400 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
+        <span className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-brand-600 transition-transform duration-200 group-hover:translate-x-0.5 dark:text-brand-400 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
           {category.cta} <span aria-hidden>→</span>
         </span>
       </div>
@@ -154,12 +154,25 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
   if (categories.length === 0) return null;
 
   return (
-    <section className="border-b border-slate-200 bg-white py-10 dark:border-slate-700 dark:bg-slate-900">
-      <div className="mx-auto max-w-5xl px-4">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-brand-50 to-white py-12 dark:border-slate-700 dark:from-slate-800/60 dark:to-slate-900 sm:py-16">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-70 dark:opacity-20"
+        style={{
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(29,78,216,0.18) 1px, transparent 0)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+      <div className="relative z-10 mx-auto max-w-5xl px-4">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Explore ScholarAura</h2>
-            <p className="mt-1 max-w-xl text-sm text-slate-600 dark:text-slate-400">
+            <span className="inline-block rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
+              🌟 For professionals, academics & students worldwide
+            </span>
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+              Explore ScholarAura
+            </h1>
+            <p className="mt-2 max-w-xl text-base text-slate-600 dark:text-slate-400">
               Discover courses, competitions, events, career opportunities and more — all in one
               academic ecosystem.
             </p>
@@ -170,7 +183,7 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
               onClick={() => scrollByCards(-1)}
               disabled={!canScrollPrev}
               aria-label="Previous categories"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-md transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               <span aria-hidden>←</span>
             </button>
@@ -179,7 +192,7 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
               onClick={() => scrollByCards(1)}
               disabled={!canScrollNext}
               aria-label="Next categories"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-md transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               <span aria-hidden>→</span>
             </button>
