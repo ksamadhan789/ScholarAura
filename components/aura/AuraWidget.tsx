@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/Badge";
 import { AuraAvatar } from "@/components/aura/AuraAvatar";
@@ -45,11 +45,39 @@ function ResultSections({ sections }: { sections: AuraResultSection[] }) {
   );
 }
 
+const GREETING_DISMISSED_KEY = "aura-greeting-dismissed";
+
 export function AuraWidget() {
   const [open, setOpen] = useState(false);
+  const [showGreeting, setShowGreeting] = useState(false);
   const [input, setInput] = useState("");
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) return;
+    try {
+      if (localStorage.getItem(GREETING_DISMISSED_KEY) === "1") return;
+    } catch {
+      // Private browsing / blocked storage — just show the greeting every time.
+    }
+    const timer = setTimeout(() => setShowGreeting(true), 1500);
+    return () => clearTimeout(timer);
+  }, [open]);
+
+  function dismissGreeting() {
+    setShowGreeting(false);
+    try {
+      localStorage.setItem(GREETING_DISMISSED_KEY, "1");
+    } catch {
+      // Ignore — worst case the greeting reappears next visit.
+    }
+  }
+
+  function openFromGreeting() {
+    dismissGreeting();
+    setOpen(true);
+  }
 
   async function ask(query: string) {
     const trimmed = query.trim();
@@ -83,14 +111,38 @@ export function AuraWidget() {
 
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Open Aura"
-        className="fixed bottom-4 right-4 z-50 transition-transform hover:scale-105"
-      >
-        <AuraAvatar size="lg" />
-      </button>
+      <>
+        {showGreeting && (
+          <div className="fixed bottom-24 right-4 z-50 flex max-w-[240px] items-start gap-2 rounded-2xl rounded-br-sm border border-gray-200 bg-white py-2.5 pl-2.5 pr-7 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+            <AuraAvatar size="sm" />
+            <button
+              type="button"
+              onClick={openFromGreeting}
+              className="text-left text-sm text-slate-700 dark:text-slate-200"
+            >
+              👋 Hi, I&rsquo;m Aura! How can I help you?
+            </button>
+            <button
+              type="button"
+              onClick={dismissGreeting}
+              aria-label="Dismiss"
+              className="absolute right-2 top-2 rounded p-0.5 text-slate-400 hover:bg-gray-100 hover:text-gray-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+                <path d="M4.293 4.293a1 1 0 0 1 1.414 0L10 8.586l4.293-4.293a1 1 0 1 1 1.414 1.414L11.414 10l4.293 4.293a1 1 0 0 1-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 0 1-1.414-1.414L8.586 10 4.293 5.707a1 1 0 0 1 0-1.414Z" />
+              </svg>
+            </button>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={openFromGreeting}
+          aria-label="Open Aura"
+          className="fixed bottom-4 right-4 z-50 transition-transform hover:scale-105"
+        >
+          <AuraAvatar size="lg" />
+        </button>
+      </>
     );
   }
 
