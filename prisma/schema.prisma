@@ -167,6 +167,7 @@ model User {
   freelanceListings   FreelanceListing[]
   freelanceThreadsStarted FreelanceThread[] @relation("FreelanceThreadInitiator")
   sentFreelanceMessages   FreelanceMessage[] @relation("FreelanceMessageSender")
+  supportTickets          SupportTicket[]
 
   @@map("users")
 }
@@ -1143,4 +1144,31 @@ model FreelanceMessage {
 
   @@index([threadId, createdAt])
   @@map("freelance_messages")
+}
+
+enum SupportTicketStatus {
+  OPEN
+  RESOLVED
+}
+
+// Raised from Aura (the guided helper) when neither its canned-FAQ dictionary
+// nor its live search could answer a question — a human-in-the-loop escape
+// hatch. userId is optional since Aura is usable while logged out; name/email
+// are always captured as plain fields (not just read off the account) so a
+// guest ticket still has somewhere to reply.
+model SupportTicket {
+  id         String              @id @default(uuid())
+  userId     String?
+  user       User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name       String
+  email      String
+  query      String
+  message    String
+  status     SupportTicketStatus @default(OPEN)
+  adminReply String?
+  createdAt  DateTime            @default(now())
+  resolvedAt DateTime?
+
+  @@index([status, createdAt])
+  @@map("support_tickets")
 }

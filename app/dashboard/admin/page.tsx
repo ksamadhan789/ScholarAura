@@ -37,6 +37,7 @@ export default async function AdminHomePage() {
     pendingRecruiterCount,
     pendingJobCount,
     pendingRefundRequestCount,
+    openSupportTicketCount,
     courseRevenue,
     eventRevenue,
     competitionRevenue,
@@ -54,6 +55,7 @@ export default async function AdminHomePage() {
     prisma.recruiterProfile.count({ where: { status: "PENDING" } }),
     prisma.job.count({ where: { approvalStatus: "PENDING" } }),
     prisma.refundRequest.count({ where: { status: "PENDING" } }),
+    prisma.supportTicket.count({ where: { status: "OPEN" } }),
     prisma.coursePurchase.aggregate({
       where: { status: "SUCCESS" },
       _sum: { amount: true, creditApplied: true },
@@ -97,6 +99,7 @@ export default async function AdminHomePage() {
         <StatTile label="Recruiters pending review" value={pendingRecruiterCount.toLocaleString("en-IN")} />
         <StatTile label="Jobs pending review" value={pendingJobCount.toLocaleString("en-IN")} />
         <StatTile label="Refund requests pending" value={pendingRefundRequestCount.toLocaleString("en-IN")} />
+        <StatTile label="Support tickets open" value={openSupportTicketCount.toLocaleString("en-IN")} />
         <StatTile label="Onboarded" value={onboardedCount.toLocaleString("en-IN")} />
         <StatTile label="Opted into marketing" value={marketingOptInCount.toLocaleString("en-IN")} />
         <StatTile label="Colleges" value={collegeCount.toLocaleString("en-IN")} />
@@ -145,6 +148,12 @@ export default async function AdminHomePage() {
           className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
         >
           Refund requests
+        </Link>
+        <Link
+          href="/dashboard/admin/support-tickets"
+          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+        >
+          Support tickets
         </Link>
         <Link
           href="/dashboard/students"

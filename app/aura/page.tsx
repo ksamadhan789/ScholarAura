@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Badge } from "@/components/Badge";
 import { AuraAvatar } from "@/components/aura/AuraAvatar";
+import { SupportTicketForm } from "@/components/aura/SupportTicketForm";
 import { getAuraResponse } from "@/lib/auraSearch";
 
 export const dynamic = "force-dynamic";
@@ -165,6 +166,7 @@ export default async function AuraPage({ searchParams }: { searchParams: { q?: s
                       </Link>
                     </div>
                   )}
+                  {totalResults === 0 && !faqAnswer && <SupportTicketForm query={q} />}
                 </div>
               </div>
             </>

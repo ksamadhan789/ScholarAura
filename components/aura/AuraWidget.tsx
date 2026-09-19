@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/Badge";
 import { AuraAvatar } from "@/components/aura/AuraAvatar";
+import { SupportTicketForm } from "@/components/aura/SupportTicketForm";
 import type { AuraResponse, AuraResultSection } from "@/lib/auraSearch";
 
 const SUGGESTED_PROMPTS = [
@@ -198,6 +199,7 @@ export function AuraWidget() {
                       </Link>
                     </div>
                   )}
+                  {!faqAnswer && totalResults === 0 && <SupportTicketForm query={exchange.query} />}
                 </div>
               </div>
             </div>
