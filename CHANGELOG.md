@@ -22,9 +22,11 @@ Short entries for meaningful changes. Newest first. No source code here.
 - Category carousel: the "Courses" card now also plays a video (`public/videos/courses.mp4`), same lazy/reduced-motion-aware playback.
 - Category carousel: the "Competitions" card now also plays a video (`public/videos/competitions.mp4`), same lazy/reduced-motion-aware playback.
 - Category carousel: the "Hands-on Training" card now also plays a video (`public/videos/hands-on-training.mp4`), same lazy/reduced-motion-aware playback.
+- Uplifted the "Explore ScholarAura" section now that it opens the homepage: heading promoted to the page's `<h1>` and enlarged, the "For professionals, academics & students worldwide" badge moved up from the deleted hero, a subtle brand-tinted gradient + dot-grid backdrop replaces the visual weight the old hero carried, and the cards themselves got taller media panels, bolder titles, a stronger shadow/hover lift, and solid (not just outlined) prev/next buttons.
 
 ### Removed
 - The homepage's pill-tab "Discover" section (`components/HomeExploreTabs.tsx`, the row of Courses/Competitions/event-type pill buttons + a filtered listing below) — it duplicated the new "Explore ScholarAura" category carousel above it, which does the same category-browsing job with larger, more visual cards. Deleted the component outright (nothing else referenced it); `app/page.tsx` no longer fetches jobs or course ratings, since those were only used by this section.
+- The homepage's navy hero section (badge, "ScholarAura" title/tagline, and the sign-in/welcome-back card) — signing in is still available from the header on every page, so this was a redundant second entry point right above the "Explore ScholarAura" carousel. Deleted the now-unreferenced `components/HeroSignInCard.tsx`.
 
 ### Changed
 - Default theme changed to dark: a first-time visitor (no stored preference in `localStorage`) now sees dark mode regardless of their OS/browser color-scheme setting. Anyone who explicitly picked light via the header toggle keeps seeing light on their next visit — only the no-preference default flipped, not the toggle's memory (`app/layout.tsx`'s inline theme-init script).
