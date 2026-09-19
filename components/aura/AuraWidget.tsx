@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/Badge";
+import { AuraAvatar } from "@/components/aura/AuraAvatar";
 import type { AuraResponse, AuraResultSection } from "@/lib/auraSearch";
 
 const SUGGESTED_PROMPTS = [
@@ -13,17 +14,6 @@ const SUGGESTED_PROMPTS = [
 ];
 
 type Exchange = { query: string; response: AuraResponse };
-
-function AuraAvatar({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
-  const dims = size === "lg" ? "h-14 w-14 text-2xl" : size === "sm" ? "h-8 w-8 text-base" : "h-9 w-9 text-lg";
-  return (
-    <div
-      className={`flex ${dims} shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-purple-500 shadow-lg shadow-brand-500/30`}
-    >
-      🤖
-    </div>
-  );
-}
 
 function ResultSections({ sections }: { sections: AuraResultSection[] }) {
   const withItems = sections.filter((s) => s.items.length > 0);
@@ -96,9 +86,9 @@ export function AuraWidget() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open Aura"
-        className="fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-purple-500 text-2xl shadow-lg shadow-brand-500/30 transition-transform hover:scale-105"
+        className="fixed bottom-4 right-4 z-50 transition-transform hover:scale-105"
       >
-        🤖
+        <AuraAvatar size="lg" />
       </button>
     );
   }
@@ -186,6 +176,28 @@ export function AuraWidget() {
                     </Link>
                   )}
                   <ResultSections sections={resultSections} />
+                  {!faqAnswer && totalResults === 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      <Link
+                        href="/courses"
+                        className="rounded-full border border-slate-300 px-2.5 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                      >
+                        Browse courses
+                      </Link>
+                      <Link
+                        href="/events"
+                        className="rounded-full border border-slate-300 px-2.5 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                      >
+                        Browse events
+                      </Link>
+                      <Link
+                        href="/jobs"
+                        className="rounded-full border border-slate-300 px-2.5 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                      >
+                        Browse jobs
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

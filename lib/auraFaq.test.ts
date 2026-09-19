@@ -23,4 +23,14 @@ describe("matchAuraFaq", () => {
     const result = matchAuraFaq("how do I verify my certificate");
     expect(result?.href).toBe("/verify");
   });
+
+  it("matches a natural-language question against a phrase keyword", () => {
+    const result = matchAuraFaq("how do I apply for a job");
+    expect(result?.href).toBe("/jobs");
+  });
+
+  it("matches recruiter-related questions", () => {
+    const result = matchAuraFaq("I'm hiring, how do I post a job?");
+    expect(result?.href).toBe("/recruiter/register");
+  });
 });
