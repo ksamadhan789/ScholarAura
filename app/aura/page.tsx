@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Badge } from "@/components/Badge";
+import { AuraAvatar } from "@/components/aura/AuraAvatar";
 import { getAuraResponse } from "@/lib/auraSearch";
 
 export const dynamic = "force-dynamic";
@@ -19,17 +20,6 @@ const SUGGESTED_PROMPTS = [
   "What is Meet Alumni?",
   "How do I post freelance work?",
 ];
-
-function AuraAvatar({ size = "md" }: { size?: "sm" | "md" }) {
-  const dims = size === "sm" ? "h-8 w-8 text-base" : "h-12 w-12 text-2xl";
-  return (
-    <div
-      className={`flex ${dims} shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-purple-500 shadow-lg shadow-brand-500/30`}
-    >
-      🤖
-    </div>
-  );
-}
 
 function AuraBubble({ children }: { children: React.ReactNode }) {
   return (
@@ -83,7 +73,7 @@ export default async function AuraPage({ searchParams }: { searchParams: { q?: s
   return (
     <main className="mx-auto max-w-2xl bg-gradient-to-b from-brand-50/60 to-transparent px-4 py-10 dark:from-brand-900/25">
       <div className="flex items-center gap-3">
-        <AuraAvatar />
+        <AuraAvatar size="lg" />
         <div>
           <h1 className="text-xl font-semibold text-slate-900 dark:text-white">Aura</h1>
           <p className="text-sm text-gray-500 dark:text-slate-400">Your ScholarAura guide</p>
