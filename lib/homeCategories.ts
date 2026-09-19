@@ -41,6 +41,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
     cta: "Explore Competitions",
     href: "/competitions",
     icon: "🏆",
+    video: "/videos/competitions.mp4",
     statKey: "competitions",
     statLabel: "active competitions",
   },
