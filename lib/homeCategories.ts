@@ -119,6 +119,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
     cta: "Explore Training",
     href: "/events?type=HANDS_ON_TRAINING",
     icon: "🧪",
+    video: "/videos/hands-on-training.mp4",
     statKey: "handsOnTraining",
     statLabel: "upcoming",
   },
