@@ -850,3 +850,93 @@ export async function sendCompetitionResultEmail(
 
   return true;
 }
+
+export async function sendSupportTicketCreatedEmail(
+  to: string,
+  adminName: string,
+  ticket: { name: string; email: string; query: string; message: string }
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send support ticket email");
+    return false;
+  }
+
+  const safeAdminName = escapeHtml(adminName.trim() || "there");
+  const safeName = escapeHtml(ticket.name);
+  const safeEmail = escapeHtml(ticket.email);
+  const safeQuery = escapeHtml(ticket.query);
+  const safeMessage = escapeHtml(ticket.message);
+  const ticketsUrl = `${SITE_URL}/dashboard/admin/support-tickets`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `New support ticket from ${ticket.name}`,
+      text: `Hi ${adminName},\n\nAura couldn't answer a question, so ${ticket.name} (${ticket.email}) raised a support ticket.\n\nThey asked: "${ticket.query}"\n\nTheir message: ${ticket.message}\n\nReply from the admin dashboard: ${ticketsUrl}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${safeAdminName},</p>
+        <p>Aura couldn't answer a question, so <strong>${safeName}</strong> (${safeEmail}) raised a support ticket.</p>
+        <p>They asked: &ldquo;${safeQuery}&rdquo;</p>
+        <p>Their message: ${safeMessage}</p>
+        <p>
+          <a href="${ticketsUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Reply from the dashboard</a>
+        </p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send support ticket created email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send support ticket created email:", err);
+    return false;
+  }
+
+  return true;
+}
+
+export async function sendSupportTicketResolvedEmail(
+  to: string,
+  name: string,
+  query: string,
+  adminReply: string
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send support ticket resolved email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeQuery = escapeHtml(query);
+  const safeReply = escapeHtml(adminReply);
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: "Re: your ScholarAura support ticket",
+      text: `Hi ${displayName},\n\nYou asked: "${query}"\n\n${adminReply}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${safeDisplayName},</p>
+        <p>You asked: &ldquo;${safeQuery}&rdquo;</p>
+        <p>${safeReply}</p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send support ticket resolved email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send support ticket resolved email:", err);
+    return false;
+  }
+
+  return true;
+}

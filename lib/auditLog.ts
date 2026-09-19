@@ -21,7 +21,8 @@ export type AuditAction =
   | "COLLEGE_REJECTED"
   | "BUNDLE_CREATED"
   | "BUNDLE_UPDATED"
-  | "BUNDLE_DELETED";
+  | "BUNDLE_DELETED"
+  | "SUPPORT_TICKET_RESOLVED";
 
 export type AuditTargetType =
   | "CoursePurchase"
@@ -35,7 +36,8 @@ export type AuditTargetType =
   | "User"
   | "JobApplication"
   | "College"
-  | "CourseBundle";
+  | "CourseBundle"
+  | "SupportTicket";
 
 /**
  * Best-effort, like the email/notification side effects it sits alongside —

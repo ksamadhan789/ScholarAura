@@ -12,7 +12,9 @@ export type NotificationType =
   | "REFUND_REQUEST_STATUS"
   | "COMPETITION_RESULT"
   | "JOB_MESSAGE"
-  | "FREELANCE_MESSAGE";
+  | "FREELANCE_MESSAGE"
+  | "SUPPORT_TICKET_CREATED"
+  | "SUPPORT_TICKET_RESOLVED";
 
 /**
  * Creates an in-app notification alongside (never instead of) the existing

@@ -27,6 +27,7 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   BUNDLE_CREATED: "Bundle created",
   BUNDLE_UPDATED: "Bundle updated",
   BUNDLE_DELETED: "Bundle deleted",
+  SUPPORT_TICKET_RESOLVED: "Support ticket resolved",
 };
 
 function formatMetadata(metadata: unknown): string | null {
