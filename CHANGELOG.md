@@ -20,6 +20,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 - Category carousel: the "Meet Alumni" card now plays a short looping video (`public/videos/meet-alumni.mp4`) instead of the icon+gradient panel. Added real video support to `HomeCategoryCarousel.tsx` — muted/loop/playsInline, only loads and plays once the card scrolls into the viewport (`IntersectionObserver`, pauses when scrolled away), and is skipped entirely (falls back to image/icon) for `prefers-reduced-motion` or a save-data connection. `HomeCategory` gained an optional `video` field, checked before `image`.
 - Category carousel: the "Freelance Opportunities" card now also plays a video (`public/videos/freelance.mp4`), reusing the same video support added for Meet Alumni above.
 - Category carousel: the "Courses" card now also plays a video (`public/videos/courses.mp4`), same lazy/reduced-motion-aware playback.
+- Category carousel: the "Competitions" card now also plays a video (`public/videos/competitions.mp4`), same lazy/reduced-motion-aware playback.
 
 ### Removed
 - The homepage's pill-tab "Discover" section (`components/HomeExploreTabs.tsx`, the row of Courses/Competitions/event-type pill buttons + a filtered listing below) — it duplicated the new "Explore ScholarAura" category carousel above it, which does the same category-browsing job with larger, more visual cards. Deleted the component outright (nothing else referenced it); `app/page.tsx` no longer fetches jobs or course ratings, since those were only used by this section.
