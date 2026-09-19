@@ -29,6 +29,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
     cta: "Explore Courses",
     href: "/courses",
     icon: "📚",
+    video: "/videos/courses.mp4",
     statKey: "courses",
     statLabel: "courses",
   },
