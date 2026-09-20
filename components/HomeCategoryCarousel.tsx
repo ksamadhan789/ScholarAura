@@ -166,10 +166,7 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
       <div className="relative mx-auto max-w-5xl px-4">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <span className="inline-block rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
-              🌟 For professionals, academics & students worldwide
-            </span>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
               Explore ScholarAura
             </h1>
             <p className="mt-2 max-w-xl text-base text-slate-600 dark:text-slate-400">
