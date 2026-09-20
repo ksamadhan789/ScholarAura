@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
+import { Avatar } from "@/components/Avatar";
 import { ContactButton } from "@/components/freelance/ContactButton";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ export default async function FreelanceListingPage({
   const [listing, session] = await Promise.all([
     prisma.freelanceListing.findUnique({
       where: { slug: params.slug },
-      include: { postedByUser: { select: { id: true, name: true } } },
+      include: { postedByUser: { select: { id: true, name: true, photoFileId: true } } },
     }),
     getServerSession(authOptions),
   ]);
@@ -59,7 +60,14 @@ export default async function FreelanceListingPage({
       )}
 
       <h1 className="text-2xl font-semibold">{listing.title}</h1>
-      <p className="mt-1 text-gray-500 dark:text-slate-400">by {listing.postedByUser.name}</p>
+      <div className="mt-2 flex items-center gap-2">
+        <Avatar
+          name={listing.postedByUser.name}
+          src={listing.postedByUser.photoFileId ? `/api/freelance/${listing.slug}/photo` : null}
+          size={28}
+        />
+        <p className="text-gray-500 dark:text-slate-400">by {listing.postedByUser.name}</p>
+      </div>
       {listing.rate && <p className="mt-2 font-medium">{listing.rate}</p>}
 
       {skills.length > 0 && (
