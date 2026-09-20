@@ -24,7 +24,7 @@ export default async function AdminApplicationMessagesPage({
 
   const messages = await prisma.jobMessage.findMany({
     where: { applicationId: application.id },
-    include: { sender: { select: { id: true, name: true } } },
+    include: { sender: { select: { id: true, name: true, photoFileId: true } } },
     orderBy: { createdAt: "asc" },
   });
 
@@ -44,6 +44,7 @@ export default async function AdminApplicationMessagesPage({
           id: m.id,
           senderId: m.senderId,
           senderName: m.sender.name,
+          senderPhotoFileId: m.sender.photoFileId,
           body: m.body,
           createdAt: m.createdAt.toISOString(),
         }))}

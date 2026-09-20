@@ -29,7 +29,7 @@ export default async function FreelanceThreadPage({
 
   const messages = await prisma.freelanceMessage.findMany({
     where: { threadId: thread.id },
-    include: { sender: { select: { id: true, name: true } } },
+    include: { sender: { select: { id: true, name: true, photoFileId: true } } },
     orderBy: { createdAt: "asc" },
   });
 
@@ -56,6 +56,7 @@ export default async function FreelanceThreadPage({
           id: m.id,
           senderId: m.senderId,
           senderName: m.sender.name,
+          senderPhotoFileId: m.sender.photoFileId,
           body: m.body,
           createdAt: m.createdAt.toISOString(),
         }))}
