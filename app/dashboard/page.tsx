@@ -4,24 +4,37 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function TileLink({ href, icon, children }: { href: string; icon: string; children: React.ReactNode }) {
   return (
     <Link
       href={href}
-      className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+      className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-sm font-medium text-slate-700 shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
     >
+      <span
+        aria-hidden
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-lg dark:bg-brand-900/30"
+      >
+        {icon}
+      </span>
       {children}
     </Link>
   );
 }
 
-function NavGroup({ title, children }: { title: string; children: React.ReactNode }) {
+function TileGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="mb-2 text-sm font-semibold text-gray-500 dark:text-slate-400">{title}</h2>
-      <div className="flex flex-wrap gap-3">{children}</div>
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {title}
+      </h2>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
     </div>
   );
+}
+
+function initialsOf(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
 }
 
 export default async function DashboardPage() {
@@ -42,15 +55,25 @@ export default async function DashboardPage() {
 
   let isNewUser = false;
   let recommendedCourses: { slug: string; title: string; category: string }[] = [];
+  let organization: string | null = null;
+  let headline: string | null = null;
 
   if (isStudent) {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { onboardingCompletedAt: true, fieldOfStudy: true },
+      select: {
+        onboardingCompletedAt: true,
+        fieldOfStudy: true,
+        jobRole: true,
+        organization: true,
+      },
     });
     if (!user?.onboardingCompletedAt) {
       redirect("/onboarding");
     }
+
+    organization = user.organization ?? null;
+    headline = user.fieldOfStudy ?? user.jobRole ?? null;
 
     const [purchaseCount, registrationCount, entryCount, applicationCount] = await Promise.all([
       prisma.coursePurchase.count({ where: { userId: session.user.id, status: "SUCCESS" } }),
@@ -76,18 +99,37 @@ export default async function DashboardPage() {
     }
   }
 
+  const displayName = session.user?.name ?? session.user?.email ?? "there";
+
   return (
     <main className="mx-auto max-w-[1200px] px-4 py-16">
-      <h1 className="text-2xl font-semibold">
-        👋 Welcome, {session.user?.name ?? session.user?.email}
-      </h1>
-      <p className="mt-2 text-gray-600 dark:text-slate-400">
-        Signed in as <strong>{session.user?.email}</strong> · Role:{" "}
-        <strong>{session.user?.role}</strong>
-      </p>
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <span
+            aria-hidden
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-purple-500 text-lg font-semibold text-white"
+          >
+            {initialsOf(displayName)}
+          </span>
+          <div>
+            <h1 className="text-xl font-semibold">👋 Welcome, {displayName}</h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
+              {session.user?.email} · <strong>{session.user?.role}</strong>
+              {organization && <> · {organization}</>}
+              {headline && <> · {headline}</>}
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/dashboard/profile"
+          className="w-fit shrink-0 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50 dark:border-slate-600 dark:hover:bg-slate-700"
+        >
+          ✏️ Edit profile
+        </Link>
+      </div>
 
       {isNewUser && (
-        <div className="mt-8 rounded-lg border border-brand-200 bg-brand-50 p-5 dark:border-brand-800 dark:bg-brand-900/20">
+        <div className="mt-6 rounded-2xl border border-brand-200 bg-brand-50 p-5 dark:border-brand-800 dark:bg-brand-900/20">
           <h2 className="font-semibold text-slate-900 dark:text-white">Let&rsquo;s get you started</h2>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             You haven&rsquo;t enrolled in anything yet — here&rsquo;s where most people begin.
@@ -134,38 +176,68 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="mt-8 flex flex-col gap-6">
-        <NavGroup title="Learning">
-          <NavLink href="/courses">📚 Browse courses</NavLink>
-          <NavLink href="/dashboard/learning">🎓 My learning</NavLink>
+      <div className="mt-8 flex flex-col gap-8">
+        <TileGroup title="Learning">
+          <TileLink href="/courses" icon="📚">
+            Browse courses
+          </TileLink>
+          <TileLink href="/dashboard/learning" icon="🎓">
+            My learning
+          </TileLink>
           {isInstructor && (
-            <NavLink href="/dashboard/courses">🧑‍🏫 My courses (instructor)</NavLink>
+            <TileLink href="/dashboard/courses" icon="🧑‍🏫">
+              My courses (instructor)
+            </TileLink>
           )}
-          <NavLink href="/dashboard/certificates">📜 My certificates</NavLink>
-          <NavLink href="/dashboard/wishlist">❤️ Saved for later</NavLink>
-        </NavGroup>
+          <TileLink href="/dashboard/certificates" icon="📜">
+            My certificates
+          </TileLink>
+          <TileLink href="/dashboard/wishlist" icon="❤️">
+            Saved for later
+          </TileLink>
+        </TileGroup>
 
-        <NavGroup title="Events & competitions">
-          <NavLink href="/events">📅 Browse events</NavLink>
-          <NavLink href="/dashboard/registrations">🗓️ My events</NavLink>
-          <NavLink href="/competitions">🏆 Browse competitions</NavLink>
-          <NavLink href="/dashboard/entries">🏆 My competitions</NavLink>
-        </NavGroup>
+        <TileGroup title="Events & competitions">
+          <TileLink href="/events" icon="📅">
+            Browse events
+          </TileLink>
+          <TileLink href="/dashboard/registrations" icon="🗓️">
+            My events
+          </TileLink>
+          <TileLink href="/competitions" icon="🏆">
+            Browse competitions
+          </TileLink>
+          <TileLink href="/dashboard/entries" icon="🏆">
+            My competitions
+          </TileLink>
+        </TileGroup>
 
-        <NavGroup title="Jobs">
-          <NavLink href="/jobs">💼 Browse jobs</NavLink>
-          <NavLink href="/dashboard/job-applications">💼 My applications</NavLink>
-        </NavGroup>
+        <TileGroup title="Jobs">
+          <TileLink href="/jobs" icon="💼">
+            Browse jobs
+          </TileLink>
+          <TileLink href="/dashboard/job-applications" icon="💼">
+            My applications
+          </TileLink>
+        </TileGroup>
 
-        <NavGroup title="Freelance">
-          <NavLink href="/freelance">🧰 Browse freelance</NavLink>
-          <NavLink href="/dashboard/freelance">🧰 My listings</NavLink>
-          <NavLink href="/dashboard/freelance/messages">💬 My messages</NavLink>
-        </NavGroup>
+        <TileGroup title="Freelance">
+          <TileLink href="/freelance" icon="🧰">
+            Browse freelance
+          </TileLink>
+          <TileLink href="/dashboard/freelance" icon="🧰">
+            My listings
+          </TileLink>
+          <TileLink href="/dashboard/freelance/messages" icon="💬">
+            My messages
+          </TileLink>
+        </TileGroup>
 
-        <NavGroup title="Other">
-          <NavLink href="/dashboard/referrals">🎁 Refer & earn</NavLink>
-        </NavGroup>
+        <TileGroup title="Other">
+          <TileLink href="/dashboard/referrals" icon="🎁">
+            Refer & earn
+          </TileLink>
+        </TileGroup>
       </div>
     </main>
   );
