@@ -28,7 +28,9 @@ export default async function EditProfilePage() {
       bio: true,
       achievements: true,
       resumeName: true,
+      photoFileId: true,
       publicProfileEnabled: true,
+      name: true,
     },
   });
 
@@ -49,6 +51,8 @@ export default async function EditProfilePage() {
       <div className="mt-6">
         <EditProfileForm
           initial={{
+            name: user.name,
+            hasPhoto: !!user.photoFileId,
             firstName: user.firstName ?? "",
             middleName: user.middleName ?? "",
             lastName: user.lastName ?? "",
