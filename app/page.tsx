@@ -1,6 +1,3 @@
-import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { HomeBannerCarousel, type BannerItem } from "@/components/HomeBannerCarousel";
 import { HomeCategoryCarousel, type HomeCategoryItem } from "@/components/HomeCategoryCarousel";
@@ -8,9 +5,9 @@ import { COURSE_CATEGORY_ICONS } from "@/lib/courseCategories";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
 import { HOME_CATEGORIES, getHomeCategoryStats } from "@/lib/homeCategories";
 
-export default async function HomePage() {
-  const session = await getServerSession(authOptions);
+export const dynamic = "force-dynamic";
 
+export default async function HomePage() {
   const now = new Date();
   const [courses, events, competitions, categoryStats] = await Promise.all([
     prisma.course.findMany({
@@ -76,16 +73,6 @@ export default async function HomePage() {
 
   return (
     <main className="flex flex-1 flex-col">
-      {!session && (
-        <div className="border-b border-brand-100 bg-brand-50 px-4 py-2 text-center text-sm text-brand-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-          👋 Sign in to ScholarAura using your Google or email account. Don&apos;t have one?{" "}
-          <Link href="/register" className="font-medium underline">
-            Sign up now
-          </Link>
-          .
-        </div>
-      )}
-
       <HomeCategoryCarousel categories={categoryItems} />
 
       <HomeBannerCarousel items={bannerItems} />
