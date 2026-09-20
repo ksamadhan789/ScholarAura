@@ -50,6 +50,8 @@ export function SupportTicketForm({ query }: { query: string }) {
         return;
       }
       setSubmitted(true);
+    } catch {
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
