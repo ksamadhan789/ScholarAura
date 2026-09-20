@@ -37,6 +37,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 - Google Drive connection status is now shown right on `/dashboard/admin` (previously only visible buried inside a specific event or competition's certificate management page) — with a one-click "Connect Google Drive" link when nothing's connected. Certificates, resumes, and profile photos all silently fail to upload/generate without this connected, so it needed a visible, easy-to-find spot.
 
 ### Fixed
+- The profile photo preview on the Edit Profile page was too small (72px) to actually see the photo — enlarged to 128px.
 - The "make my certificates public" toggle showed the portfolio link as plain text with only a "Copy" button — no way to actually open it. Added a "View" link (opens in a new tab) next to it, on both the Edit Profile page and My Certificates.
 
 ### Added

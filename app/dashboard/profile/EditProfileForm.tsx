@@ -215,7 +215,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
     <div className="flex flex-col gap-6">
       <Section title="Profile photo">
         <div className="flex flex-wrap items-center gap-4">
-          <Avatar name={initial.name} src={photoSrc} size={72} />
+          <Avatar name={initial.name} src={photoSrc} size={128} />
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap gap-2">
               <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
