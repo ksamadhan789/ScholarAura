@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
 import { Avatar } from "@/components/Avatar";
+import { ImageCropModal } from "@/components/ImageCropModal";
 
 type Initial = {
   name: string;
@@ -72,6 +73,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
   const [photoVersion, setPhotoVersion] = useState(0);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -162,16 +164,21 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
     }
   }
 
-  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  function handlePhotoSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    setPhotoError(null);
+    setPendingPhotoFile(file);
+  }
 
+  async function handleCropConfirm(blob: Blob) {
+    setPendingPhotoFile(null);
     setPhotoError(null);
     setPhotoUploading(true);
     try {
       const formData = new FormData();
-      formData.append("photo", file);
+      formData.append("photo", blob, "profile-photo.jpg");
       const res = await fetch("/api/account/photo", { method: "POST", body: formData });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
@@ -223,7 +230,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  onChange={handlePhotoUpload}
+                  onChange={handlePhotoSelected}
                   disabled={photoUploading}
                   className="hidden"
                 />
@@ -239,11 +246,21 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                 </button>
               )}
             </div>
-            <p className="text-xs text-gray-500 dark:text-slate-400">JPEG, PNG or WebP, up to 4MB.</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400">
+              JPEG, PNG or WebP, up to 4MB. You&rsquo;ll be able to crop and adjust it before saving.
+            </p>
             {photoError && <p className="text-xs text-red-600 dark:text-red-400">{photoError}</p>}
           </div>
         </div>
       </Section>
+
+      {pendingPhotoFile && (
+        <ImageCropModal
+          file={pendingPhotoFile}
+          onCancel={() => setPendingPhotoFile(null)}
+          onCropped={handleCropConfirm}
+        />
+      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <Section title="Personal details">

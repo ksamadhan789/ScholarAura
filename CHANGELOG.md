@@ -36,6 +36,9 @@ Short entries for meaningful changes. Newest first. No source code here.
 ### Added
 - Google Drive connection status is now shown right on `/dashboard/admin` (previously only visible buried inside a specific event or competition's certificate management page) — with a one-click "Connect Google Drive" link when nothing's connected. Certificates, resumes, and profile photos all silently fail to upload/generate without this connected, so it needed a visible, easy-to-find spot.
 
+### Added
+- Selecting a profile photo now opens a crop/adjust modal (`components/ImageCropModal.tsx`) before it's uploaded — drag to reposition, a zoom slider to crop in tighter, brightness/contrast/saturation sliders, and a one-click black & white toggle. Built with plain `<canvas>` (no new dependency), always exports a fixed 512×512 JPEG regardless of the source format/aspect ratio. Caught two real bugs while testing this in a real browser: (1) the source `<img>`'s blob URL was created in `useState` but revoked in a separately-keyed `useEffect`, which is fine in production but gets silently broken under React 18 Strict Mode's dev-only mount→cleanup→remount cycle — fixed by creating and revoking the URL within the same effect; (2) Tailwind's Preflight `img { max-width: 100% }` base style was clamping the deliberately-oversized crop image down to its container's width even though it had an explicit inline `width`, since `max-width` constrains the used width regardless of where `width` came from — fixed with an explicit `max-width: none` override.
+
 ### Fixed
 - The profile photo preview on the Edit Profile page was too small (72px) to actually see the photo — enlarged to 128px.
 - The "make my certificates public" toggle showed the portfolio link as plain text with only a "Copy" button — no way to actually open it. Added a "View" link (opens in a new tab) next to it, on both the Edit Profile page and My Certificates.
