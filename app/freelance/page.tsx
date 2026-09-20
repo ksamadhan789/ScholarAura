@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
+import { Avatar } from "@/components/Avatar";
 
 export const metadata: Metadata = {
   title: "Freelance",
@@ -16,7 +17,7 @@ type Listing = {
   category: string;
   rate: string | null;
   skills: unknown;
-  postedByUser: { name: string };
+  postedByUser: { name: string; photoFileId: string | null };
 };
 
 function ListingCard({ listing }: { listing: Listing }) {
@@ -28,7 +29,14 @@ function ListingCard({ listing }: { listing: Listing }) {
     >
       <Badge variant="brand">{listing.category}</Badge>
       <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{listing.title}</h3>
-      <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">by {listing.postedByUser.name}</p>
+      <div className="mt-1 flex items-center gap-2">
+        <Avatar
+          name={listing.postedByUser.name}
+          src={listing.postedByUser.photoFileId ? `/api/freelance/${listing.slug}/photo` : null}
+          size={20}
+        />
+        <p className="text-sm text-gray-600 dark:text-slate-400">by {listing.postedByUser.name}</p>
+      </div>
       {listing.rate && (
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{listing.rate}</p>
       )}
@@ -71,7 +79,7 @@ export default async function FreelancePage({
             }
           : {}),
       },
-      include: { postedByUser: { select: { name: true } } },
+      include: { postedByUser: { select: { name: true, photoFileId: true } } },
       orderBy: { createdAt: "desc" },
     }),
     prisma.freelanceListing.findMany({
