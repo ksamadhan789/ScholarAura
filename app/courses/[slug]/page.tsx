@@ -69,7 +69,7 @@ export default async function CourseDetailPage({
   const [reviews, reviewAggregate] = await Promise.all([
     prisma.courseReview.findMany({
       where: { courseId: course.id },
-      include: { user: { select: { name: true } } },
+      include: { user: { select: { name: true, photoFileId: true } } },
       orderBy: { createdAt: "desc" },
     }),
     prisma.courseReview.aggregate({
