@@ -12,6 +12,7 @@ import { CertificateActionButton } from "@/components/certificates/CertificateAc
 import { RevokeCertificateButton } from "@/components/certificates/RevokeCertificateButton";
 import { DisconnectDriveButton } from "@/components/certificates/DisconnectDriveButton";
 import { BulkCertificateActions } from "@/components/certificates/BulkCertificateActions";
+import { Avatar } from "@/components/Avatar";
 
 const CERT_STATUS_VARIANT: Record<string, "success" | "warning" | "brand" | "neutral"> = {
   ELIGIBLE: "warning",
@@ -49,7 +50,9 @@ export default async function CompetitionCertificatesPage({
   const [entries, certificates] = await Promise.all([
     prisma.competitionEntry.findMany({
       where: { competitionId: competition.id, status: "SUCCESS" },
-      include: { user: { select: { id: true, name: true, email: true, organization: true } } },
+      include: {
+        user: { select: { id: true, name: true, email: true, organization: true, photoFileId: true } },
+      },
       orderBy: { registeredAt: "asc" },
     }),
     prisma.certificate.findMany({ where: { competitionId: competition.id } }),
@@ -172,7 +175,16 @@ export default async function CompetitionCertificatesPage({
                 return (
                   <tr key={e.id} className="border-t border-gray-200 dark:border-slate-700 align-top">
                     <td className="px-4 py-2.5 font-mono text-xs">{e.enrollmentNumber ?? "—"}</td>
-                    <td className="px-4 py-2.5">{e.user.name}</td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Avatar
+                          name={e.user.name}
+                          src={e.user.photoFileId ? `/api/admin/users/${e.user.id}/photo` : null}
+                          size={28}
+                        />
+                        {e.user.name}
+                      </div>
+                    </td>
                     <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">{e.user.email}</td>
                     <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">{e.user.organization ?? "—"}</td>
                     <td className="px-4 py-2.5">{e.formSubmitted ? "✓" : "—"}</td>

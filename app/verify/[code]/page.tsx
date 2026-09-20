@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
 import { checkRateLimit, CERTIFICATE_VERIFY_ATTEMPT_LIMIT, CERTIFICATE_VERIFY_WINDOW_MS } from "@/lib/rateLimit";
+import { Avatar } from "@/components/Avatar";
 
 // No dynamic API (cookies/searchParams/getServerSession) here to naturally
 // opt this out of caching, so without this a certificate code checked before
@@ -40,11 +41,18 @@ export default async function VerifyCertificatePage({
       {certificate && !isRevoked ? (
         <div className="rounded border border-green-300 bg-green-50 dark:bg-green-900/40 p-5">
           <p className="mb-4 text-lg font-semibold text-green-800 dark:text-green-300">✓ Valid certificate</p>
-          <dl className="flex flex-col gap-2 text-sm">
+          <div className="mb-4 flex items-center gap-3">
+            <Avatar
+              name={certificate.user.name}
+              src={certificate.user.photoFileId ? `/api/certificates/${certificate.certificateNumber}/photo` : null}
+              size={48}
+            />
             <div>
-              <dt className="text-gray-500 dark:text-slate-400">Issued to</dt>
-              <dd className="font-medium">{certificate.user.name}</dd>
+              <p className="text-xs text-gray-500 dark:text-slate-400">Issued to</p>
+              <p className="font-medium">{certificate.user.name}</p>
             </div>
+          </div>
+          <dl className="flex flex-col gap-2 text-sm">
             <div>
               <dt className="text-gray-500 dark:text-slate-400">For</dt>
               <dd className="font-medium">
