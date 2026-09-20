@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { StarRating } from "@/components/StarRating";
 import { StarRatingInput } from "@/components/StarRatingInput";
+import { Avatar } from "@/components/Avatar";
 
 type ReviewItem = {
   id: string;
@@ -11,7 +12,7 @@ type ReviewItem = {
   comment: string | null;
   createdAt: string;
   userId: string;
-  user: { name: string };
+  user: { name: string; photoFileId: string | null };
 };
 
 function formatDate(date: string) {
@@ -191,6 +192,11 @@ export function CourseReviewSection({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
+                    <Avatar
+                      name={review.user.name}
+                      src={review.user.photoFileId ? `/api/courses/${slug}/reviews/${review.id}/photo` : null}
+                      size={24}
+                    />
                     <StarRating value={review.rating} />
                     <span className="text-sm font-medium">{review.user.name}</span>
                   </div>
