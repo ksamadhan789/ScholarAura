@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Avatar } from "@/components/Avatar";
 
 function TileLink({ href, icon, children }: { href: string; icon: string; children: React.ReactNode }) {
   return (
@@ -30,11 +31,6 @@ function TileGroup({ title, children }: { title: string; children: React.ReactNo
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
     </div>
   );
-}
-
-function initialsOf(name: string) {
-  const parts = name.trim().split(/\s+/);
-  return ((parts[0]?.[0] ?? "") + (parts[parts.length - 1]?.[0] ?? "")).toUpperCase();
 }
 
 export default async function DashboardPage() {
@@ -100,17 +96,20 @@ export default async function DashboardPage() {
   }
 
   const displayName = session.user?.name ?? session.user?.email ?? "there";
+  const currentUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { photoFileId: true },
+  });
 
   return (
     <main className="mx-auto max-w-[1200px] px-4 py-16">
       <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <span
-            aria-hidden
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-purple-500 text-lg font-semibold text-white"
-          >
-            {initialsOf(displayName)}
-          </span>
+          <Avatar
+            name={displayName}
+            src={currentUser?.photoFileId ? "/api/account/photo" : null}
+            size={56}
+          />
           <div>
             <h1 className="text-xl font-semibold">👋 Welcome, {displayName}</h1>
             <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">

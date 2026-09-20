@@ -126,6 +126,8 @@ model User {
   achievements   Json?
   resumeFileId   String?
   resumeName     String?
+  photoFileId    String?
+  photoContentType String?
   onboardingCompletedAt DateTime?
   consentAcceptedAt DateTime?
   marketingOptIn Boolean   @default(false)

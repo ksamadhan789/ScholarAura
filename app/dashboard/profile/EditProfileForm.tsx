@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
+import { Avatar } from "@/components/Avatar";
 
 type Initial = {
+  name: string;
+  hasPhoto: boolean;
   firstName: string;
   middleName: string;
   lastName: string;
@@ -64,6 +67,11 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
   const [resumeName, setResumeName] = useState(initial.resumeName);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [resumeUploading, setResumeUploading] = useState(false);
+
+  const [hasPhoto, setHasPhoto] = useState(initial.hasPhoto);
+  const [photoVersion, setPhotoVersion] = useState(0);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -154,11 +162,89 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
     }
   }
 
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setPhotoError(null);
+    setPhotoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("photo", file);
+      const res = await fetch("/api/account/photo", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setPhotoError(data?.error ?? "Couldn't upload your photo. Please try again.");
+        return;
+      }
+      setHasPhoto(true);
+      setPhotoVersion((v) => v + 1);
+      router.refresh();
+    } catch {
+      setPhotoError("Couldn't reach the server. Please try again.");
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
+  async function handlePhotoRemove() {
+    setPhotoError(null);
+    setPhotoUploading(true);
+    try {
+      const res = await fetch("/api/account/photo", { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setPhotoError(data?.error ?? "Couldn't remove your photo. Please try again.");
+        return;
+      }
+      setHasPhoto(false);
+      router.refresh();
+    } catch {
+      setPhotoError("Couldn't reach the server. Please try again.");
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
   const showFieldOfStudy = initial.userType === "COLLEGE_STUDENT";
   const showJobRole = initial.userType === "PROFESSIONAL";
+  const photoSrc = hasPhoto ? `/api/account/photo?v=${photoVersion}` : null;
 
   return (
     <div className="flex flex-col gap-6">
+      <Section title="Profile photo">
+        <div className="flex flex-wrap items-center gap-4">
+          <Avatar name={initial.name} src={photoSrc} size={72} />
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
+              <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
+                {photoUploading ? "Uploading…" : hasPhoto ? "Replace photo" : "Upload photo"}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handlePhotoUpload}
+                  disabled={photoUploading}
+                  className="hidden"
+                />
+              </label>
+              {hasPhoto && (
+                <button
+                  type="button"
+                  onClick={handlePhotoRemove}
+                  disabled={photoUploading}
+                  className="rounded border border-red-300 px-3 py-1.5 text-xs text-red-600 disabled:opacity-50 dark:border-red-800 dark:text-red-400"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 dark:text-slate-400">JPEG, PNG or WebP, up to 4MB.</p>
+            {photoError && <p className="text-xs text-red-600 dark:text-red-400">{photoError}</p>}
+          </div>
+        </div>
+      </Section>
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <Section title="Personal details">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

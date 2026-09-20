@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
+import { Avatar } from "@/components/Avatar";
 
 // No dynamic API here (mirrors /verify/[code]) so a profile made public
 // after being viewed while private doesn't get stuck cached as "not found".
@@ -19,6 +20,7 @@ export default async function PublicPortfolioPage({ params }: { params: { userId
       bio: true,
       achievements: true,
       resumeName: true,
+      photoFileId: true,
     },
   });
 
@@ -36,11 +38,22 @@ export default async function PublicPortfolioPage({ params }: { params: { userId
 
   return (
     <main className="mx-auto max-w-[1200px] px-4 py-16">
-      <h1 className="text-2xl font-semibold">{user.name}</h1>
-      {user.organization && <p className="mt-1 text-gray-500 dark:text-slate-400">{user.organization}</p>}
-      <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-        {certificates.length} certificate{certificates.length === 1 ? "" : "s"} earned on ScholarAura
-      </p>
+      <div className="flex items-center gap-4">
+        <Avatar
+          name={user.name}
+          src={user.photoFileId ? `/api/portfolio/${user.id}/photo` : null}
+          size={64}
+        />
+        <div>
+          <h1 className="text-2xl font-semibold">{user.name}</h1>
+          {user.organization && (
+            <p className="mt-1 text-gray-500 dark:text-slate-400">{user.organization}</p>
+          )}
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+            {certificates.length} certificate{certificates.length === 1 ? "" : "s"} earned on ScholarAura
+          </p>
+        </div>
+      </div>
 
       {(user.bio || user.linkedinUrl || user.resumeName || achievements.length > 0) && (
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">

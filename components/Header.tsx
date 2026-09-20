@@ -7,6 +7,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { SearchBar } from "./SearchBar";
 import { NotificationBell } from "./NotificationBell";
 import { LocationPicker } from "./LocationPicker";
+import { Avatar } from "./Avatar";
 import { EVENT_TYPE_TABS } from "@/lib/eventLabels";
 
 // Mirrors the desktop category strip — shown as a swipeable horizontal
@@ -66,12 +67,15 @@ export function Header() {
             <>
               <Link
                 href="/dashboard"
-                className="flex flex-col leading-tight text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400"
+                className="flex items-center gap-2 leading-tight text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400"
               >
-                <span className="text-xs text-slate-400 dark:text-slate-500">
-                  Hello, {firstName}
+                <Avatar name={session.user?.name ?? firstName} src="/api/account/photo" size={32} />
+                <span className="flex flex-col">
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                    Hello, {firstName}
+                  </span>
+                  <span className="font-semibold">Dashboard</span>
                 </span>
-                <span className="font-semibold">Dashboard</span>
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
