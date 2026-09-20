@@ -15,7 +15,7 @@ export default function VerifyLookupPage() {
   }
 
   return (
-    <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4">
+    <main className="mx-auto flex flex-1 w-full max-w-[640px] flex-col justify-center px-4">
       <h1 className="mb-2 text-2xl font-semibold">Verify a certificate</h1>
       <p className="mb-6 text-sm text-gray-600 dark:text-slate-400">
         Enter the certificate number printed on the certificate (e.g. CERT-2026-000123).

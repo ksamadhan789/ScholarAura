@@ -33,7 +33,7 @@ export default async function VerifyCertificatePage({
   const isRevoked = certificate?.status === "REVOKED";
 
   return (
-    <main className="mx-auto flex flex-1 w-full max-w-md flex-col justify-center px-4">
+    <main className="mx-auto flex flex-1 w-full max-w-[720px] flex-col justify-center px-4">
       <p className="mb-1 text-sm text-gray-500 dark:text-slate-400">Certificate number</p>
       <p className="mb-6 font-mono text-lg">{params.code}</p>
 

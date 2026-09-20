@@ -39,7 +39,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3">
         <Link
           href="/"
           className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"
@@ -117,7 +117,7 @@ export function Header() {
       {/* Category strip — deliberately always dark, independent of the site
           theme, matching the reference marketplace header's static navy bar. */}
       <nav className="hidden border-t border-slate-800 bg-slate-900 md:block">
-        <div className="mx-auto flex max-w-5xl items-center gap-5 px-4 py-2 text-sm text-slate-200">
+        <div className="mx-auto flex max-w-[1600px] items-center gap-5 px-4 py-2 text-sm text-slate-200">
           <Link href="/courses" className="hover:text-white">
             📚 Courses
           </Link>

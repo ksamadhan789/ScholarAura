@@ -49,7 +49,7 @@ export default async function CompetitionEntriesPage({
   ]);
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-16">
+    <main className="mx-auto max-w-[1600px] px-4 py-16">
       <Link
         href="/dashboard/competitions"
         className="text-sm text-gray-500 hover:underline dark:text-slate-400"

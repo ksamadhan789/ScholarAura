@@ -32,7 +32,7 @@ export default async function MyCertificatesPage() {
   ]);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="mb-8 text-2xl font-semibold">📜 My certificates</h1>
 
       <PublicProfileToggle

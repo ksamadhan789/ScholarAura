@@ -26,7 +26,7 @@ export function HomeBannerCarousel({ items }: { items: BannerItem[] }) {
 
   return (
     <section className="border-b border-slate-200 bg-slate-50 py-6 dark:border-slate-700 dark:bg-slate-900/40">
-      <div className="mx-auto max-w-5xl px-4">
+      <div className="mx-auto max-w-[1600px] px-4">
         <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
           Featured on ScholarAura
         </h2>

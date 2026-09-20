@@ -78,7 +78,7 @@ export default async function ReferralsPage() {
   const ratePercent = getReferralRatePercent(user);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="mb-8 text-2xl font-semibold">🎁 Refer & earn</h1>
 
       <div className="rounded border border-gray-200 dark:border-slate-700 p-5">

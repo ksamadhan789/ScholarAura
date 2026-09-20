@@ -150,7 +150,7 @@ export default async function JobsPage({
   const regularJobs = jobs.filter((j) => !j.featuredUntil || j.featuredUntil <= now);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-16">
+    <main className="mx-auto max-w-[1400px] px-4 py-16">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">💼 Jobs</h1>
         <Link href="/recruiter/register" className="text-sm text-brand-600 underline dark:text-brand-400">

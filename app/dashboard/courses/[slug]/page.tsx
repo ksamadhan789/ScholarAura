@@ -45,7 +45,7 @@ export default async function ManageCoursePage({
   });
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-[1050px] px-4 py-16">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{course.title}</h1>

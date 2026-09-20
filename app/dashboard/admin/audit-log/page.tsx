@@ -63,7 +63,7 @@ export default async function AuditLogPage({
   ]);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-16">
+    <main className="mx-auto max-w-[1400px] px-4 py-16">
       <Link href="/dashboard/admin" className="text-sm text-gray-500 hover:underline dark:text-slate-400">
         ← Admin
       </Link>

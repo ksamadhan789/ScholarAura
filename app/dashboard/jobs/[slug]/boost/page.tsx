@@ -24,7 +24,7 @@ export default async function BoostJobPage({ params }: { params: { slug: string 
   }));
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-16">
+    <main className="mx-auto max-w-[900px] px-4 py-16">
       <Link
         href="/dashboard/jobs"
         className="text-sm text-gray-500 hover:underline dark:text-slate-400"

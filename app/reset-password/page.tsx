@@ -58,7 +58,7 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4">
+      <main className="mx-auto flex flex-1 w-full max-w-[640px] flex-col justify-center px-4">
         <h1 className="mb-2 text-2xl font-semibold">Invalid link</h1>
         <p className="text-sm text-gray-600 dark:text-slate-400">
           This password reset link is missing its token. Request a new one below.
@@ -72,7 +72,7 @@ function ResetPasswordForm() {
 
   if (done) {
     return (
-      <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4">
+      <main className="mx-auto flex flex-1 w-full max-w-[640px] flex-col justify-center px-4">
         <h1 className="mb-2 text-2xl font-semibold">Password updated</h1>
         <p className="text-sm text-gray-600 dark:text-slate-400">
           Redirecting you to log in…
@@ -82,7 +82,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4">
+    <main className="mx-auto flex flex-1 w-full max-w-[640px] flex-col justify-center px-4">
       <h1 className="mb-6 text-2xl font-semibold">Set a new password</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">

@@ -53,7 +53,7 @@ export default async function CoursesPage() {
   const wishlistedCourseIds = wishlistEntries.map((w) => w.courseId);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-16">
+    <main className="mx-auto max-w-[1400px] px-4 py-16">
       <h1 className="mb-8 text-center text-2xl font-semibold">📚 Browse courses</h1>
 
       <CoursesExplorer

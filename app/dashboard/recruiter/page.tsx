@@ -25,7 +25,7 @@ export default async function RecruiterHomePage() {
 
   if (recruiterProfile.status !== "APPROVED") {
     return (
-      <main className="mx-auto max-w-xl px-4 py-16">
+      <main className="mx-auto max-w-[900px] px-4 py-16">
         <h1 className="text-2xl font-semibold">💼 Recruiter account</h1>
         {recruiterProfile.status === "PENDING" ? (
           <div className="mt-6 rounded border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/40 p-4">
@@ -63,7 +63,7 @@ export default async function RecruiterHomePage() {
   const applicationCountByJobId = new Map(applicationCounts.map((a) => [a.jobId, a._count._all]));
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">💼 {recruiterProfile.companyName}</h1>

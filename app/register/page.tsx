@@ -74,7 +74,7 @@ function RegisterForm() {
   }
 
   return (
-    <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4">
+    <main className="mx-auto flex flex-1 w-full max-w-[640px] flex-col justify-center px-4">
       {GOOGLE_CLIENT_ID && <GoogleOneTap clientId={GOOGLE_CLIENT_ID} />}
       <h1 className="mb-2 text-2xl font-semibold">✨ Create your account</h1>
       {ref && (

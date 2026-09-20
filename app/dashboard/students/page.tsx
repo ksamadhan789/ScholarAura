@@ -80,7 +80,7 @@ export default async function StudentsAdminPage({
   const collegeByName = new Map(colleges.map((c) => [c.name.toLowerCase(), c]));
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-16">
+    <main className="mx-auto max-w-[1600px] px-4 py-16">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Students</h1>

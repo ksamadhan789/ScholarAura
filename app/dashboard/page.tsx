@@ -77,7 +77,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="text-2xl font-semibold">
         👋 Welcome, {session.user?.name ?? session.user?.email}
       </h1>

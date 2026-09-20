@@ -19,7 +19,7 @@ export default async function CollegesAdminPage() {
   });
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-16">
+    <main className="mx-auto max-w-[1400px] px-4 py-16">
       <h1 className="text-2xl font-semibold">Colleges awaiting review</h1>
       <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
         {pendingColleges.length} college{pendingColleges.length === 1 ? "" : "s"} pending approval.

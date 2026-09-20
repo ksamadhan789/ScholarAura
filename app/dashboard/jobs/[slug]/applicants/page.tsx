@@ -21,7 +21,7 @@ export default async function JobApplicantsPage({ params }: { params: { slug: st
   });
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Applicants for {job.title}</h1>

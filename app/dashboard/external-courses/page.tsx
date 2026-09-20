@@ -21,7 +21,7 @@ export default async function ManageExternalCoursesPage() {
   });
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Recommended courses</h1>
         <Link

@@ -24,7 +24,7 @@ export default async function PublicPortfolioPage({ params }: { params: { userId
   });
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="text-2xl font-semibold">{user.name}</h1>
       {user.organization && <p className="mt-1 text-gray-500 dark:text-slate-400">{user.organization}</p>}
       <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">

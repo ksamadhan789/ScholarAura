@@ -72,7 +72,7 @@ export default async function AuraPage({ searchParams }: { searchParams: { q?: s
   const totalResults = resultSections.reduce((sum, section) => sum + section.items.length, 0);
 
   return (
-    <main className="mx-auto max-w-2xl bg-gradient-to-b from-brand-50/60 to-transparent px-4 py-10 dark:from-brand-900/25">
+    <main className="mx-auto max-w-[1050px] bg-gradient-to-b from-brand-50/60 to-transparent px-4 py-10 dark:from-brand-900/25">
       <div className="flex items-center gap-3">
         <AuraAvatar size="lg" />
         <div>

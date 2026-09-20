@@ -28,7 +28,7 @@ export default async function CourseFinalQuizTakePage({ params }: { params: { sl
   const questions = stripAnswerKey(quiz.questions as unknown as QuizQuestion[]);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-[1050px] px-4 py-16">
       <Link
         href={`/courses/${course.slug}`}
         className="text-sm text-gray-500 hover:underline dark:text-slate-400"

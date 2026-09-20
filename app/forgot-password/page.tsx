@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4">
+      <main className="mx-auto flex flex-1 w-full max-w-[640px] flex-col justify-center px-4">
         <h1 className="mb-2 text-2xl font-semibold">Check your email</h1>
         <p className="text-sm text-gray-600 dark:text-slate-400">
           If an account exists for <strong>{email}</strong>, we&apos;ve sent a link to reset your
@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4">
+    <main className="mx-auto flex flex-1 w-full max-w-[640px] flex-col justify-center px-4">
       <h1 className="mb-2 text-2xl font-semibold">Forgot your password?</h1>
       <p className="mb-6 text-sm text-gray-600 dark:text-slate-400">
         Enter the email you signed up with and we&apos;ll send you a link to reset your password.

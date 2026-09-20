@@ -52,7 +52,7 @@ export default function LoginPage() {
     >
       {GOOGLE_CLIENT_ID && <GoogleOneTap clientId={GOOGLE_CLIENT_ID} />}
 
-      <div className="mx-auto grid w-full max-w-5xl gap-10 px-4 py-16 lg:grid-cols-2 lg:items-center lg:py-24">
+      <div className="mx-auto grid w-full max-w-[1600px] gap-10 px-4 py-16 lg:grid-cols-2 lg:items-center lg:py-24">
         <div className="text-center lg:text-left">
           <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-brand-100">
             🌟 For professionals, academics & students worldwide

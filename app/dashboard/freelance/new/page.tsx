@@ -57,7 +57,7 @@ export default function NewFreelanceListingPage() {
   }
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-16">
+    <main className="mx-auto max-w-[900px] px-4 py-16">
       <h1 className="mb-2 text-2xl font-semibold">Post your freelance services</h1>
       <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
         Listed under your name — visible to everyone browsing /freelance as soon as you post.
