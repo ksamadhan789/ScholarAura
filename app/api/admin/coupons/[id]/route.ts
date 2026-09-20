@@ -24,6 +24,11 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     );
   }
 
+  const existing = await prisma.coupon.findUnique({ where: { id: params.id } });
+  if (!existing) {
+    return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
+  }
+
   const coupon = await prisma.coupon.update({ where: { id: params.id }, data: parsed.data });
   await logAdminAction({
     actorId: session.user.id,

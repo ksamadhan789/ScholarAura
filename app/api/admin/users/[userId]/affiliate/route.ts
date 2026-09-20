@@ -28,6 +28,11 @@ export async function PATCH(
     );
   }
 
+  const existing = await prisma.user.findUnique({ where: { id: params.userId } });
+  if (!existing) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
   const user = await prisma.user.update({
     where: { id: params.userId },
     data: {
