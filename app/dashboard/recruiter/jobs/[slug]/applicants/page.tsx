@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatJobDate } from "@/lib/jobLabels";
+import { Avatar } from "@/components/Avatar";
 import { ApplicationStatusSelect } from "@/app/dashboard/jobs/[slug]/applicants/ApplicationStatusSelect";
 
 export default async function RecruiterJobApplicantsPage({ params }: { params: { slug: string } }) {
@@ -44,12 +45,19 @@ export default async function RecruiterJobApplicantsPage({ params }: { params: {
               className="rounded border border-gray-200 dark:border-slate-700 p-4"
             >
               <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-medium">{app.user.name}</p>
-                  <p className="text-sm text-gray-500 dark:text-slate-400">{app.user.email}</p>
-                  <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
-                    Applied {formatJobDate(app.appliedAt)}
-                  </p>
+                <div className="flex items-start gap-3">
+                  <Avatar
+                    name={app.user.name}
+                    src={app.user.photoFileId ? `/api/admin/job-applications/${app.id}/photo` : null}
+                    size={48}
+                  />
+                  <div>
+                    <p className="font-medium">{app.user.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">{app.user.email}</p>
+                    <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+                      Applied {formatJobDate(app.appliedAt)}
+                    </p>
+                  </div>
                 </div>
                 <ApplicationStatusSelect applicationId={app.id} status={app.status} />
               </div>
