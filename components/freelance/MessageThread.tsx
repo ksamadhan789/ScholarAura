@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Avatar } from "@/components/Avatar";
 
 export type ThreadMessage = {
   id: string;
   senderId: string;
   senderName: string;
+  senderPhotoFileId: string | null;
   body: string;
   createdAt: string;
 };
@@ -66,26 +68,39 @@ export function MessageThread({
             return (
               <div
                 key={m.id}
-                className={`max-w-[80%] rounded p-3 text-sm ${
-                  isMine
-                    ? "self-end bg-brand-600 text-white"
-                    : "self-start bg-gray-100 dark:bg-slate-800"
-                }`}
+                className={`flex max-w-[80%] items-end gap-2 ${isMine ? "self-end" : "self-start"}`}
               >
-                {!isMine && <p className="mb-1 text-xs font-medium opacity-70">{m.senderName}</p>}
-                <p className="whitespace-pre-wrap">{m.body}</p>
-                <p
-                  className={`mt-1 text-xs ${
-                    isMine ? "text-white/70" : "text-gray-500 dark:text-slate-400"
+                {!isMine && (
+                  <Avatar
+                    name={m.senderName}
+                    src={
+                      m.senderPhotoFileId
+                        ? `/api/freelance/threads/${threadId}/messages/photo?userId=${m.senderId}`
+                        : null
+                    }
+                    size={28}
+                  />
+                )}
+                <div
+                  className={`rounded p-3 text-sm ${
+                    isMine ? "bg-brand-600 text-white" : "bg-gray-100 dark:bg-slate-800"
                   }`}
                 >
-                  {new Date(m.createdAt).toLocaleString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
-                </p>
+                  {!isMine && <p className="mb-1 text-xs font-medium opacity-70">{m.senderName}</p>}
+                  <p className="whitespace-pre-wrap">{m.body}</p>
+                  <p
+                    className={`mt-1 text-xs ${
+                      isMine ? "text-white/70" : "text-gray-500 dark:text-slate-400"
+                    }`}
+                  >
+                    {new Date(m.createdAt).toLocaleString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
               </div>
             );
           })}
