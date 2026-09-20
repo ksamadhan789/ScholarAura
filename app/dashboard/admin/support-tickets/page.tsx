@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Avatar } from "@/components/Avatar";
 import { SupportTicketActions } from "./SupportTicketActions";
 
 export default async function AdminSupportTicketsPage() {
@@ -29,22 +30,29 @@ export default async function AdminSupportTicketsPage() {
           {tickets.map((t) => (
             <div key={t.id} className="rounded border border-gray-200 dark:border-slate-700 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium">
-                    {t.name} · {t.email}
-                    {!t.userId && (
-                      <span className="ml-1.5 rounded bg-gray-100 px-1.5 py-0.5 text-xs font-normal text-gray-500 dark:bg-slate-800 dark:text-slate-400">
-                        Guest
-                      </span>
-                    )}
-                  </p>
-                  <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
-                    Asked: &ldquo;{t.query}&rdquo;
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{t.message}</p>
-                  <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
-                    Raised {t.createdAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                  </p>
+                <div className="flex gap-3">
+                  <Avatar
+                    name={t.name}
+                    src={t.userId ? `/api/admin/users/${t.userId}/photo` : null}
+                    size={36}
+                  />
+                  <div>
+                    <p className="font-medium">
+                      {t.name} · {t.email}
+                      {!t.userId && (
+                        <span className="ml-1.5 rounded bg-gray-100 px-1.5 py-0.5 text-xs font-normal text-gray-500 dark:bg-slate-800 dark:text-slate-400">
+                          Guest
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+                      Asked: &ldquo;{t.query}&rdquo;
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{t.message}</p>
+                    <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+                      Raised {t.createdAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    </p>
+                  </div>
                 </div>
                 <SupportTicketActions ticketId={t.id} />
               </div>
