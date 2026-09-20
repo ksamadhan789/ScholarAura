@@ -49,9 +49,13 @@ export function ImageCropModal({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onCancel]);
 
+  // "Contain", not "cover" — at zoom 1 the whole photo is visible (any
+  // non-square photo gets letterboxed, not auto-cropped), so a photo framed
+  // wider than a tight headshot doesn't default to showing only the face.
+  // Zooming in from there is how someone chooses a tighter crop themselves.
   const baseScale = useMemo(() => {
     if (!naturalSize) return 1;
-    return Math.max(VIEWPORT_SIZE / naturalSize.w, VIEWPORT_SIZE / naturalSize.h);
+    return Math.min(VIEWPORT_SIZE / naturalSize.w, VIEWPORT_SIZE / naturalSize.h);
   }, [naturalSize]);
 
   const scale = baseScale * zoom;
@@ -60,14 +64,19 @@ export function ImageCropModal({
   const baseX = (VIEWPORT_SIZE - dispW) / 2;
   const baseY = (VIEWPORT_SIZE - dispH) / 2;
 
+  // An axis smaller than the viewport (letterboxed) has nothing to pan —
+  // the min/max formula below only makes sense once that axis overflows.
+  function clampAxis(disp: number, base: number, value: number) {
+    if (disp <= VIEWPORT_SIZE) return 0;
+    const min = VIEWPORT_SIZE - disp - base;
+    const max = -base;
+    return Math.min(max, Math.max(min, value));
+  }
+
   function clampOffset(x: number, y: number) {
-    const minX = VIEWPORT_SIZE - dispW - baseX;
-    const maxX = -baseX;
-    const minY = VIEWPORT_SIZE - dispH - baseY;
-    const maxY = -baseY;
     return {
-      x: Math.min(maxX, Math.max(minX, x)),
-      y: Math.min(maxY, Math.max(minY, y)),
+      x: clampAxis(dispW, baseX, x),
+      y: clampAxis(dispH, baseY, y),
     };
   }
 
@@ -119,6 +128,12 @@ export function ImageCropModal({
       const srcY = -(baseY + offset.y) / scale;
       const srcSize = VIEWPORT_SIZE / scale;
 
+      // At low zoom a letterboxed axis means the source rect can extend past
+      // the actual image — canvas leaves that area transparent, which a JPEG
+      // export would otherwise turn black. Fill white first instead, since
+      // the avatar shows up as a circle across both light and dark pages.
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
       ctx.filter = filterCss;
       ctx.drawImage(img, srcX, srcY, srcSize, srcSize, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
 
@@ -141,7 +156,7 @@ export function ImageCropModal({
         <h2 className="mb-4 font-semibold text-slate-900 dark:text-white">Adjust your photo</h2>
 
         <div
-          className="relative mx-auto touch-none select-none overflow-hidden rounded-lg bg-slate-900"
+          className="relative mx-auto touch-none select-none overflow-hidden rounded-lg bg-white"
           style={{ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
