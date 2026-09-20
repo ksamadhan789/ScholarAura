@@ -53,9 +53,17 @@ export function PublicProfileToggle({
             : "Turn this on to get a public link showing all your generated certificates — handy for a resume or LinkedIn."}
         </p>
         {enabled && (
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <code className="rounded bg-gray-100 dark:bg-slate-800 px-2 py-1 text-xs">{portfolioUrl}</code>
-            <button onClick={copyLink} className="text-xs text-brand-600 hover:underline">
+            <a
+              href={portfolioUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-brand-600 hover:underline dark:text-brand-400"
+            >
+              View
+            </a>
+            <button onClick={copyLink} className="text-xs text-brand-600 hover:underline dark:text-brand-400">
               {copied ? "Copied!" : "Copy"}
             </button>
           </div>
