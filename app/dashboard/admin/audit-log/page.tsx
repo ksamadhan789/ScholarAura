@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Pagination, PAGE_SIZE } from "@/components/Pagination";
+import { Avatar } from "@/components/Avatar";
 import type { AuditAction } from "@/lib/auditLog";
 
 const ACTION_LABELS: Record<AuditAction, string> = {
@@ -54,7 +55,7 @@ export default async function AuditLogPage({
 
   const [entries, totalCount] = await Promise.all([
     prisma.auditLog.findMany({
-      include: { actor: { select: { name: true, email: true } } },
+      include: { actor: { select: { id: true, name: true, email: true, photoFileId: true } } },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -98,8 +99,17 @@ export default async function AuditLogPage({
                     })}
                   </td>
                   <td className="px-4 py-2.5">
-                    {entry.actor.name}
-                    <p className="text-xs text-gray-500 dark:text-slate-400">{entry.actor.email}</p>
+                    <div className="flex items-center gap-2">
+                      <Avatar
+                        name={entry.actor.name}
+                        src={entry.actor.photoFileId ? `/api/admin/users/${entry.actor.id}/photo` : null}
+                        size={28}
+                      />
+                      <div>
+                        {entry.actor.name}
+                        <p className="text-xs text-gray-500 dark:text-slate-400">{entry.actor.email}</p>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-2.5">
                     {ACTION_LABELS[entry.action as AuditAction] ?? entry.action}

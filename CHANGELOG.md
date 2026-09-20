@@ -5,6 +5,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-18
 
 ### Added
+- Profile photos now show next to each entry's acting admin on the admin audit log (`/dashboard/admin/audit-log`), reusing the same admin-only `GET /api/admin/users/[userId]/photo` route added for the certificate tables and support-tickets page.
 - Profile photos now show in the "People you've invited" list on `/dashboard/referrals`, via a new private photo route (`GET /api/referrals/[userId]/photo`) gated to only the referrer who actually invited that person. Deliberately left off that same page's referral leaderboard — `lib/referralLeaderboard.ts` already anonymizes referrers there to "First L." specifically so they aren't identifiable to every other student, and a photo would undo that on purpose.
 
 ### Fixed
