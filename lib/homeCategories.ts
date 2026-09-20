@@ -77,6 +77,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
     cta: "Explore FDPs",
     href: "/events?type=FDP",
     icon: "🎓",
+    video: "/videos/fdp.mp4",
     statKey: "fdp",
     statLabel: "upcoming",
   },
