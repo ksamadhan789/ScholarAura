@@ -60,6 +60,7 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 
 ## Known Issues / Caveats
 
+- **Google Drive must be connected for file storage to work at all** — certificates, per-job-application resumes, profile resumes, and profile photos are all stored there. It's a single site-wide connection (`GoogleDriveConnection`, one row, `lib/google/delegatedAuth.ts`), connected by an admin visiting `/dashboard/admin` and clicking "Connect Google Drive" (also checkable/connectable from any event or competition's certificate page). Without it, `getDelegatedGoogleAuth()` returns null and Drive writes fall back to the bare service account, which has zero storage quota on a non-Workspace account — every upload then fails with a generic "Couldn't upload... Please try again." error, which is easy to mistake for a bug in whichever feature happened to be tried first.
 - **Bundles feature removed from the site (2026-09-07)**, but its database tables (`CourseBundle`, `CourseBundleItem`, `BundlePurchase`) and any existing purchase records were deliberately kept, not dropped. The audit-log `BUNDLE_CREATED/UPDATED/DELETED` action types and labels are also kept so historical audit-log entries stay readable. No new code reads or writes these tables.
 - Job location is free text, so the location filter for jobs is a loose text match (e.g. "Bangalore" won't match "Bengaluru").
 - Recruiter subscriptions and job-boost refunds are not built.

@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getConnectedGoogleEmail } from "@/lib/google/delegatedAuth";
+import { DisconnectDriveButton } from "@/components/certificates/DisconnectDriveButton";
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
@@ -13,7 +15,11 @@ function StatTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default async function AdminHomePage() {
+export default async function AdminHomePage({
+  searchParams,
+}: {
+  searchParams: { driveConnected?: string; driveError?: string };
+}) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -22,6 +28,8 @@ export default async function AdminHomePage() {
   if (session.user.role !== "ADMIN") {
     redirect("/dashboard");
   }
+
+  const connectedEmail = await getConnectedGoogleEmail();
 
   const [
     studentCount,
@@ -87,6 +95,39 @@ export default async function AdminHomePage() {
       <p className="mt-2 text-gray-600 dark:text-slate-400">
         Signed in as <strong>{session.user?.email}</strong>
       </p>
+
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-2 rounded border border-gray-200 dark:border-slate-700 p-3 text-sm">
+        {connectedEmail ? (
+          <>
+            <span className="text-gray-600 dark:text-slate-300">
+              ✓ Google Drive connected as <span className="font-medium">{connectedEmail}</span> — used to
+              store certificates, resumes and profile photos.
+            </span>
+            <DisconnectDriveButton />
+          </>
+        ) : (
+          <>
+            <span className="text-amber-700 dark:text-amber-400">
+              ⚠️ No Google Drive account connected — certificate generation, resume uploads and profile
+              photo uploads will all fail until one is connected.
+            </span>
+            <a
+              href={`/api/admin/google-drive/connect?returnTo=${encodeURIComponent("/dashboard/admin")}`}
+              className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-3 py-1.5 text-sm text-white"
+            >
+              Connect Google Drive
+            </a>
+          </>
+        )}
+      </div>
+      {searchParams.driveConnected && (
+        <p className="mt-3 text-sm text-green-700 dark:text-green-400">✓ Google Drive connected successfully.</p>
+      )}
+      {searchParams.driveError && (
+        <p className="mt-3 text-sm text-red-700 dark:text-red-400">
+          Google Drive connection failed ({searchParams.driveError}). Please try again.
+        </p>
+      )}
 
       <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatTile label="Students" value={studentCount.toLocaleString("en-IN")} />
