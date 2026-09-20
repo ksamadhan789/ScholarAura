@@ -73,7 +73,7 @@ export default function NewRecruiterJobPage() {
   }
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-16">
+    <main className="mx-auto max-w-[900px] px-4 py-16">
       <h1 className="mb-2 text-2xl font-semibold">Post a job</h1>
       <p className="mb-6 text-sm text-gray-600 dark:text-slate-400">
         Your posting will be reviewed before it goes live.

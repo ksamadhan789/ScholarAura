@@ -40,7 +40,7 @@ export default async function MyLearningPage() {
   const completedVideoIds = new Set(completedProgress.map((p) => p.courseVideoId));
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="mb-8 text-2xl font-semibold">🎓 My learning</h1>
 
       {purchases.length === 0 ? (

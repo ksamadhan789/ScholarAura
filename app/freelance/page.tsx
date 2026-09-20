@@ -84,7 +84,7 @@ export default async function FreelancePage({
   const categories = categoryRows.map((r) => r.category).sort();
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-16">
+    <main className="mx-auto max-w-[1400px] px-4 py-16">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">🧰 Freelance</h1>
         <Link

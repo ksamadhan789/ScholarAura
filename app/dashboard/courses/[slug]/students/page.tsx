@@ -62,7 +62,7 @@ export default async function CourseStudentsPage({
   const completedByUser = new Map(progressCounts.map((p) => [p.userId, p._count._all]));
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-16">
+    <main className="mx-auto max-w-[1400px] px-4 py-16">
       <Link
         href={`/dashboard/courses/${course.slug}`}
         className="text-sm text-gray-500 hover:underline dark:text-slate-400"

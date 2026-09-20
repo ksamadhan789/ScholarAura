@@ -94,7 +94,7 @@ export default async function InstructorAnalyticsPage() {
   const maxRevenue = Math.max(1, ...courseStats.map((c) => c.revenue));
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-16">
+    <main className="mx-auto max-w-[1400px] px-4 py-16">
       <Link href="/dashboard/courses" className="text-sm text-gray-500 hover:underline dark:text-slate-400">
         ← My courses
       </Link>

@@ -66,7 +66,7 @@ export default async function LecturePage({
   const embedUrl = getSignedEmbedUrl(video.videoProviderId);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <Link href={`/courses/${params.slug}`} className="text-sm text-gray-500 dark:text-slate-400 hover:underline">
         ← Back to {video.course.title}
       </Link>

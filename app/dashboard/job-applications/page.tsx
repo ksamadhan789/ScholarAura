@@ -25,7 +25,7 @@ export default async function MyJobApplicationsPage() {
   });
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-[1050px] px-4 py-16">
       <h1 className="mb-6 text-2xl font-semibold">My job applications</h1>
 
       {applications.length === 0 ? (

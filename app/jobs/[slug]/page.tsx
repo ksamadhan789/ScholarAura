@@ -55,7 +55,7 @@ export default async function JobDetailPage({ params }: { params: { slug: string
   const urgency = job.applicationDeadline ? getDeadlineUrgency(job.applicationDeadline) : null;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10 sm:py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-10 sm:py-16">
       {!job.isPublished && (
         <p className="mb-4 inline-block rounded bg-amber-100 dark:bg-amber-900/40 px-3 py-1 text-sm text-amber-800 dark:text-amber-300">
           Draft — not visible to the public yet

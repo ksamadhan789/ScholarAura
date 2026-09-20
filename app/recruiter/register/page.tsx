@@ -67,7 +67,7 @@ export default function RecruiterRegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex flex-1 w-full max-w-sm flex-col justify-center px-4 py-16">
+    <main className="mx-auto flex flex-1 w-full max-w-[640px] flex-col justify-center px-4 py-16">
       <h1 className="mb-2 text-2xl font-semibold">💼 Hire on ScholarAura</h1>
       <p className="mb-6 text-sm text-gray-600 dark:text-slate-400">
         Create a recruiter account to post jobs to our student and professional community. Your

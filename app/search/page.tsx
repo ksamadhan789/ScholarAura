@@ -59,7 +59,7 @@ export default async function SearchPage({
 
   if (!q) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-16">
+      <main className="mx-auto max-w-[1200px] px-4 py-16">
         <h1 className="mb-4 text-2xl font-semibold">Search</h1>
         <p className="text-gray-500 dark:text-slate-400">
           Enter a search term to find courses, events, competitions, and jobs.
@@ -124,7 +124,7 @@ export default async function SearchPage({
   const totalResults = courses.length + events.length + competitions.length + jobs.length;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="mb-1 text-2xl font-semibold">Search results for &ldquo;{q}&rdquo;</h1>
       <p className="mb-8 text-sm text-gray-500 dark:text-slate-400">
         {totalResults} result{totalResults === 1 ? "" : "s"}

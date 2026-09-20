@@ -22,7 +22,7 @@ export default async function CurrenciesAdminPage() {
   }));
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-[1050px] px-4 py-16">
       <h1 className="mb-2 text-2xl font-semibold">Currency rates</h1>
       <p className="mb-8 text-sm text-gray-600 dark:text-slate-400">
         Course and event prices are always set in ₹ INR. Add exchange rates here so

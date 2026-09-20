@@ -158,7 +158,7 @@ export default async function AnalyticsPage() {
   const certStatusCount = new Map(certificatesByStatus.map((c) => [c.status, c._count._all]));
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-16">
+    <main className="mx-auto max-w-[1600px] px-4 py-16">
       <Link href="/dashboard/admin" className="text-sm text-gray-500 hover:underline dark:text-slate-400">
         ← Admin
       </Link>

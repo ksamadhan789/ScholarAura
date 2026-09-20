@@ -39,7 +39,7 @@ export default async function FreelanceListingPage({
   const isOwner = session?.user.id === listing.postedByUserId;
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-[1050px] px-4 py-16">
       <div className="mb-4 flex items-center justify-between">
         <Badge variant="brand">{listing.category}</Badge>
         {isOwner && (

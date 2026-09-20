@@ -35,7 +35,7 @@ export default async function LectureResourcesPage({
   });
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-[1050px] px-4 py-16">
       <Link
         href={`/dashboard/courses/${video.course.slug}`}
         className="text-sm text-gray-500 hover:underline dark:text-slate-400"

@@ -36,7 +36,7 @@ export default async function FreelanceThreadPage({
   const otherParty = isInitiator ? thread.listing.postedByUser.name : thread.initiator.name;
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-[1050px] px-4 py-16">
       <Link
         href="/dashboard/freelance/messages"
         className="text-sm text-gray-500 hover:underline dark:text-slate-400"

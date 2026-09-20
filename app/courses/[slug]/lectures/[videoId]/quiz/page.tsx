@@ -32,7 +32,7 @@ export default async function LectureQuizTakePage({
   const questions = stripAnswerKey(video.quiz.questions as unknown as QuizQuestion[]);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-[1050px] px-4 py-16">
       <Link
         href={`/courses/${video.course.slug}/lectures/${video.id}`}
         className="text-sm text-gray-500 hover:underline dark:text-slate-400"

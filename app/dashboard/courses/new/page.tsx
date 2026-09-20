@@ -42,7 +42,7 @@ export default function NewCoursePage() {
   }
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-16">
+    <main className="mx-auto max-w-[900px] px-4 py-16">
       <h1 className="mb-6 text-2xl font-semibold">Create a course</h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">

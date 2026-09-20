@@ -21,7 +21,7 @@ export default async function AdminRefundRequestsPage() {
   });
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="mb-2 text-2xl font-semibold">Refund requests</h1>
       <p className="mb-8 text-sm text-gray-600 dark:text-slate-400">
         Approving here issues the refund immediately (same as the manual refund button on the

@@ -14,7 +14,7 @@ export default async function InstructorCommissionAdminPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
+    <main className="mx-auto max-w-[1050px] px-4 py-16">
       <h1 className="mb-2 text-2xl font-semibold">Instructor commission rates</h1>
       <p className="mb-8 text-sm text-gray-600 dark:text-slate-400">
         Search an instructor by email to set a custom commission rate. Everyone else earns

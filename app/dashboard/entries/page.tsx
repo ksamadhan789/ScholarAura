@@ -62,7 +62,7 @@ export default async function MyCompetitionsPage() {
   const pendingEntryIds = new Set(pendingRequests.map((r) => r.competitionEntryId));
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="mb-8 text-2xl font-semibold">🏆 My competitions</h1>
 
       {entries.length === 0 ? (

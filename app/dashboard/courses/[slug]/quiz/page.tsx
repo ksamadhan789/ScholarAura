@@ -20,7 +20,7 @@ export default async function CourseFinalQuizPage({ params }: { params: { slug: 
   const quiz = await prisma.quiz.findFirst({ where: { courseId: course.id, courseVideoId: null } });
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-16">
+    <main className="mx-auto max-w-[900px] px-4 py-16">
       <Link
         href={`/dashboard/courses/${course.slug}`}
         className="text-sm text-gray-500 hover:underline dark:text-slate-400"

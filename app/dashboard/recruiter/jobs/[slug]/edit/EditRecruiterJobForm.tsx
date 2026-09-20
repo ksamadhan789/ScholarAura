@@ -91,7 +91,7 @@ export function EditRecruiterJobForm({ slug, initial }: { slug: string; initial:
   }
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-16">
+    <main className="mx-auto max-w-[900px] px-4 py-16">
       <h1 className="mb-2 text-2xl font-semibold">Edit job</h1>
       <p className="mb-6 text-sm text-amber-700 dark:text-amber-400">
         Saving changes sends this job back for review before it's live again.

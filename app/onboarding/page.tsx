@@ -169,7 +169,7 @@ export default function OnboardingPage() {
   const showExpertise = userType === "COLLEGE_STUDENT" || userType === "PROFESSIONAL";
 
   return (
-    <main className="mx-auto flex flex-1 w-full max-w-md flex-col justify-center px-4 py-16">
+    <main className="mx-auto flex flex-1 w-full max-w-[720px] flex-col justify-center px-4 py-16">
       <h1 className="mb-2 text-2xl font-semibold">👋 Just one more step</h1>
       <p className="mb-6 text-sm text-gray-600 dark:text-slate-400">
         Help us tailor ScholarAura to you.

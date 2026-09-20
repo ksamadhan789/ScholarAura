@@ -82,7 +82,7 @@ export default async function AdminHomePage() {
     Number(competitionRevenue._sum.creditApplied ?? 0);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="text-2xl font-semibold">Admin</h1>
       <p className="mt-2 text-gray-600 dark:text-slate-400">
         Signed in as <strong>{session.user?.email}</strong>

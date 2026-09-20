@@ -138,7 +138,7 @@ export default async function CompetitionsPage({
   const closed = competitions.filter((c) => c.submissionDeadline < now);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-16">
+    <main className="mx-auto max-w-[1400px] px-4 py-16">
       <h1 className="mb-6 text-2xl font-semibold">🏆 Competitions</h1>
 
       <form className="mb-8 flex flex-wrap gap-2" action="/competitions">

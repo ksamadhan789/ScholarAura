@@ -15,7 +15,7 @@ export default async function AdminSupportTicketsPage() {
   });
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="mb-2 text-2xl font-semibold">Support tickets</h1>
       <p className="mb-8 text-sm text-gray-600 dark:text-slate-400">
         Raised from Aura when it couldn&apos;t answer a question. Replying emails the person back at

@@ -47,7 +47,7 @@ export default async function WishlistPage() {
     jobEntries.length === 0;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <h1 className="mb-8 text-2xl font-semibold">❤️ Saved for later</h1>
 
       {isEmpty ? (

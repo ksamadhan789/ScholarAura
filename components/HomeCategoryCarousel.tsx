@@ -163,7 +163,7 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
           backgroundSize: "28px 28px",
         }}
       />
-      <div className="relative mx-auto max-w-5xl px-4">
+      <div className="relative mx-auto max-w-[1600px] px-4">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">

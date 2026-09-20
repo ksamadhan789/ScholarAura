@@ -25,7 +25,7 @@ export default async function CouponsPage() {
   const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: "desc" } });
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-16">
+    <main className="mx-auto max-w-[1400px] px-4 py-16">
       <h1 className="mb-6 text-2xl font-semibold">Coupons</h1>
 
       <CreateCouponForm />

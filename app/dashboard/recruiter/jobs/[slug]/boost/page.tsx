@@ -24,7 +24,7 @@ export default async function RecruiterBoostJobPage({ params }: { params: { slug
   }));
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-16">
+    <main className="mx-auto max-w-[900px] px-4 py-16">
       <Link
         href="/dashboard/recruiter"
         className="text-sm text-gray-500 hover:underline dark:text-slate-400"

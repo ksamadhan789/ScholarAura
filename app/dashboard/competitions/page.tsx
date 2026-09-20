@@ -34,7 +34,7 @@ export default async function ManageCompetitionsPage({
   ]);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-16">
+    <main className="mx-auto max-w-[1200px] px-4 py-16">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Manage competitions</h1>
         <Link
