@@ -10,12 +10,23 @@ export const dynamic = "force-dynamic";
 export default async function PublicPortfolioPage({ params }: { params: { userId: string } }) {
   const user = await prisma.user.findUnique({
     where: { id: params.userId },
-    select: { id: true, name: true, organization: true, publicProfileEnabled: true },
+    select: {
+      id: true,
+      name: true,
+      organization: true,
+      publicProfileEnabled: true,
+      linkedinUrl: true,
+      bio: true,
+      achievements: true,
+      resumeName: true,
+    },
   });
 
   if (!user || !user.publicProfileEnabled) {
     notFound();
   }
+
+  const achievements = Array.isArray(user.achievements) ? (user.achievements as string[]) : [];
 
   const certificates = await prisma.certificate.findMany({
     where: { userId: user.id, status: { in: ["AVAILABLE", "GENERATED"] } },
@@ -30,6 +41,50 @@ export default async function PublicPortfolioPage({ params }: { params: { userId
       <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
         {certificates.length} certificate{certificates.length === 1 ? "" : "s"} earned on ScholarAura
       </p>
+
+      {(user.bio || user.linkedinUrl || user.resumeName || achievements.length > 0) && (
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          {user.bio && <p className="text-sm text-slate-700 dark:text-slate-300">{user.bio}</p>}
+
+          {(user.linkedinUrl || user.resumeName) && (
+            <div className="mt-3 flex flex-wrap gap-3">
+              {user.linkedinUrl && (
+                <a
+                  href={user.linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded border border-gray-300 px-3 py-1.5 text-sm dark:border-slate-600"
+                >
+                  🔗 LinkedIn
+                </a>
+              )}
+              {user.resumeName && (
+                <a
+                  href={`/api/portfolio/${user.id}/resume`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded border border-gray-300 px-3 py-1.5 text-sm dark:border-slate-600"
+                >
+                  📄 View resume
+                </a>
+              )}
+            </div>
+          )}
+
+          {achievements.length > 0 && (
+            <div className="mt-4 border-t border-slate-200 pt-3 dark:border-slate-700">
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Achievements</p>
+              <ul className="mt-1.5 flex flex-col gap-1">
+                {achievements.map((a) => (
+                  <li key={a} className="text-sm text-slate-600 dark:text-slate-400">
+                    🏅 {a}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
 
       {certificates.length === 0 ? (
         <p className="mt-8 text-gray-500 dark:text-slate-400">No certificates to show yet.</p>

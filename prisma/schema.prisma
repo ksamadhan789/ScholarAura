@@ -121,6 +121,11 @@ model User {
   fieldOfStudy   String?
   jobRole        String?
   expertise      String?
+  linkedinUrl    String?
+  bio            String?
+  achievements   Json?
+  resumeFileId   String?
+  resumeName     String?
   onboardingCompletedAt DateTime?
   consentAcceptedAt DateTime?
   marketingOptIn Boolean   @default(false)
