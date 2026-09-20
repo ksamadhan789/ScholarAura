@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getReferralRatePercent } from "@/lib/referral";
 import { getTopReferrersByCount, getTopReferrersByCredit } from "@/lib/referralLeaderboard";
 import { SITE_URL } from "@/lib/siteUrl";
+import { Avatar } from "@/components/Avatar";
 import { CopyLinkButton } from "./CopyLinkButton";
 import type { LeaderboardEntry } from "@/lib/referralLeaderboard";
 
@@ -62,7 +63,7 @@ export default async function ReferralsPage() {
   const [referrals, transactions, topByCount, topByCredit] = await Promise.all([
     prisma.user.findMany({
       where: { referredById: user.id },
-      select: { id: true, name: true, email: true, createdAt: true },
+      select: { id: true, name: true, email: true, createdAt: true, photoFileId: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.creditTransaction.findMany({
@@ -111,16 +112,26 @@ export default async function ReferralsPage() {
         ) : (
           <div className="flex flex-col gap-2">
             {referrals.map((r) => (
-              <div key={r.id} className="rounded border border-gray-200 dark:border-slate-700 p-3 text-sm">
-                <p className="font-medium">{r.name}</p>
-                <p className="text-gray-500 dark:text-slate-400">
-                  {r.email} · Joined{" "}
-                  {r.createdAt.toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </p>
+              <div
+                key={r.id}
+                className="flex items-center gap-3 rounded border border-gray-200 dark:border-slate-700 p-3 text-sm"
+              >
+                <Avatar
+                  name={r.name}
+                  src={r.photoFileId ? `/api/referrals/${r.id}/photo` : null}
+                  size={36}
+                />
+                <div>
+                  <p className="font-medium">{r.name}</p>
+                  <p className="text-gray-500 dark:text-slate-400">
+                    {r.email} · Joined{" "}
+                    {r.createdAt.toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
               </div>
             ))}
           </div>

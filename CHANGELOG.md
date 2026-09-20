@@ -4,6 +4,9 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-18
 
+### Added
+- Profile photos now show in the "People you've invited" list on `/dashboard/referrals`, via a new private photo route (`GET /api/referrals/[userId]/photo`) gated to only the referrer who actually invited that person. Deliberately left off that same page's referral leaderboard — `lib/referralLeaderboard.ts` already anonymizes referrers there to "First L." specifically so they aren't identifiable to every other student, and a photo would undo that on purpose.
+
 ### Fixed
 - The profile-photo crop modal (`components/ImageCropModal.tsx`) defaulted to a "cover" fit that always filled the circular viewport, which for a photo framed wider than a tight headshot (head + shoulders, a fair amount of vertical extent) meant the minimum zoom already cropped down to just the face — there was no way to zoom out further to show more. Switched to "contain": the whole photo is visible at minimum zoom (letterboxed white margins on the shorter axis, matching a fresh `bg-white` fill on both the live preview's viewport and the exported canvas, so preview and export agree), and zooming in from there is how someone chooses a tighter crop themselves. Also fixed the pan-clamp math, which only made sense for an axis that overflows the viewport — applied unchanged to a letterboxed axis, it inverted the clamp bounds and snapped that axis to a corner the instant zoom or drag changed; a letterboxed axis now just locks its offset to 0 instead.
 
