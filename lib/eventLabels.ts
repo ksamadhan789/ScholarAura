@@ -2,7 +2,7 @@ export const EVENT_TYPE_LABELS: Record<string, string> = {
   INTERNATIONAL_CONFERENCE: "🌍 International Conference",
   NATIONAL_CONFERENCE: "🏛️ National Conference",
   FDP: "🎓 Faculty Development Program",
-  HANDS_ON_TRAINING: "🧪 VR Hands-on Training",
+  HANDS_ON_TRAINING: "🧪 Hands-on Training",
   WEBINAR: "💻 Webinar",
   ALUMNI_MEET: "🎉 Meet Alumni",
 };
@@ -13,7 +13,7 @@ export const EVENT_TYPE_TABS: { type: string; label: string }[] = [
   { type: "NATIONAL_CONFERENCE", label: "🏛️ National Conferences" },
   { type: "WEBINAR", label: "💻 Webinars" },
   { type: "FDP", label: "🎓 Faculty Development Programs" },
-  { type: "HANDS_ON_TRAINING", label: "🧪 VR Hands-on Trainings" },
+  { type: "HANDS_ON_TRAINING", label: "🧪 Hands-on Trainings" },
   { type: "ALUMNI_MEET", label: "🎉 Meet Alumni" },
 ];
 
