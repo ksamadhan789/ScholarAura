@@ -200,7 +200,7 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
           ref={trackRef}
           role="list"
           aria-label="ScholarAura categories"
-          className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar"
+          className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar sm:grid sm:grid-flow-col sm:grid-rows-2"
         >
           {categories.map((category) => (
             <CategoryCard key={category.id} category={category} />
