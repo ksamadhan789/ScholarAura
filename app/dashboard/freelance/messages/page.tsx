@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Avatar } from "@/components/Avatar";
 
 export default async function FreelanceMessagesPage() {
   const session = await getServerSession(authOptions);
@@ -14,9 +15,14 @@ export default async function FreelanceMessagesPage() {
     },
     include: {
       listing: {
-        select: { title: true, slug: true, postedByUserId: true, postedByUser: { select: { name: true } } },
+        select: {
+          title: true,
+          slug: true,
+          postedByUserId: true,
+          postedByUser: { select: { name: true, photoFileId: true } },
+        },
       },
-      initiator: { select: { id: true, name: true } },
+      initiator: { select: { id: true, name: true, photoFileId: true } },
       messages: { orderBy: { createdAt: "desc" }, take: 1 },
     },
   });
@@ -41,7 +47,11 @@ export default async function FreelanceMessagesPage() {
         <div className="flex flex-col gap-3">
           {sorted.map((thread) => {
             const isOwner = thread.listing.postedByUserId === session.user.id;
-            const otherParty = isOwner ? thread.initiator.name : thread.listing.postedByUser.name;
+            const otherPartyId = isOwner ? thread.initiator.id : thread.listing.postedByUserId;
+            const otherPartyName = isOwner ? thread.initiator.name : thread.listing.postedByUser.name;
+            const otherPartyPhotoFileId = isOwner
+              ? thread.initiator.photoFileId
+              : thread.listing.postedByUser.photoFileId;
             const lastMessage = thread.messages[0];
             return (
               <Link
@@ -55,7 +65,18 @@ export default async function FreelanceMessagesPage() {
                     {isOwner ? "Inbound" : "You reached out"}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">with {otherParty}</p>
+                <div className="mt-1 flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400">
+                  <Avatar
+                    name={otherPartyName}
+                    src={
+                      otherPartyPhotoFileId
+                        ? `/api/freelance/threads/${thread.id}/messages/photo?userId=${otherPartyId}`
+                        : null
+                    }
+                    size={20}
+                  />
+                  with {otherPartyName}
+                </div>
                 {lastMessage && (
                   <p className="mt-2 truncate text-sm text-gray-600 dark:text-slate-300">
                     {lastMessage.body}
