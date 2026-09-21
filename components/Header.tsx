@@ -118,21 +118,23 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile category strip — same swipeable row as the desktop nav below,
-          but always visible (not tucked inside the hamburger menu), so it
-          reads the same way the desktop bar does: right under the header,
-          on every page. Amazon-app style — static, swiped by touch, no
-          auto-scroll. Scrollbar hidden via .no-scrollbar in globals.css. */}
-      <div className="overflow-x-auto rounded-lg bg-[#131a22] no-scrollbar mx-4 my-2 md:hidden">
-        <div className="flex w-max gap-6 px-4 py-3">
+      {/* Mobile category strip — same categories as the desktop nav below,
+          but always visible (not tucked inside the hamburger menu) and laid
+          out icon-over-label, shopping-app style: a row of narrow columns
+          that scrolls by touch, no auto-scroll. Scrollbar hidden via
+          .no-scrollbar in globals.css. */}
+      <div className="overflow-x-auto border-b border-slate-200 bg-white no-scrollbar md:hidden dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex w-max gap-1 px-3 py-3">
           {MOBILE_NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm text-slate-200 hover:text-white"
+              className="flex w-16 shrink-0 flex-col items-center gap-1.5 rounded-lg px-1 py-1 text-center text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400"
             >
-              <span aria-hidden>{item.emoji}</span>
-              {item.label}
+              <span aria-hidden className="text-2xl leading-none">
+                {item.emoji}
+              </span>
+              <span className="text-[11px] font-medium leading-tight">{item.label}</span>
             </Link>
           ))}
         </div>
