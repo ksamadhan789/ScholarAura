@@ -215,7 +215,7 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
           backgroundSize: "28px 28px",
         }}
       />
-      <div className="relative mx-auto max-w-[1600px] px-4">
+      <div className="relative mx-auto max-w-[1200px] px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
             Explore ScholarAura
