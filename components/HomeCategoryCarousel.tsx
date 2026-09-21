@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { HomeCategory } from "@/lib/homeCategories";
+import { HOME_CATEGORY_GROUPS } from "@/lib/homeCategories";
 
 export type HomeCategoryItem = HomeCategory & { count?: number };
 
@@ -10,11 +11,10 @@ const GRADIENT_BACKGROUND =
   "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0), linear-gradient(to bottom right, #1d4ed8, #1e40af, #0f172a)";
 
 // Plays a category's clip only once its card scrolls into the viewport, and
-// pauses it again once it scrolls out — with ~11 cards, autoplaying every
-// clip at once on page load would be wasteful bandwidth and battery for
-// videos the visitor may never scroll to. Skipped entirely for
-// prefers-reduced-motion or a save-data connection, falling back to the
-// image/icon panel instead.
+// pauses it again once it scrolls out — autoplaying every clip at once on
+// page load would be wasteful bandwidth and battery for videos the visitor
+// may never scroll to. Skipped entirely for prefers-reduced-motion or a
+// save-data connection, falling back to the image/icon panel instead.
 function CategoryMedia({ category }: { category: HomeCategoryItem }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -52,7 +52,7 @@ function CategoryMedia({ category }: { category: HomeCategoryItem }) {
   return (
     <div
       ref={containerRef}
-      className="relative flex h-28 shrink-0 items-center justify-center overflow-hidden sm:h-48"
+      className="relative flex h-40 shrink-0 items-center justify-center overflow-hidden sm:h-48"
       style={
         showVideo || showImage
           ? undefined
@@ -103,7 +103,7 @@ function CategoryCard({ category }: { category: HomeCategoryItem }) {
       href={category.href}
       data-category-card
       role="listitem"
-      className="group flex w-[calc(50%_-_0.375rem)] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-200 hover:-translate-y-1.5 hover:shadow-xl hover:ring-1 hover:ring-brand-200 focus-visible:-translate-y-1.5 focus-visible:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-brand-800 sm:w-64 md:w-72"
+      className="group flex w-[75%] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-200 hover:-translate-y-1.5 hover:shadow-xl hover:ring-1 hover:ring-brand-200 focus-visible:-translate-y-1.5 focus-visible:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-brand-800 sm:w-64 md:w-72"
     >
       <CategoryMedia category={category} />
 
@@ -118,7 +118,10 @@ function CategoryCard({ category }: { category: HomeCategoryItem }) {
   );
 }
 
-export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryItem[] }) {
+// One themed section under "Explore ScholarAura" (Conferences, Opportunities,
+// Learning, ...) — its own heading and its own single swipeable row, with its
+// own prev/next buttons and scroll state, independent of every other row.
+function CategoryRow({ title, categories }: { title: string; categories: HomeCategoryItem[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(true);
@@ -153,13 +156,54 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
 
   if (categories.length === 0) return null;
 
-  // Mobile keeps the same row assignment the desktop grid uses
-  // (grid-flow-col grid-rows-2 puts even indices in row 1, odd in row 2) —
-  // just as two independently-swipeable rows instead of one synced scroll,
-  // since a phone's narrower width made scrolling both rows together at
-  // once feel like the wrong axis to swipe on.
-  const mobileRowA = categories.filter((_, i) => i % 2 === 0);
-  const mobileRowB = categories.filter((_, i) => i % 2 === 1);
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">{title}</h2>
+        <div className="hidden shrink-0 items-center gap-2 sm:flex">
+          <button
+            type="button"
+            onClick={() => scrollByCards(-1)}
+            disabled={!canScrollPrev}
+            aria-label={`Previous in ${title}`}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-600 shadow-md transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          >
+            <span aria-hidden>←</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollByCards(1)}
+            disabled={!canScrollNext}
+            aria-label={`Next in ${title}`}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-600 shadow-md transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          >
+            <span aria-hidden>→</span>
+          </button>
+        </div>
+      </div>
+
+      <div
+        ref={trackRef}
+        role="list"
+        aria-label={title}
+        className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar"
+      >
+        {categories.map((category) => (
+          <CategoryCard key={category.id} category={category} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryItem[] }) {
+  if (categories.length === 0) return null;
+
+  const byId = new Map(categories.map((c) => [c.id, c]));
+  const groups = HOME_CATEGORY_GROUPS.map((g) => ({
+    title: g.title,
+    categories: g.categoryIds.map((id) => byId.get(id)).filter((c): c is HomeCategoryItem => Boolean(c)),
+  })).filter((g) => g.categories.length > 0);
 
   return (
     <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-brand-50 to-white pb-12 pt-6 dark:border-slate-700 dark:from-slate-800/60 dark:to-slate-900 sm:pb-16 sm:pt-8">
@@ -172,69 +216,19 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
         }}
       />
       <div className="relative mx-auto max-w-[1600px] px-4">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-              Explore ScholarAura
-            </h1>
-            <p className="mt-2 max-w-xl text-base text-slate-600 dark:text-slate-400">
-              Discover courses, competitions, events, career opportunities and more — all in one
-              academic ecosystem.
-            </p>
-          </div>
-          <div className="hidden shrink-0 items-center gap-2 sm:flex">
-            <button
-              type="button"
-              onClick={() => scrollByCards(-1)}
-              disabled={!canScrollPrev}
-              aria-label="Previous categories"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-md transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-            >
-              <span aria-hidden>←</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollByCards(1)}
-              disabled={!canScrollNext}
-              aria-label="Next categories"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-md transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-            >
-              <span aria-hidden>→</span>
-            </button>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+            Explore ScholarAura
+          </h1>
+          <p className="mt-2 max-w-xl text-base text-slate-600 dark:text-slate-400">
+            Discover courses, competitions, events, career opportunities and more — all in one
+            academic ecosystem.
+          </p>
         </div>
 
-        {/* Mobile: two rows that scroll independently, one swipe axis each. */}
-        <div className="flex flex-col gap-3 sm:hidden">
-          <div
-            role="list"
-            aria-label="ScholarAura categories, row 1"
-            className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar"
-          >
-            {mobileRowA.map((category) => (
-              <CategoryCard key={category.id} category={category} />
-            ))}
-          </div>
-          <div
-            role="list"
-            aria-label="ScholarAura categories, row 2"
-            className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar"
-          >
-            {mobileRowB.map((category) => (
-              <CategoryCard key={category.id} category={category} />
-            ))}
-          </div>
-        </div>
-
-        {/* Tablet/desktop: unchanged combined 2-row grid, one synced scroll. */}
-        <div
-          ref={trackRef}
-          role="list"
-          aria-label="ScholarAura categories"
-          className="hidden w-full min-w-0 -mx-4 snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar sm:grid sm:grid-flow-col sm:grid-rows-2"
-        >
-          {categories.map((category) => (
-            <CategoryCard key={category.id} category={category} />
+        <div className="flex flex-col gap-10">
+          {groups.map((group) => (
+            <CategoryRow key={group.title} title={group.title} categories={group.categories} />
           ))}
         </div>
       </div>

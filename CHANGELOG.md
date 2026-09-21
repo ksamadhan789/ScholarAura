@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-21
+
+### Changed
+- Homepage "Explore ScholarAura" carousel is now three named, independently-scrolling sections instead of one flat 11-card row: "Conferences" (International Conferences, National Conferences, Webinars, Hands-on Training), "Opportunities" (Jobs, Internships, Freelance, Meet Alumni), and "Learning" (Courses, Competitions, Faculty Development) — grouping defined in a new `HOME_CATEGORY_GROUPS` (`lib/homeCategories.ts`), rendered by a new `CategoryRow` component per group in `components/HomeCategoryCarousel.tsx` (each with its own prev/next buttons and scroll state). A new `lib/homeCategories.test.ts` asserts every category id appears in exactly one group, so adding a category without grouping it fails a test instead of silently disappearing. Cards are sized a bit larger (`w-[75%] sm:w-64 md:w-72`, media `h-40 sm:h-48`) since each section now holds at most 4 cards. `getHomeCategoryStats()` moved out to a new `lib/homeCategoryStats.ts` — `HomeCategoryCarousel` is a client component that now imports the group data as a value, and leaving the Prisma-backed stats function in the same file as that data was dragging Prisma's Node-only code into the browser bundle.
+
 ## 2026-09-18
 
 ### Changed

@@ -3,7 +3,8 @@ import { HomeBannerCarousel, type BannerItem } from "@/components/HomeBannerCaro
 import { HomeCategoryCarousel, type HomeCategoryItem } from "@/components/HomeCategoryCarousel";
 import { COURSE_CATEGORY_ICONS } from "@/lib/courseCategories";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
-import { HOME_CATEGORIES, getHomeCategoryStats } from "@/lib/homeCategories";
+import { HOME_CATEGORIES } from "@/lib/homeCategories";
+import { getHomeCategoryStats } from "@/lib/homeCategoryStats";
 
 export const dynamic = "force-dynamic";
 
