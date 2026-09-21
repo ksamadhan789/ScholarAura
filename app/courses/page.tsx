@@ -24,7 +24,7 @@ export default async function CoursesPage() {
     await Promise.all([
       prisma.course.findMany({
         where: { isPublished: true },
-        include: { instructor: { select: { name: true } } },
+        include: { instructor: { select: { name: true, photoFileId: true } } },
         orderBy: { createdAt: "desc" },
       }),
       prisma.course.count({ where: { isPublished: true } }),

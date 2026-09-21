@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Decimal } from "@prisma/client/runtime/library";
 import { Badge } from "@/components/Badge";
+import { Avatar } from "@/components/Avatar";
 import { Thumbnail } from "@/components/Thumbnail";
 import { StarRating } from "@/components/StarRating";
 import { WishlistButton } from "@/components/courses/WishlistButton";
@@ -17,7 +18,7 @@ type CourseItem = {
   category: string;
   price: Decimal | string | number;
   thumbnailUrl: string | null;
-  instructor: { name: string };
+  instructor: { name: string; photoFileId: string | null };
   rating: { average: number; count: number } | null;
 };
 
@@ -119,9 +120,14 @@ export function CoursesExplorer({
                   <h2 className="mt-2 font-medium text-slate-900 dark:text-white">
                     {course.title}
                   </h2>
-                  <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
+                  <div className="mt-2 flex items-center gap-1.5 text-sm text-gray-600 dark:text-slate-400">
+                    <Avatar
+                      name={course.instructor.name}
+                      src={course.instructor.photoFileId ? `/api/courses/${course.slug}/photo` : null}
+                      size={20}
+                    />
                     By {course.instructor.name}
-                  </p>
+                  </div>
                   {course.rating && course.rating.count > 0 && (
                     <div className="mt-2 flex items-center gap-1.5">
                       <StarRating value={course.rating.average} />
