@@ -5,6 +5,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-18
 
 ### Changed
+- Renamed the "VR Hands-on Training(s)" event type label to "Hands-on Training(s)" (`lib/eventLabels.ts`) — drives the `/events` filter pill, page heading, and empty-state text.
 - Category carousel now lays cards out in two rows (`sm:grid sm:grid-flow-col sm:grid-rows-2`) at tablet width and up, instead of one long single-scrolling row — halves the horizontal scroll distance needed to reach the last card. Mobile is unchanged (still one full-width card per swipe, which is the better fit at that width).
 
 ### Added
