@@ -5,8 +5,12 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-18
 
 ### Changed
+- Category carousel's two-row grid now applies on mobile too (previously tablet-up only), with a smaller card and media size there (`w-40`/`h-28` vs `sm:w-64 md:w-72`/`sm:h-48`) so two stacked rows fit without extra vertical scroll.
 - Renamed the "VR Hands-on Training(s)" event type label to "Hands-on Training(s)" (`lib/eventLabels.ts`) — drives the `/events` filter pill, page heading, and empty-state text.
 - Category carousel now lays cards out in two rows (`sm:grid sm:grid-flow-col sm:grid-rows-2`) at tablet width and up, instead of one long single-scrolling row — halves the horizontal scroll distance needed to reach the last card. Mobile is unchanged (still one full-width card per swipe, which is the better fit at that width).
+
+### Fixed
+- `app/layout.tsx`'s page wrapper was `flex flex-1 flex-col` around a single child (`{children}`) — pointless as a flex container, but it silently made every page's `<main>` a flex item of a column flex container, which defaults to `min-width: auto`. Extending the category carousel to a two-row grid on mobile surfaced this: the grid's fixed-width, non-wrapping columns gave `<main>` a large min-content width, and `<main>` refused to shrink below it — overflowing the whole page horizontally past the viewport instead of scrolling inside the carousel's own `overflow-x-auto` track. Fixed by dropping `flex flex-col` from the wrapper (kept `flex-1` alone, which still correctly gives it the remaining vertical space as body's own flex item — sticky-footer layout unaffected) and adding `min-w-0`.
 
 ### Added
 - Profile photos now show on course listings — the `/courses` browse cards and the `/courses/[slug]` detail page hero, both next to "By `<instructor name>`" — via a new public photo route (`GET /api/courses/[slug]/photo`) gated the same way the course detail page itself already is (published, or the instructor/admin previewing a draft).
