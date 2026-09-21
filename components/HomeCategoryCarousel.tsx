@@ -52,7 +52,7 @@ function CategoryMedia({ category }: { category: HomeCategoryItem }) {
   return (
     <div
       ref={containerRef}
-      className="relative flex h-44 shrink-0 items-center justify-center overflow-hidden sm:h-48"
+      className="relative flex h-28 shrink-0 items-center justify-center overflow-hidden sm:h-48"
       style={
         showVideo || showImage
           ? undefined
@@ -103,7 +103,7 @@ function CategoryCard({ category }: { category: HomeCategoryItem }) {
       href={category.href}
       data-category-card
       role="listitem"
-      className="group flex w-[85%] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-200 hover:-translate-y-1.5 hover:shadow-xl hover:ring-1 hover:ring-brand-200 focus-visible:-translate-y-1.5 focus-visible:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-brand-800 sm:w-64 md:w-72"
+      className="group flex w-40 shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-200 hover:-translate-y-1.5 hover:shadow-xl hover:ring-1 hover:ring-brand-200 focus-visible:-translate-y-1.5 focus-visible:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-brand-800 sm:w-64 md:w-72"
     >
       <CategoryMedia category={category} />
 
@@ -200,7 +200,7 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
           ref={trackRef}
           role="list"
           aria-label="ScholarAura categories"
-          className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar sm:grid sm:grid-flow-col sm:grid-rows-2"
+          className="-mx-4 grid w-full min-w-0 grid-flow-col grid-rows-2 snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar sm:gap-4"
         >
           {categories.map((category) => (
             <CategoryCard key={category.id} category={category} />

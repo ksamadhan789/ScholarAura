@@ -74,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="flex min-h-screen flex-col bg-white font-sans text-slate-900 dark:bg-slate-900 dark:text-slate-100">
         <Providers>
           <Header />
-          <div className="flex flex-1 flex-col">{children}</div>
+          <div className="min-w-0 flex-1">{children}</div>
           <Footer />
           <TranslateWidget />
           <AuraWidget />
