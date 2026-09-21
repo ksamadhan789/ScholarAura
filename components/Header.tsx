@@ -118,6 +118,26 @@ export function Header() {
         </div>
       </div>
 
+      {/* Mobile category strip — same swipeable row as the desktop nav below,
+          but always visible (not tucked inside the hamburger menu), so it
+          reads the same way the desktop bar does: right under the header,
+          on every page. Amazon-app style — static, swiped by touch, no
+          auto-scroll. Scrollbar hidden via .no-scrollbar in globals.css. */}
+      <div className="overflow-x-auto rounded-lg bg-[#131a22] no-scrollbar mx-4 my-2 md:hidden">
+        <div className="flex w-max gap-6 px-4 py-3">
+          {MOBILE_NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm text-slate-200 hover:text-white"
+            >
+              <span aria-hidden>{item.emoji}</span>
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
       {/* Category strip — deliberately always dark, independent of the site
           theme, matching the reference marketplace header's static navy bar. */}
       <nav className="hidden border-t border-slate-800 bg-slate-900 md:block">
@@ -245,25 +265,6 @@ export function Header() {
                 </Link>
               </>
             )}
-          </div>
-
-          {/* Swipeable category strip, Amazon-app style — a static row the
-              user scrolls horizontally by touch, no auto-animation.
-              Scrollbar hidden via .no-scrollbar in globals.css. */}
-          <div className="mt-4 overflow-x-auto rounded-lg bg-[#131a22] no-scrollbar">
-            <div className="flex w-max gap-6 px-4 py-3">
-              {MOBILE_NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm text-slate-200 hover:text-white"
-                >
-                  <span aria-hidden>{item.emoji}</span>
-                  {item.label}
-                </Link>
-              ))}
-            </div>
           </div>
         </div>
       )}
