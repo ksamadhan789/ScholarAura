@@ -10,6 +10,7 @@ import { CourseQASection } from "./CourseQASection";
 import { StarRating } from "@/components/StarRating";
 import { WishlistButton } from "@/components/courses/WishlistButton";
 import { DetailHero } from "@/components/DetailHero";
+import { Avatar } from "@/components/Avatar";
 
 export async function generateMetadata({
   params,
@@ -44,7 +45,7 @@ export default async function CourseDetailPage({
   const course = await prisma.course.findUnique({
     where: { slug: params.slug },
     include: {
-      instructor: { select: { name: true } },
+      instructor: { select: { id: true, name: true, photoFileId: true } },
       videos: { orderBy: { orderIndex: "asc" } },
     },
   });
@@ -152,7 +153,14 @@ export default async function CourseDetailPage({
         title={course.title}
         meta={
           <>
-            <span>By {course.instructor.name}</span>
+            <span className="inline-flex items-center gap-1.5">
+              <Avatar
+                name={course.instructor.name}
+                src={course.instructor.photoFileId ? `/api/courses/${course.slug}/photo` : null}
+                size={20}
+              />
+              By {course.instructor.name}
+            </span>
             {reviewCount > 0 && (
               <span className="inline-flex items-center gap-1.5">
                 <StarRating value={reviewAverage} />
