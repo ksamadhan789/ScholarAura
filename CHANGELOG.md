@@ -4,6 +4,9 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-18
 
+### Changed
+- Category carousel now lays cards out in two rows (`sm:grid sm:grid-flow-col sm:grid-rows-2`) at tablet width and up, instead of one long single-scrolling row — halves the horizontal scroll distance needed to reach the last card. Mobile is unchanged (still one full-width card per swipe, which is the better fit at that width).
+
 ### Added
 - Category carousel: the "Internships" and "Webinars" cards now also play videos (`public/videos/internships.mp4`, `webinars.mp4`), same lazy/reduced-motion-aware playback. Every card in the carousel now has a video.
 - Profile photos now show next to each entry's acting admin on the admin audit log (`/dashboard/admin/audit-log`), reusing the same admin-only `GET /api/admin/users/[userId]/photo` route added for the certificate tables and support-tickets page.
