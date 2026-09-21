@@ -103,7 +103,7 @@ function CategoryCard({ category }: { category: HomeCategoryItem }) {
       href={category.href}
       data-category-card
       role="listitem"
-      className="group flex w-40 shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-200 hover:-translate-y-1.5 hover:shadow-xl hover:ring-1 hover:ring-brand-200 focus-visible:-translate-y-1.5 focus-visible:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-brand-800 sm:w-64 md:w-72"
+      className="group flex w-[calc(50%_-_0.375rem)] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition-all duration-200 hover:-translate-y-1.5 hover:shadow-xl hover:ring-1 hover:ring-brand-200 focus-visible:-translate-y-1.5 focus-visible:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:border-slate-700 dark:bg-slate-800 dark:hover:ring-brand-800 sm:w-64 md:w-72"
     >
       <CategoryMedia category={category} />
 
@@ -153,6 +153,14 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
 
   if (categories.length === 0) return null;
 
+  // Mobile keeps the same row assignment the desktop grid uses
+  // (grid-flow-col grid-rows-2 puts even indices in row 1, odd in row 2) —
+  // just as two independently-swipeable rows instead of one synced scroll,
+  // since a phone's narrower width made scrolling both rows together at
+  // once feel like the wrong axis to swipe on.
+  const mobileRowA = categories.filter((_, i) => i % 2 === 0);
+  const mobileRowB = categories.filter((_, i) => i % 2 === 1);
+
   return (
     <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-brand-50 to-white pb-12 pt-6 dark:border-slate-700 dark:from-slate-800/60 dark:to-slate-900 sm:pb-16 sm:pt-8">
       <div
@@ -196,11 +204,34 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
           </div>
         </div>
 
+        {/* Mobile: two rows that scroll independently, one swipe axis each. */}
+        <div className="flex flex-col gap-3 sm:hidden">
+          <div
+            role="list"
+            aria-label="ScholarAura categories, row 1"
+            className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar"
+          >
+            {mobileRowA.map((category) => (
+              <CategoryCard key={category.id} category={category} />
+            ))}
+          </div>
+          <div
+            role="list"
+            aria-label="ScholarAura categories, row 2"
+            className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar"
+          >
+            {mobileRowB.map((category) => (
+              <CategoryCard key={category.id} category={category} />
+            ))}
+          </div>
+        </div>
+
+        {/* Tablet/desktop: unchanged combined 2-row grid, one synced scroll. */}
         <div
           ref={trackRef}
           role="list"
           aria-label="ScholarAura categories"
-          className="-mx-4 grid w-full min-w-0 grid-flow-col grid-rows-2 snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar sm:gap-4"
+          className="hidden w-full min-w-0 -mx-4 snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-2 no-scrollbar sm:grid sm:grid-flow-col sm:grid-rows-2"
         >
           {categories.map((category) => (
             <CategoryCard key={category.id} category={category} />

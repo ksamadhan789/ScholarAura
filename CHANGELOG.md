@@ -5,6 +5,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-18
 
 ### Changed
+- Category carousel's two mobile rows now scroll independently (each its own horizontal swipe) instead of moving together as one synced grid — syncing both rows to a single swipe felt like the wrong axis at phone width. Mobile cards are now sized to fill exactly two per row with no partial-card peek (`w-[calc(50%_-_0.375rem)]`); a peek showed only a garbled sliver of each wrapped title/description line when a card was cut off mid-width, since these cards are tall enough to wrap onto several lines. Tablet/desktop unchanged (still one combined synced-scroll grid).
 - Category carousel's two-row grid now applies on mobile too (previously tablet-up only), with a smaller card and media size there (`w-40`/`h-28` vs `sm:w-64 md:w-72`/`sm:h-48`) so two stacked rows fit without extra vertical scroll.
 - Renamed the "VR Hands-on Training(s)" event type label to "Hands-on Training(s)" (`lib/eventLabels.ts`) — drives the `/events` filter pill, page heading, and empty-state text.
 - Category carousel now lays cards out in two rows (`sm:grid sm:grid-flow-col sm:grid-rows-2`) at tablet width and up, instead of one long single-scrolling row — halves the horizontal scroll distance needed to reach the last card. Mobile is unchanged (still one full-width card per swipe, which is the better fit at that width).
