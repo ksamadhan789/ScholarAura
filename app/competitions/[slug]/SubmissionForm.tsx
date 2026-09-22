@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
 
 // Shown right above the entry form so a student who hasn't uploaded their
@@ -13,6 +14,7 @@ function IdCardSection({ initialFileName }: { initialFileName: string | null }) 
   const router = useRouter();
   const [fileName, setFileName] = useState(initialFileName);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -29,10 +31,20 @@ function IdCardSection({ initialFileName }: { initialFileName: string | null }) 
 
     setError(null);
     setUploading(true);
+    setProgress(0);
     try {
-      const formData = new FormData();
-      formData.append("idCard", file);
-      const res = await fetch("/api/account/id-card", { method: "POST", body: formData });
+      const blob = await upload(file.name, file, {
+        access: "private",
+        handleUploadUrl: "/api/account/id-card/blob-upload",
+        contentType: file.type,
+        onUploadProgress: ({ percentage }) => setProgress(percentage),
+      });
+
+      const res = await fetch("/api/account/id-card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blobUrl: blob.url, fileName: file.name, mimeType: file.type }),
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         setError(data?.error ?? "Couldn't upload your ID card. Please try again.");
@@ -63,7 +75,7 @@ function IdCardSection({ initialFileName }: { initialFileName: string | null }) 
             View
           </a>
           <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
-            {uploading ? "Uploading…" : "Replace"}
+            {uploading ? `Uploading… ${progress}%` : "Replace"}
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -80,7 +92,9 @@ function IdCardSection({ initialFileName }: { initialFileName: string | null }) 
             every competition you enter.
           </p>
           <label className="inline-block w-fit cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm dark:border-slate-600">
-            {uploading ? "Uploading…" : `Upload ID card (image or PDF, max ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB)`}
+            {uploading
+              ? `Uploading… ${progress}%`
+              : `Upload ID card (image or PDF, max ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB)`}
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -117,6 +131,7 @@ export function SubmissionForm({
   const [fileName, setFileName] = useState(initialFileName);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -145,17 +160,31 @@ export function SubmissionForm({
     setError(null);
     setSaved(false);
     setLoading(true);
+    setUploadProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append("submissionUrl", url);
-      formData.append("submissionNotes", notes);
-      if (pendingFile) formData.append("entryFile", pendingFile);
-      if (!fileName && !pendingFile) formData.append("removeFile", "true");
+      let blobUrl: string | null = null;
+      if (pendingFile) {
+        const blob = await upload(pendingFile.name, pendingFile, {
+          access: "private",
+          handleUploadUrl: `/api/competitions/${slug}/submit/blob-upload`,
+          contentType: pendingFile.type,
+          onUploadProgress: ({ percentage }) => setUploadProgress(percentage),
+        });
+        blobUrl = blob.url;
+      }
 
       const res = await fetch(`/api/competitions/${slug}/submit`, {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submissionUrl: url,
+          submissionNotes: notes,
+          blobUrl,
+          fileName: pendingFile?.name,
+          mimeType: pendingFile?.type,
+          removeFile: !fileName && !pendingFile,
+        }),
       });
 
       if (!res.ok) {
@@ -270,7 +299,13 @@ export function SubmissionForm({
             disabled={loading}
             className="self-start rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-sm text-white disabled:opacity-50"
           >
-            {loading ? "Saving…" : initialUrl || initialFileName ? "Update submission" : "Submit entry"}
+            {loading
+              ? pendingFile
+                ? `Uploading… ${uploadProgress}%`
+                : "Saving…"
+              : initialUrl || initialFileName
+                ? "Update submission"
+                : "Submit entry"}
           </button>
         )}
       </form>

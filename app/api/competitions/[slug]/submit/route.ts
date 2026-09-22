@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadCompetitionEntryFile, deleteCompetitionEntryFile } from "@/lib/competitionEntryFileStorage";
+import { downloadBlobBytes, deleteBlob } from "@/lib/blobUpload";
 import {
   ALLOWED_UPLOAD_TYPES_LABEL,
   MAX_UPLOAD_BYTES,
@@ -43,19 +44,18 @@ export async function POST(
     return NextResponse.json({ error: "You haven't entered this competition" }, { status: 403 });
   }
 
-  const formData = await request.formData().catch(() => null);
-  if (!formData) {
+  const payload = await request.json().catch(() => null);
+  if (!payload) {
     return NextResponse.json({ error: "Invalid form submission" }, { status: 400 });
   }
 
-  const submissionUrlRaw = formData.get("submissionUrl");
-  const submissionNotesRaw = formData.get("submissionNotes");
-  const removeFile = formData.get("removeFile") === "true";
-  const file = formData.get("entryFile");
-
-  const submissionUrl = typeof submissionUrlRaw === "string" ? submissionUrlRaw.trim() : "";
-  const submissionNotes = typeof submissionNotesRaw === "string" ? submissionNotesRaw.trim() : "";
-  const hasNewFile = file instanceof File && file.size > 0;
+  const submissionUrl = typeof payload.submissionUrl === "string" ? payload.submissionUrl.trim() : "";
+  const submissionNotes = typeof payload.submissionNotes === "string" ? payload.submissionNotes.trim() : "";
+  const removeFile = payload.removeFile === true;
+  const blobUrl = typeof payload.blobUrl === "string" ? payload.blobUrl : null;
+  const fileName = typeof payload.fileName === "string" && payload.fileName ? payload.fileName : "entry";
+  const mimeType = typeof payload.mimeType === "string" ? payload.mimeType : "";
+  const hasNewFile = !!blobUrl;
 
   if (submissionUrl && !isValidUrl(submissionUrl)) {
     return NextResponse.json({ error: "Enter a valid URL" }, { status: 400 });
@@ -75,36 +75,51 @@ export async function POST(
   } | null = null;
 
   if (hasNewFile) {
-    if (!isAllowedUploadType(file.type)) {
+    if (!isAllowedUploadType(mimeType)) {
       return NextResponse.json(
         { error: `Your entry file must be one of: ${ALLOWED_UPLOAD_TYPES_LABEL}` },
         { status: 400 }
       );
     }
-    if (file.size > MAX_UPLOAD_BYTES) {
+
+    let bytes: Buffer;
+    try {
+      bytes = await downloadBlobBytes(blobUrl);
+    } catch (err) {
+      console.error("Failed to download staged entry file upload:", err);
+      return NextResponse.json(
+        { error: "Couldn't read your uploaded file. Please try again." },
+        { status: 400 }
+      );
+    }
+
+    if (bytes.byteLength > MAX_UPLOAD_BYTES) {
+      await deleteBlob(blobUrl).catch(() => {});
       return NextResponse.json(
         { error: `Your entry file must be under ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB` },
         { status: 400 }
       );
     }
-
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    if (!matchesMagicBytes(file.type, bytes)) {
+    if (!matchesMagicBytes(mimeType, bytes)) {
+      await deleteBlob(blobUrl).catch(() => {});
       return NextResponse.json(
         { error: "That file doesn't look valid. Please try another." },
         { status: 400 }
       );
     }
 
-    const fileName = file.name || "entry";
     const submissionFileId = await uploadCompetitionEntryFile(
       competition.slug,
       session.user.id,
       fileName,
       bytes,
-      file.type
+      mimeType
     );
-    fileFields = { submissionFileId, submissionFileName: fileName, submissionFileContentType: file.type };
+    fileFields = { submissionFileId, submissionFileName: fileName, submissionFileContentType: mimeType };
+
+    await deleteBlob(blobUrl).catch((err) =>
+      console.error(`Failed to delete staged blob ${blobUrl}:`, err)
+    );
   } else if (removeFile) {
     fileFields = { submissionFileId: null, submissionFileName: null, submissionFileContentType: null };
   }

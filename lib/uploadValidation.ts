@@ -12,18 +12,16 @@ export const ALLOWED_UPLOAD_MIME_TYPES = [
   "application/x-zip-compressed",
 ] as const;
 
-// Vercel Functions hard-cap a request body at ~4.5MB regardless of what a
-// route handler itself checks — a larger upload is silently dropped by the
-// platform before request.formData() ever sees the file. A direct-to-Drive
-// browser upload was tried (bypassing this route entirely) but reverted:
-// Google's resumable-upload *session-creation* endpoint supports CORS, but
-// the *continue-uploading* endpoint the browser would PUT bytes to does not
-// (confirmed via a manual CORS preflight check — no Access-Control-* headers
-// come back for it), so the browser-side PUT is blocked outright. Getting
-// past this properly needs a real bypass mechanism (e.g. Vercel Blob's
-// client-upload SDK, purpose-built for this) rather than assuming Drive's
-// own CORS support extends further than it does.
-export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+// Vercel Functions hard-cap a request body at ~4.5MB, so a file this size or
+// larger can never be sent as a normal multipart POST to one of our routes.
+// The upload flow works around that with Vercel Blob's client-upload SDK:
+// the browser uploads bytes directly to Blob storage (first-party, CORS is
+// supported out of the box), then our route only handles the resulting
+// blobUrl — a small JSON payload, nowhere near the body-size cap — reads the
+// bytes back server-side, and forwards them to Drive as before. That keeps
+// this cap a real product decision (max file size we're willing to store)
+// instead of a platform limitation.
+export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
 export const ALLOWED_UPLOAD_TYPES_LABEL = "images, PDF, Word or ZIP";
 

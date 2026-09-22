@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
 import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
 import { Avatar } from "@/components/Avatar";
@@ -74,6 +75,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
   const [idCardFileName, setIdCardFileName] = useState(initial.idCardFileName);
   const [idCardError, setIdCardError] = useState<string | null>(null);
   const [idCardUploading, setIdCardUploading] = useState(false);
+  const [idCardProgress, setIdCardProgress] = useState(0);
 
   const [hasPhoto, setHasPhoto] = useState(initial.hasPhoto);
   const [photoVersion, setPhotoVersion] = useState(0);
@@ -187,10 +189,20 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
 
     setIdCardError(null);
     setIdCardUploading(true);
+    setIdCardProgress(0);
     try {
-      const formData = new FormData();
-      formData.append("idCard", file);
-      const res = await fetch("/api/account/id-card", { method: "POST", body: formData });
+      const blob = await upload(file.name, file, {
+        access: "private",
+        handleUploadUrl: "/api/account/id-card/blob-upload",
+        contentType: file.type,
+        onUploadProgress: ({ percentage }) => setIdCardProgress(percentage),
+      });
+
+      const res = await fetch("/api/account/id-card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blobUrl: blob.url, fileName: file.name, mimeType: file.type }),
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         setIdCardError(data?.error ?? "Couldn't upload your ID card. Please try again.");
@@ -519,7 +531,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
               View
             </a>
             <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
-              {idCardUploading ? "Uploading…" : "Replace"}
+              {idCardUploading ? `Uploading… ${idCardProgress}%` : "Replace"}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -545,7 +557,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
             </p>
             <label className="inline-block w-fit cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm dark:border-slate-600">
               {idCardUploading
-                ? "Uploading…"
+                ? `Uploading… ${idCardProgress}%`
                 : `Upload ID card (image or PDF, max ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB)`}
               <input
                 type="file"
