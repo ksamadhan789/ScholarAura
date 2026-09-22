@@ -254,6 +254,7 @@ export default async function CompetitionDetailPage({
               </p>
               <SubmissionForm
                 slug={competition.slug}
+                initialUrl={entry?.submissionUrl ?? ""}
                 initialNotes={entry?.submissionNotes ?? ""}
                 initialFileName={entry?.submissionFileName ?? null}
                 deadlinePassed={deadlinePassed}

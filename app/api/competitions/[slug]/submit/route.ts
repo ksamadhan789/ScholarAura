@@ -5,6 +5,15 @@ import { prisma } from "@/lib/prisma";
 import { downloadCompetitionEntryFile, deleteCompetitionEntryFile } from "@/lib/competitionEntryFileStorage";
 import { MAX_UPLOAD_BYTES, matchesMagicBytes } from "@/lib/uploadValidation";
 
+function isValidUrl(value: string): boolean {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Confirms an entry file the browser already uploaded directly to Drive via
 // a session from POST .../submit/upload-session. We don't trust the
 // browser's own claims about what it uploaded — download it back and check
@@ -34,14 +43,22 @@ export async function POST(
   }
 
   const body = await request.json().catch(() => null);
+  const submissionUrl = typeof body?.submissionUrl === "string" ? body.submissionUrl.trim() : "";
   const submissionNotes = typeof body?.submissionNotes === "string" ? body.submissionNotes.trim() : "";
   const driveFileId = typeof body?.driveFileId === "string" ? body.driveFileId : null;
   const fileName = typeof body?.fileName === "string" ? body.fileName : null;
   const mimeType = typeof body?.mimeType === "string" ? body.mimeType : null;
   const hasNewFile = !!driveFileId && !!fileName && !!mimeType;
 
-  if (!hasNewFile && !entry.submissionFileId) {
-    return NextResponse.json({ error: "Attach your entry file" }, { status: 400 });
+  if (submissionUrl && !isValidUrl(submissionUrl)) {
+    return NextResponse.json({ error: "Enter a valid URL" }, { status: 400 });
+  }
+  const willHaveFile = hasNewFile || !!entry.submissionFileId;
+  if (!submissionUrl && !willHaveFile) {
+    return NextResponse.json(
+      { error: "Attach a file or paste a link to your work" },
+      { status: 400 }
+    );
   }
 
   let fileFields: {
@@ -71,6 +88,7 @@ export async function POST(
   const updated = await prisma.competitionEntry.update({
     where: { id: entry.id },
     data: {
+      submissionUrl: submissionUrl || null,
       submissionNotes: submissionNotes || null,
       submittedAt: new Date(),
       ...fileFields,
