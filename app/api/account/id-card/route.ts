@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     );
   }
   if (idCard.size > MAX_UPLOAD_BYTES) {
-    return NextResponse.json({ error: "Your ID card must be under 25MB" }, { status: 400 });
+    return NextResponse.json({ error: "Your ID card must be under 4MB" }, { status: 400 });
   }
 
   const bytes = new Uint8Array(await idCard.arrayBuffer());

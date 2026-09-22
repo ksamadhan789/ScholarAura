@@ -101,7 +101,7 @@ export function SubmissionForm({
         {!deadlinePassed && (
           <div className="flex flex-wrap items-center gap-2">
             <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
-              {fileName || pendingFile ? "Replace" : "Choose file (image, PDF, Word or ZIP, max 25MB)"}
+              {fileName || pendingFile ? "Replace" : "Choose file (image, PDF, Word or ZIP, max 4MB)"}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,application/pdf,.doc,.docx,.zip"
