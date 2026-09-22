@@ -7,16 +7,19 @@ import { uploadFileDirect } from "@/lib/directUpload";
 
 export function SubmissionForm({
   slug,
+  initialUrl,
   initialNotes,
   initialFileName,
   deadlinePassed,
 }: {
   slug: string;
+  initialUrl: string;
   initialNotes: string;
   initialFileName: string | null;
   deadlinePassed: boolean;
 }) {
   const router = useRouter();
+  const [url, setUrl] = useState(initialUrl);
   const [notes, setNotes] = useState(initialNotes);
   const [fileName, setFileName] = useState(initialFileName);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -85,6 +88,7 @@ export function SubmissionForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          submissionUrl: url,
           submissionNotes: notes,
           ...(driveFileId
             ? { driveFileId, fileName: uploadedFileName, mimeType: uploadedMimeType }
@@ -111,7 +115,7 @@ export function SubmissionForm({
     }
   }
 
-  if (deadlinePassed && !initialFileName) {
+  if (deadlinePassed && !initialUrl && !initialFileName) {
     return (
       <p className="text-sm text-gray-500 dark:text-slate-400">
         The submission deadline has passed and no entry was submitted.
@@ -124,7 +128,9 @@ export function SubmissionForm({
       onSubmit={handleSubmit}
       className="flex flex-col gap-3 rounded border border-gray-200 dark:border-slate-700 p-4"
     >
-      <h2 className="font-medium">{initialFileName ? "Your submission" : "Submit your entry"}</h2>
+      <h2 className="font-medium">
+        {initialUrl || initialFileName ? "Your submission" : "Submit your entry"}
+      </h2>
 
       <div>
         <label className="mb-1 block text-sm font-medium">Attach your entry file</label>
@@ -182,6 +188,18 @@ export function SubmissionForm({
       </div>
 
       <div>
+        <label className="mb-1 block text-sm font-medium">Or paste a link to your work</label>
+        <input
+          type="url"
+          disabled={deadlinePassed}
+          placeholder="https://..."
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white disabled:opacity-50"
+        />
+      </div>
+
+      <div>
         <label className="mb-1 block text-sm font-medium">Notes (optional)</label>
         <textarea
           rows={3}
@@ -199,7 +217,7 @@ export function SubmissionForm({
           disabled={loading}
           className="self-start rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-sm text-white disabled:opacity-50"
         >
-          {loading ? "Saving…" : initialFileName ? "Update submission" : "Submit entry"}
+          {loading ? "Saving…" : initialUrl || initialFileName ? "Update submission" : "Submit entry"}
         </button>
       )}
     </form>
