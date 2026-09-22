@@ -82,7 +82,7 @@ export async function POST(
       );
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      return NextResponse.json({ error: "Your entry file must be under 25MB" }, { status: 400 });
+      return NextResponse.json({ error: "Your entry file must be under 4MB" }, { status: 400 });
     }
 
     const bytes = new Uint8Array(await file.arrayBuffer());

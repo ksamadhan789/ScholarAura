@@ -533,7 +533,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
               competition needs it — no more pasting a Drive link for every entry.
             </p>
             <label className="inline-block w-fit cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm dark:border-slate-600">
-              {idCardUploading ? "Uploading…" : "Upload ID card (image or PDF, max 25MB)"}
+              {idCardUploading ? "Uploading…" : "Upload ID card (image or PDF, max 4MB)"}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,application/pdf"

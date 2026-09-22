@@ -12,7 +12,12 @@ export const ALLOWED_UPLOAD_MIME_TYPES = [
   "application/x-zip-compressed",
 ] as const;
 
-export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+// Vercel Functions hard-cap a request body at ~4.5MB regardless of what a
+// route handler itself checks — a larger upload is silently dropped by the
+// platform before request.formData() ever sees the file, which then fails
+// with "attach a file" even though one was clearly picked client-side.
+// Same constraint the profile-resume upload already works around.
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export const ALLOWED_UPLOAD_TYPES_LABEL = "images, PDF, Word or ZIP";
 
