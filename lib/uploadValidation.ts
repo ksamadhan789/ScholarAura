@@ -12,12 +12,18 @@ export const ALLOWED_UPLOAD_MIME_TYPES = [
   "application/x-zip-compressed",
 ] as const;
 
-// These uploads go straight from the browser to Google Drive via a
-// resumable-upload session (lib/google/driveService.ts's
-// createResumableUploadSession()) — the bytes never pass through our own
-// serverless function, so Vercel's ~4.5MB request-body cap doesn't apply
-// here the way it does to a route that reads the file itself.
-export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+// Vercel Functions hard-cap a request body at ~4.5MB regardless of what a
+// route handler itself checks — a larger upload is silently dropped by the
+// platform before request.formData() ever sees the file. A direct-to-Drive
+// browser upload was tried (bypassing this route entirely) but reverted:
+// Google's resumable-upload *session-creation* endpoint supports CORS, but
+// the *continue-uploading* endpoint the browser would PUT bytes to does not
+// (confirmed via a manual CORS preflight check — no Access-Control-* headers
+// come back for it), so the browser-side PUT is blocked outright. Getting
+// past this properly needs a real bypass mechanism (e.g. Vercel Blob's
+// client-upload SDK, purpose-built for this) rather than assuming Drive's
+// own CORS support extends further than it does.
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export const ALLOWED_UPLOAD_TYPES_LABEL = "images, PDF, Word or ZIP";
 

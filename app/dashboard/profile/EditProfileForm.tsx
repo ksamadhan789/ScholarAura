@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
 import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
-import { uploadFileDirect } from "@/lib/directUpload";
 import { Avatar } from "@/components/Avatar";
 import { ImageCropModal } from "@/components/ImageCropModal";
 
@@ -75,7 +74,6 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
   const [idCardFileName, setIdCardFileName] = useState(initial.idCardFileName);
   const [idCardError, setIdCardError] = useState<string | null>(null);
   const [idCardUploading, setIdCardUploading] = useState(false);
-  const [idCardProgress, setIdCardProgress] = useState<number | null>(null);
 
   const [hasPhoto, setHasPhoto] = useState(initial.hasPhoto);
   const [photoVersion, setPhotoVersion] = useState(0);
@@ -189,41 +187,22 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
 
     setIdCardError(null);
     setIdCardUploading(true);
-    setIdCardProgress(null);
     try {
-      const sessionRes = await fetch("/api/account/id-card/upload-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileName: file.name, mimeType: file.type, fileSize: file.size }),
-      });
-      if (!sessionRes.ok) {
-        const data = await sessionRes.json().catch(() => null);
-        setIdCardError(data?.error ?? "Couldn't start the upload. Please try again.");
-        return;
-      }
-      const { uploadUrl } = await sessionRes.json();
-
-      setIdCardProgress(0);
-      const uploaded = await uploadFileDirect(uploadUrl, file, setIdCardProgress);
-
-      const confirmRes = await fetch("/api/account/id-card", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ driveFileId: uploaded.id, fileName: file.name, mimeType: file.type }),
-      });
-      if (!confirmRes.ok) {
-        const data = await confirmRes.json().catch(() => null);
+      const formData = new FormData();
+      formData.append("idCard", file);
+      const res = await fetch("/api/account/id-card", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
         setIdCardError(data?.error ?? "Couldn't upload your ID card. Please try again.");
         return;
       }
-      const data = await confirmRes.json();
+      const data = await res.json();
       setIdCardFileName(data.idCardFileName);
       router.refresh();
     } catch {
       setIdCardError("Couldn't reach the server. Please try again.");
     } finally {
       setIdCardUploading(false);
-      setIdCardProgress(null);
     }
   }
 
@@ -576,17 +555,6 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                 className="hidden"
               />
             </label>
-          </div>
-        )}
-        {idCardProgress !== null && (
-          <div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
-              <div
-                className="h-full rounded-full bg-brand-600 transition-all"
-                style={{ width: `${idCardProgress}%` }}
-              />
-            </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">Uploading… {idCardProgress}%</p>
           </div>
         )}
         {idCardError && <p className="text-sm text-red-600 dark:text-red-400">{idCardError}</p>}

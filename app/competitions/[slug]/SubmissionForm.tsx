@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
-import { uploadFileDirect } from "@/lib/directUpload";
 
 // Shown right above the entry form so a student who hasn't uploaded their
 // ID card yet can do it in the same place they submit their entry, instead
@@ -14,7 +13,6 @@ function IdCardSection({ initialFileName }: { initialFileName: string | null }) 
   const router = useRouter();
   const [fileName, setFileName] = useState(initialFileName);
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -31,41 +29,22 @@ function IdCardSection({ initialFileName }: { initialFileName: string | null }) 
 
     setError(null);
     setUploading(true);
-    setProgress(null);
     try {
-      const sessionRes = await fetch("/api/account/id-card/upload-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileName: file.name, mimeType: file.type, fileSize: file.size }),
-      });
-      if (!sessionRes.ok) {
-        const data = await sessionRes.json().catch(() => null);
-        setError(data?.error ?? "Couldn't start the upload. Please try again.");
-        return;
-      }
-      const { uploadUrl } = await sessionRes.json();
-
-      setProgress(0);
-      const uploaded = await uploadFileDirect(uploadUrl, file, setProgress);
-
-      const confirmRes = await fetch("/api/account/id-card", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ driveFileId: uploaded.id, fileName: file.name, mimeType: file.type }),
-      });
-      if (!confirmRes.ok) {
-        const data = await confirmRes.json().catch(() => null);
+      const formData = new FormData();
+      formData.append("idCard", file);
+      const res = await fetch("/api/account/id-card", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
         setError(data?.error ?? "Couldn't upload your ID card. Please try again.");
         return;
       }
-      const data = await confirmRes.json();
+      const data = await res.json();
       setFileName(data.idCardFileName);
       router.refresh();
     } catch {
       setError("Couldn't reach the server. Please try again.");
     } finally {
       setUploading(false);
-      setProgress(null);
     }
   }
 
@@ -112,14 +91,6 @@ function IdCardSection({ initialFileName }: { initialFileName: string | null }) 
           </label>
         </div>
       )}
-      {progress !== null && (
-        <div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
-            <div className="h-full rounded-full bg-brand-600 transition-all" style={{ width: `${progress}%` }} />
-          </div>
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">Uploading… {progress}%</p>
-        </div>
-      )}
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
@@ -146,7 +117,6 @@ export function SubmissionForm({
   const [fileName, setFileName] = useState(initialFileName);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -175,47 +145,17 @@ export function SubmissionForm({
     setError(null);
     setSaved(false);
     setLoading(true);
-    setUploadProgress(null);
 
     try {
-      let driveFileId: string | null = null;
-      let uploadedFileName: string | null = null;
-      let uploadedMimeType: string | null = null;
-
-      if (pendingFile) {
-        const sessionRes = await fetch(`/api/competitions/${slug}/submit/upload-session`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fileName: pendingFile.name,
-            mimeType: pendingFile.type,
-            fileSize: pendingFile.size,
-          }),
-        });
-        if (!sessionRes.ok) {
-          const data = await sessionRes.json().catch(() => null);
-          setError(data?.error ?? "Couldn't start the upload. Please try again.");
-          return;
-        }
-        const { uploadUrl } = await sessionRes.json();
-
-        setUploadProgress(0);
-        const uploaded = await uploadFileDirect(uploadUrl, pendingFile, setUploadProgress);
-        driveFileId = uploaded.id;
-        uploadedFileName = pendingFile.name;
-        uploadedMimeType = pendingFile.type;
-      }
+      const formData = new FormData();
+      formData.append("submissionUrl", url);
+      formData.append("submissionNotes", notes);
+      if (pendingFile) formData.append("entryFile", pendingFile);
+      if (!fileName && !pendingFile) formData.append("removeFile", "true");
 
       const res = await fetch(`/api/competitions/${slug}/submit`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          submissionUrl: url,
-          submissionNotes: notes,
-          ...(driveFileId
-            ? { driveFileId, fileName: uploadedFileName, mimeType: uploadedMimeType }
-            : {}),
-        }),
+        body: formData,
       });
 
       if (!res.ok) {
@@ -233,7 +173,6 @@ export function SubmissionForm({
       setError("Couldn't reach the server. Please try again.");
     } finally {
       setLoading(false);
-      setUploadProgress(null);
     }
   }
 
@@ -297,17 +236,6 @@ export function SubmissionForm({
                   Cancel
                 </button>
               )}
-            </div>
-          )}
-          {uploadProgress !== null && (
-            <div className="mt-2">
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-slate-700">
-                <div
-                  className="h-full rounded-full bg-brand-600 transition-all"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-              <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">Uploading… {uploadProgress}%</p>
             </div>
           )}
         </div>
