@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-22
+
+### Fixed
+- Event/competition registration's "open the Google Form after payment" step almost always hit its own blocked-popup fallback in practice: `window.open(url)` ran after an awaited `fetch` (checkout, then for paid entries another awaited verify-payment call inside the Razorpay success handler), and that gap breaks the direct-click gesture chain browsers require before allowing a popup — so most real entrants saw the "Your browser blocked the Google Form" banner instead of the form actually opening. Fixed in `app/events/[slug]/RegisterButton.tsx` and `app/competitions/[slug]/EntryButton.tsx` by opening a blank tab synchronously inside the click handler (before any `await`, so it's still within the browser's user-activation window) and navigating that tab to the real form URL once the URL is known; the tab is closed on every path that doesn't end up showing a form (errors, cancelled payment, no form configured), so it never lingers as a stray blank tab. Verified against a standalone Playwright repro: the old await-then-`window.open(url)` pattern was reliably blocked, the new open-blank-then-navigate pattern reliably wasn't. The manual "Open the Google Form" link fallback (and its banner) stays in place for the rare case where even the blank tab is blocked.
+
 ## 2026-09-21
 
 ### Changed

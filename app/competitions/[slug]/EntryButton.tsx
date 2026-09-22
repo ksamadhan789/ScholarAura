@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { loadRazorpayScript } from "@/lib/loadRazorpayScript";
 import { CurrencySelector } from "@/components/CurrencySelector";
@@ -33,25 +33,31 @@ export function EntryButton({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [blockedFormUrl, setBlockedFormUrl] = useState<string | null>(null);
+  const formWindowRef = useRef<Window | null>(null);
 
-  // Opens the Google Form and, if the browser's popup blocker silently
-  // swallowed it (common since this runs after an awaited fetch, breaking
-  // the direct-click gesture chain most blockers require), surfaces a
-  // manual link instead of just redirecting the entrant away with no way
-  // to reach the form.
+  // Navigates the tab opened synchronously in handleClick (before the
+  // checkout call) to the Google Form. Opening a blank tab right on the
+  // click keeps it within the browser's "user activation" window; opening
+  // it only once the URL is known (after an awaited fetch) is what most
+  // popup blockers silently swallow, since that breaks the direct-click
+  // gesture chain they require. Falls back to a manual link if even the
+  // blank tab was blocked.
   function openGoogleForm(url: string): boolean {
-    const popup = window.open(url, "_blank", "noopener,noreferrer");
-    if (!popup) {
-      setBlockedFormUrl(url);
-      setLoading(false);
-      return false;
+    const win = formWindowRef.current;
+    if (win && !win.closed) {
+      win.opener = null;
+      win.location.href = url;
+      return true;
     }
-    return true;
+    setBlockedFormUrl(url);
+    setLoading(false);
+    return false;
   }
 
   async function handleClick() {
     setLoading(true);
     setError(null);
+    formWindowRef.current = window.open("", "_blank");
 
     try {
       const checkoutRes = await fetch(`/api/competitions/${slug}/checkout`, {
@@ -66,6 +72,7 @@ export function EntryButton({
         }),
       });
       if (!checkoutRes.ok) {
+        formWindowRef.current?.close();
         const data = await checkoutRes.json().catch(() => null);
         if (data?.code === "ONBOARDING_REQUIRED") {
           router.push("/onboarding");
@@ -79,8 +86,10 @@ export function EntryButton({
       // Covers both free entries and credit-covered ones — the checkout
       // route settles those immediately without a Razorpay order.
       if (order.paidWithCredit) {
-        if (order.googleFormUrl && !openGoogleForm(order.googleFormUrl)) {
-          return;
+        if (order.googleFormUrl) {
+          if (!openGoogleForm(order.googleFormUrl)) return;
+        } else {
+          formWindowRef.current?.close();
         }
         router.push(`/competitions/${slug}`);
         router.refresh();
@@ -89,6 +98,7 @@ export function EntryButton({
 
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
+        formWindowRef.current?.close();
         setError("Couldn't load the payment form. Check your connection and try again.");
         return;
       }
@@ -109,24 +119,31 @@ export function EntryButton({
             body: JSON.stringify(response),
           });
           if (!verifyRes.ok) {
+            formWindowRef.current?.close();
             const data = await verifyRes.json().catch(() => null);
             setError(data?.error ?? "Payment succeeded but we couldn't confirm it. Contact support.");
             return;
           }
           const verifyData = await verifyRes.json().catch(() => null);
-          if (verifyData?.googleFormUrl && !openGoogleForm(verifyData.googleFormUrl)) {
-            return;
+          if (verifyData?.googleFormUrl) {
+            if (!openGoogleForm(verifyData.googleFormUrl)) return;
+          } else {
+            formWindowRef.current?.close();
           }
           router.push(`/competitions/${slug}`);
           router.refresh();
         },
         modal: {
-          ondismiss: () => setLoading(false),
+          ondismiss: () => {
+            formWindowRef.current?.close();
+            setLoading(false);
+          },
         },
       });
 
       razorpay.open();
     } catch {
+      formWindowRef.current?.close();
       setError("Couldn't reach the server. Please try again.");
       setLoading(false);
     }
