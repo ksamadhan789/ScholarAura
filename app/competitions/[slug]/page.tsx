@@ -257,6 +257,7 @@ export default async function CompetitionDetailPage({
                 initialUrl={entry?.submissionUrl ?? ""}
                 initialNotes={entry?.submissionNotes ?? ""}
                 initialFileName={entry?.submissionFileName ?? null}
+                initialIdCardFileName={currentUser?.idCardFileName ?? null}
                 deadlinePassed={deadlinePassed}
               />
             </div>
