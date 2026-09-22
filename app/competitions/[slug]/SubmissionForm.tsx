@@ -87,6 +87,12 @@ export function SubmissionForm({
       className="flex flex-col gap-3 rounded border border-gray-200 dark:border-slate-700 p-4"
     >
       <h2 className="font-medium">{initialUrl || initialFileName ? "Your submission" : "Submit your entry"}</h2>
+      {!deadlinePassed && (
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Attach your entry file right here — you don&apos;t need to upload it again in the
+          registration form.
+        </p>
+      )}
 
       <div>
         <label className="mb-1 block text-sm font-medium">Attach your entry file</label>
