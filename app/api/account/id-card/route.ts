@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadStudentIdCard, downloadStudentIdCard, deleteStudentIdCard } from "@/lib/studentIdCardStorage";
+import { downloadBlobBytes, deleteBlob } from "@/lib/blobUpload";
 import {
   ALLOWED_UPLOAD_TYPES_LABEL,
   MAX_UPLOAD_BYTES,
@@ -44,30 +45,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not allowed" }, { status: 401 });
   }
 
-  const formData = await request.formData().catch(() => null);
-  if (!formData) {
-    return NextResponse.json({ error: "Invalid form submission" }, { status: 400 });
-  }
-
-  const idCard = formData.get("idCard");
-  if (!(idCard instanceof File)) {
+  const payload = await request.json().catch(() => null);
+  const blobUrl = typeof payload?.blobUrl === "string" ? payload.blobUrl : null;
+  const fileName = typeof payload?.fileName === "string" && payload.fileName ? payload.fileName : "id-card";
+  const mimeType = typeof payload?.mimeType === "string" ? payload.mimeType : "";
+  if (!blobUrl) {
     return NextResponse.json({ error: "Please attach your ID card" }, { status: 400 });
   }
-  if (!isAllowedUploadType(idCard.type)) {
+  if (!isAllowedUploadType(mimeType)) {
     return NextResponse.json(
       { error: `Your ID card must be one of: ${ALLOWED_UPLOAD_TYPES_LABEL}` },
       { status: 400 }
     );
   }
-  if (idCard.size > MAX_UPLOAD_BYTES) {
+
+  let bytes: Buffer;
+  try {
+    bytes = await downloadBlobBytes(blobUrl);
+  } catch (err) {
+    console.error("Failed to download staged ID card upload:", err);
+    return NextResponse.json({ error: "Couldn't read your uploaded file. Please try again." }, { status: 400 });
+  }
+
+  if (bytes.byteLength > MAX_UPLOAD_BYTES) {
+    await deleteBlob(blobUrl).catch(() => {});
     return NextResponse.json(
       { error: `Your ID card must be under ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB` },
       { status: 400 }
     );
   }
-
-  const bytes = new Uint8Array(await idCard.arrayBuffer());
-  if (!matchesMagicBytes(idCard.type, bytes)) {
+  if (!matchesMagicBytes(mimeType, bytes)) {
+    await deleteBlob(blobUrl).catch(() => {});
     return NextResponse.json({ error: "That file doesn't look valid. Please try another." }, { status: 400 });
   }
 
@@ -77,13 +85,16 @@ export async function POST(request: Request) {
   });
 
   try {
-    const fileName = idCard.name || "id-card";
-    const idCardFileId = await uploadStudentIdCard(session.user.id, fileName, bytes, idCard.type);
+    const idCardFileId = await uploadStudentIdCard(session.user.id, fileName, bytes, mimeType);
 
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { idCardFileId, idCardFileName: fileName, idCardContentType: idCard.type },
+      data: { idCardFileId, idCardFileName: fileName, idCardContentType: mimeType },
     });
+
+    await deleteBlob(blobUrl).catch((err) =>
+      console.error(`Failed to delete staged blob ${blobUrl}:`, err)
+    );
 
     if (existing?.idCardFileId) {
       await deleteStudentIdCard(existing.idCardFileId).catch((err) =>
