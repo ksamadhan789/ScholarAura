@@ -2,23 +2,13 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { uploadCompetitionEntryFile, deleteCompetitionEntryFile } from "@/lib/competitionEntryFileStorage";
-import {
-  ALLOWED_UPLOAD_TYPES_LABEL,
-  MAX_UPLOAD_BYTES,
-  isAllowedUploadType,
-  matchesMagicBytes,
-} from "@/lib/uploadValidation";
+import { downloadCompetitionEntryFile, deleteCompetitionEntryFile } from "@/lib/competitionEntryFileStorage";
+import { MAX_UPLOAD_BYTES, matchesMagicBytes } from "@/lib/uploadValidation";
 
-function isValidUrl(value: string): boolean {
-  try {
-    new URL(value);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
+// Confirms an entry file the browser already uploaded directly to Drive via
+// a session from POST .../submit/upload-session. We don't trust the
+// browser's own claims about what it uploaded — download it back and check
+// its real size and magic bytes before recording it.
 export async function POST(
   request: Request,
   { params }: { params: { slug: string } }
@@ -43,73 +33,44 @@ export async function POST(
     return NextResponse.json({ error: "You haven't entered this competition" }, { status: 403 });
   }
 
-  const formData = await request.formData().catch(() => null);
-  if (!formData) {
-    return NextResponse.json({ error: "Invalid form submission" }, { status: 400 });
-  }
+  const body = await request.json().catch(() => null);
+  const submissionNotes = typeof body?.submissionNotes === "string" ? body.submissionNotes.trim() : "";
+  const driveFileId = typeof body?.driveFileId === "string" ? body.driveFileId : null;
+  const fileName = typeof body?.fileName === "string" ? body.fileName : null;
+  const mimeType = typeof body?.mimeType === "string" ? body.mimeType : null;
+  const hasNewFile = !!driveFileId && !!fileName && !!mimeType;
 
-  const submissionUrlRaw = formData.get("submissionUrl");
-  const submissionNotesRaw = formData.get("submissionNotes");
-  const removeFile = formData.get("removeFile") === "true";
-  const file = formData.get("entryFile");
-
-  const submissionUrl = typeof submissionUrlRaw === "string" ? submissionUrlRaw.trim() : "";
-  const submissionNotes = typeof submissionNotesRaw === "string" ? submissionNotesRaw.trim() : "";
-  const hasNewFile = file instanceof File && file.size > 0;
-
-  if (submissionUrl && !isValidUrl(submissionUrl)) {
-    return NextResponse.json({ error: "Enter a valid URL" }, { status: 400 });
-  }
-  const willHaveFile = hasNewFile || (!!entry.submissionFileId && !removeFile);
-  if (!submissionUrl && !willHaveFile) {
-    return NextResponse.json(
-      { error: "Attach a file or paste a link to your work" },
-      { status: 400 }
-    );
+  if (!hasNewFile && !entry.submissionFileId) {
+    return NextResponse.json({ error: "Attach your entry file" }, { status: 400 });
   }
 
   let fileFields: {
-    submissionFileId: string | null;
-    submissionFileName: string | null;
-    submissionFileContentType: string | null;
+    submissionFileId: string;
+    submissionFileName: string;
+    submissionFileContentType: string;
   } | null = null;
 
   if (hasNewFile) {
-    if (!isAllowedUploadType(file.type)) {
-      return NextResponse.json(
-        { error: `Your entry file must be one of: ${ALLOWED_UPLOAD_TYPES_LABEL}` },
-        { status: 400 }
-      );
+    let bytes: Buffer;
+    try {
+      bytes = await downloadCompetitionEntryFile(driveFileId);
+    } catch (err) {
+      console.error("Failed to fetch just-uploaded entry file for validation:", err);
+      return NextResponse.json({ error: "Couldn't verify the uploaded file. Please try again." }, { status: 500 });
     }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      return NextResponse.json({ error: "Your entry file must be under 4MB" }, { status: 400 });
-    }
-
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    if (!matchesMagicBytes(file.type, bytes)) {
+    if (bytes.length > MAX_UPLOAD_BYTES || !matchesMagicBytes(mimeType, bytes)) {
+      await deleteCompetitionEntryFile(driveFileId).catch(() => {});
       return NextResponse.json(
         { error: "That file doesn't look valid. Please try another." },
         { status: 400 }
       );
     }
-
-    const fileName = file.name || "entry";
-    const submissionFileId = await uploadCompetitionEntryFile(
-      competition.slug,
-      session.user.id,
-      fileName,
-      bytes,
-      file.type
-    );
-    fileFields = { submissionFileId, submissionFileName: fileName, submissionFileContentType: file.type };
-  } else if (removeFile) {
-    fileFields = { submissionFileId: null, submissionFileName: null, submissionFileContentType: null };
+    fileFields = { submissionFileId: driveFileId, submissionFileName: fileName, submissionFileContentType: mimeType };
   }
 
   const updated = await prisma.competitionEntry.update({
     where: { id: entry.id },
     data: {
-      submissionUrl: submissionUrl || null,
       submissionNotes: submissionNotes || null,
       submittedAt: new Date(),
       ...fileFields,
@@ -117,7 +78,7 @@ export async function POST(
   });
 
   // Delete the old file from Drive only after the DB row no longer points to it.
-  if ((hasNewFile || removeFile) && entry.submissionFileId) {
+  if (hasNewFile && entry.submissionFileId) {
     await deleteCompetitionEntryFile(entry.submissionFileId).catch((err) =>
       console.error(`Failed to delete replaced entry file ${entry.submissionFileId}:`, err)
     );
