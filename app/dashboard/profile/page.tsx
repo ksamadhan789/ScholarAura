@@ -28,6 +28,7 @@ export default async function EditProfilePage() {
       bio: true,
       achievements: true,
       resumeName: true,
+      idCardFileName: true,
       photoFileId: true,
       publicProfileEnabled: true,
       name: true,
@@ -68,6 +69,7 @@ export default async function EditProfilePage() {
               ? (user.achievements as string[]).join(", ")
               : "",
             resumeName: user.resumeName,
+            idCardFileName: user.idCardFileName,
           }}
         />
       </div>

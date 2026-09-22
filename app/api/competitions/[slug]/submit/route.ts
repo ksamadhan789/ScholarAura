@@ -1,13 +1,23 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { uploadCompetitionEntryFile, deleteCompetitionEntryFile } from "@/lib/competitionEntryFileStorage";
+import {
+  ALLOWED_UPLOAD_TYPES_LABEL,
+  MAX_UPLOAD_BYTES,
+  isAllowedUploadType,
+  matchesMagicBytes,
+} from "@/lib/uploadValidation";
 
-const submitSchema = z.object({
-  submissionUrl: z.string().url("Enter a valid URL"),
-  submissionNotes: z.string().optional(),
-});
+function isValidUrl(value: string): boolean {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(
   request: Request,
@@ -33,23 +43,85 @@ export async function POST(
     return NextResponse.json({ error: "You haven't entered this competition" }, { status: 403 });
   }
 
-  const body = await request.json().catch(() => null);
-  const parsed = submitSchema.safeParse(body);
-  if (!parsed.success) {
+  const formData = await request.formData().catch(() => null);
+  if (!formData) {
+    return NextResponse.json({ error: "Invalid form submission" }, { status: 400 });
+  }
+
+  const submissionUrlRaw = formData.get("submissionUrl");
+  const submissionNotesRaw = formData.get("submissionNotes");
+  const removeFile = formData.get("removeFile") === "true";
+  const file = formData.get("entryFile");
+
+  const submissionUrl = typeof submissionUrlRaw === "string" ? submissionUrlRaw.trim() : "";
+  const submissionNotes = typeof submissionNotesRaw === "string" ? submissionNotesRaw.trim() : "";
+  const hasNewFile = file instanceof File && file.size > 0;
+
+  if (submissionUrl && !isValidUrl(submissionUrl)) {
+    return NextResponse.json({ error: "Enter a valid URL" }, { status: 400 });
+  }
+  const willHaveFile = hasNewFile || (!!entry.submissionFileId && !removeFile);
+  if (!submissionUrl && !willHaveFile) {
     return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+      { error: "Attach a file or paste a link to your work" },
       { status: 400 }
     );
+  }
+
+  let fileFields: {
+    submissionFileId: string | null;
+    submissionFileName: string | null;
+    submissionFileContentType: string | null;
+  } | null = null;
+
+  if (hasNewFile) {
+    if (!isAllowedUploadType(file.type)) {
+      return NextResponse.json(
+        { error: `Your entry file must be one of: ${ALLOWED_UPLOAD_TYPES_LABEL}` },
+        { status: 400 }
+      );
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return NextResponse.json({ error: "Your entry file must be under 25MB" }, { status: 400 });
+    }
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (!matchesMagicBytes(file.type, bytes)) {
+      return NextResponse.json(
+        { error: "That file doesn't look valid. Please try another." },
+        { status: 400 }
+      );
+    }
+
+    const fileName = file.name || "entry";
+    const submissionFileId = await uploadCompetitionEntryFile(
+      competition.slug,
+      session.user.id,
+      fileName,
+      bytes,
+      file.type
+    );
+    fileFields = { submissionFileId, submissionFileName: fileName, submissionFileContentType: file.type };
+  } else if (removeFile) {
+    fileFields = { submissionFileId: null, submissionFileName: null, submissionFileContentType: null };
   }
 
   const updated = await prisma.competitionEntry.update({
     where: { id: entry.id },
     data: {
-      submissionUrl: parsed.data.submissionUrl,
-      submissionNotes: parsed.data.submissionNotes || null,
+      submissionUrl: submissionUrl || null,
+      submissionNotes: submissionNotes || null,
       submittedAt: new Date(),
+      ...fileFields,
     },
   });
+
+  // Delete the old file from Drive only after the DB row no longer points to it.
+  if ((hasNewFile || removeFile) && entry.submissionFileId) {
+    await deleteCompetitionEntryFile(entry.submissionFileId).catch((err) =>
+      console.error(`Failed to delete replaced entry file ${entry.submissionFileId}:`, err)
+    );
+  }
 
   return NextResponse.json(updated);
 }
