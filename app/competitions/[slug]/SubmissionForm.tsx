@@ -313,7 +313,7 @@ export function SubmissionForm({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Or paste a link to your work</label>
+          <label className="mb-1 block text-sm font-medium">Competition entry link</label>
           <input
             type="url"
             disabled={deadlinePassed}
