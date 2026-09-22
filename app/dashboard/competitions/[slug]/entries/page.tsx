@@ -40,7 +40,7 @@ export default async function CompetitionEntriesPage({
   const [entries, totalCount] = await Promise.all([
     prisma.competitionEntry.findMany({
       where: { competitionId: competition.id },
-      include: { user: { select: { name: true, email: true } } },
+      include: { user: { select: { name: true, email: true, idCardFileId: true } } },
       orderBy: [{ rank: "asc" }, { registeredAt: "desc" }],
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -79,6 +79,7 @@ export default async function CompetitionEntriesPage({
                 <th className="px-4 py-2.5 font-medium">Email</th>
                 <th className="px-4 py-2.5 font-medium">Team</th>
                 <th className="px-4 py-2.5 font-medium">Payment</th>
+                <th className="px-4 py-2.5 font-medium">ID Card</th>
                 <th className="px-4 py-2.5 font-medium">Submission</th>
                 <th className="px-4 py-2.5 font-medium">Rank</th>
                 <th className="px-4 py-2.5 font-medium">Actions</th>
@@ -101,18 +102,45 @@ export default async function CompetitionEntriesPage({
                     <Badge variant={STATUS_VARIANT[entry.status]}>{entry.status}</Badge>
                   </td>
                   <td className="px-4 py-2.5">
-                    {entry.submissionUrl ? (
+                    {entry.user.idCardFileId ? (
                       <a
-                        href={entry.submissionUrl}
+                        href={`/api/admin/users/${entry.userId}/id-card`}
                         target="_blank"
                         rel="noreferrer"
                         className="underline"
                       >
-                        View
+                        🪪 View
                       </a>
                     ) : (
                       <span className="text-gray-500 dark:text-slate-400">—</span>
                     )}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex flex-col gap-1">
+                      {entry.submissionFileId && (
+                        <a
+                          href={`/api/admin/competitions/${competition.slug}/entries/${entry.id}/file`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline"
+                        >
+                          📎 {entry.submissionFileName}
+                        </a>
+                      )}
+                      {entry.submissionUrl && (
+                        <a
+                          href={entry.submissionUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline"
+                        >
+                          🔗 Link
+                        </a>
+                      )}
+                      {!entry.submissionFileId && !entry.submissionUrl && (
+                        <span className="text-gray-500 dark:text-slate-400">—</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-2.5">
                     <RankInput entryId={entry.id} initialRank={entry.rank} />

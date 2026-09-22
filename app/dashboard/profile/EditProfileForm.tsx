@@ -22,6 +22,7 @@ type Initial = {
   bio: string;
   achievements: string;
   resumeName: string | null;
+  idCardFileName: string | null;
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -68,6 +69,10 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
   const [resumeName, setResumeName] = useState(initial.resumeName);
   const [resumeError, setResumeError] = useState<string | null>(null);
   const [resumeUploading, setResumeUploading] = useState(false);
+
+  const [idCardFileName, setIdCardFileName] = useState(initial.idCardFileName);
+  const [idCardError, setIdCardError] = useState<string | null>(null);
+  const [idCardUploading, setIdCardUploading] = useState(false);
 
   const [hasPhoto, setHasPhoto] = useState(initial.hasPhoto);
   const [photoVersion, setPhotoVersion] = useState(0);
@@ -161,6 +166,51 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
       setResumeError("Couldn't reach the server. Please try again.");
     } finally {
       setResumeUploading(false);
+    }
+  }
+
+  async function handleIdCardUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setIdCardError(null);
+    setIdCardUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("idCard", file);
+      const res = await fetch("/api/account/id-card", { method: "POST", body: formData });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setIdCardError(data?.error ?? "Couldn't upload your ID card. Please try again.");
+        return;
+      }
+      const data = await res.json();
+      setIdCardFileName(data.idCardFileName);
+      router.refresh();
+    } catch {
+      setIdCardError("Couldn't reach the server. Please try again.");
+    } finally {
+      setIdCardUploading(false);
+    }
+  }
+
+  async function handleIdCardRemove() {
+    setIdCardError(null);
+    setIdCardUploading(true);
+    try {
+      const res = await fetch("/api/account/id-card", { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setIdCardError(data?.error ?? "Couldn't remove your ID card. Please try again.");
+        return;
+      }
+      setIdCardFileName(null);
+      router.refresh();
+    } catch {
+      setIdCardError("Couldn't reach the server. Please try again.");
+    } finally {
+      setIdCardUploading(false);
     }
   }
 
@@ -443,6 +493,58 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
           </div>
         )}
         {resumeError && <p className="text-sm text-red-600 dark:text-red-400">{resumeError}</p>}
+      </Section>
+
+      <Section title="Student ID card">
+        {idCardFileName ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm text-slate-700 dark:text-slate-300">🪪 {idCardFileName}</p>
+            <a
+              href="/api/account/id-card"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600"
+            >
+              View
+            </a>
+            <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
+              {idCardUploading ? "Uploading…" : "Replace"}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                onChange={handleIdCardUpload}
+                disabled={idCardUploading}
+                className="hidden"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={handleIdCardRemove}
+              disabled={idCardUploading}
+              className="rounded border border-red-300 px-3 py-1.5 text-xs text-red-600 disabled:opacity-50 dark:border-red-800 dark:text-red-400"
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <div>
+            <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+              Upload a photo or scan of your student ID card once here, so it's ready whenever a
+              competition needs it — no more pasting a Drive link for every entry.
+            </p>
+            <label className="inline-block w-fit cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm dark:border-slate-600">
+              {idCardUploading ? "Uploading…" : "Upload ID card (image or PDF, max 25MB)"}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                onChange={handleIdCardUpload}
+                disabled={idCardUploading}
+                className="hidden"
+              />
+            </label>
+          </div>
+        )}
+        {idCardError && <p className="text-sm text-red-600 dark:text-red-400">{idCardError}</p>}
       </Section>
     </div>
   );

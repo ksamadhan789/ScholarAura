@@ -21,13 +21,14 @@ export async function GET(_request: Request, { params }: { params: { slug: strin
     orderBy: [{ rank: "asc" }, { registeredAt: "desc" }],
   });
 
-  const header = ["Name", "Email", "Team", "Payment status", "Submission", "Rank"];
+  const header = ["Name", "Email", "Team", "Payment status", "Submission Link", "Submission File", "Rank"];
   const rows = entries.map((entry) => [
     entry.user.name,
     entry.user.email,
     entry.teamName ?? "",
     entry.status,
     entry.submissionUrl ?? "",
+    entry.submissionFileName ?? "",
     entry.rank != null ? String(entry.rank) : "",
   ]);
 
