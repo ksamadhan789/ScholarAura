@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
 
 export function SubmissionForm({
   slug,
@@ -29,6 +30,18 @@ export function SubmissionForm({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    // Checked here, before even attempting the upload, because an oversized
+    // file doesn't reliably reach our own server-side size check — Vercel
+    // drops a request body over its own platform limit first, which would
+    // otherwise surface as the generic "attach a file" error with no
+    // explanation of why the attached file didn't go through.
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setError(
+        `That file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — entry files must be under ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB. Try compressing it, or paste a link to it instead.`
+      );
+      return;
+    }
+    setError(null);
     setPendingFile(file);
   }
 

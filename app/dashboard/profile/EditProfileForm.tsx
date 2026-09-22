@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
+import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
 import { Avatar } from "@/components/Avatar";
 import { ImageCropModal } from "@/components/ImageCropModal";
 
@@ -173,6 +174,16 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+
+    // Checked here, before even attempting the upload, because an oversized
+    // file doesn't reliably reach our own server-side size check — Vercel
+    // drops a request body over its own platform limit first.
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setIdCardError(
+        `That file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — your ID card must be under ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB. Try a lower-resolution photo or scan.`
+      );
+      return;
+    }
 
     setIdCardError(null);
     setIdCardUploading(true);
