@@ -1,30 +1,24 @@
-import {
-  findOrCreateFolder,
-  downloadFile,
-  deleteFile,
-  createResumableUploadSession,
-} from "@/lib/google/driveService";
+import { findOrCreateFolder, uploadFile, downloadFile, deleteFile } from "@/lib/google/driveService";
 
-async function idCardFolder(userId: string): Promise<string> {
+/**
+ * Uploads a student ID card under Root/student-id-cards/{userId}/, mirroring
+ * the profile-resumes/{userId}/ layout in profileResumeStorage.ts. Uploaded
+ * once on the student's profile and reused for every competition they enter.
+ */
+export async function uploadStudentIdCard(
+  userId: string,
+  fileName: string,
+  bytes: Uint8Array,
+  mimeType: string
+): Promise<string> {
   const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
   if (!rootFolderId) {
     throw new Error("GOOGLE_DRIVE_ROOT_FOLDER_ID is not configured");
   }
-  const idCardsFolderId = await findOrCreateFolder("student-id-cards", rootFolderId);
-  return findOrCreateFolder(userId, idCardsFolderId);
-}
 
-/**
- * Starts a resumable Drive upload under Root/student-id-cards/{userId}/ and
- * returns the URL the browser uploads the file to directly.
- */
-export async function createIdCardUploadSession(
-  userId: string,
-  fileName: string,
-  mimeType: string
-): Promise<string> {
-  const userFolderId = await idCardFolder(userId);
-  return createResumableUploadSession(fileName, userFolderId, mimeType);
+  const idCardsFolderId = await findOrCreateFolder("student-id-cards", rootFolderId);
+  const userFolderId = await findOrCreateFolder(userId, idCardsFolderId);
+  return uploadFile(fileName, userFolderId, bytes, mimeType);
 }
 
 export async function downloadStudentIdCard(fileId: string): Promise<Buffer> {
