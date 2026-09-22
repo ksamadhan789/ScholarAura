@@ -464,10 +464,14 @@ export function EditCompetitionForm({
                     className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                    Design the certificate in Google Slides using placeholders like{" "}
+                    Design the certificate in Google Slides using placeholders{" "}
                     <code>{"{{NAME}}"}</code>, <code>{"{{EVENT_TITLE}}"}</code>,{" "}
-                    <code>{"{{CERTIFICATE_NUMBER}}"}</code>, then share it with our service account's
-                    email (view access) and paste its ID here.
+                    <code>{"{{CERTIFICATE_NUMBER}}"}</code>, <code>{"{{DATE}}"}</code>,{" "}
+                    <code>{"{{CERTIFICATE_TYPE}}"}</code>, <code>{"{{COLLEGE}}"}</code>,{" "}
+                    <code>{"{{SIGNATORY_NAME}}"}</code> and <code>{"{{SIGNATORY_TITLE}}"}</code> — these
+                    are the exact strings the certificate gets generated with, so a typo (extra space,
+                    wrong case) means that spot won't fill in. Share the Slides file with our service
+                    account's email (view access) and paste its ID here.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">

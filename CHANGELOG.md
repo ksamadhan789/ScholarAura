@@ -5,6 +5,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-22
 
 ### Fixed
+- Event edit page's certificate-template hint told admins to design their Google Slides template with placeholders `{{STUDENT_NAME}}`/`{{EVENT_NAME}}`/`{{CERTIFICATE_ID}}` — none of which the certificate generator actually replaces (`lib/certificateGeneration.ts` looks for `{{NAME}}`/`{{EVENT_TITLE}}`/`{{CERTIFICATE_NUMBER}}`). Following the old hint would silently produce a certificate with unfilled placeholder text. Fixed to match the real ones, and expanded both the event and competition edit forms' hints to list the full set (`{{NAME}}`, `{{EVENT_TITLE}}`, `{{CERTIFICATE_NUMBER}}`, `{{DATE}}`, `{{CERTIFICATE_TYPE}}`, `{{COLLEGE}}`, `{{SIGNATORY_NAME}}`, `{{SIGNATORY_TITLE}}`) instead of only 3 of the 8 that actually work.
 - The new student-ID-card / competition-entry-file uploads (`lib/uploadValidation.ts`) were capped at 25MB, which exceeds Vercel Functions' hard ~4.5MB request-body limit — any real-sized file (e.g. a scanned document) was silently dropped by the platform before the route handler ever saw it, surfacing as "Attach a file or paste a link to your work" even though a file was clearly attached client-side. Lowered the cap to 4MB, the same limit already proven to work in production for the profile-resume upload.
 
 ### Added
