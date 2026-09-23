@@ -61,9 +61,29 @@ export function EditEventForm({
   const [form, setForm] = useState<FormState>(initial);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sampleSending, setSampleSending] = useState(false);
+  const [sampleMessage, setSampleMessage] = useState<{ text: string; isError: boolean } | null>(null);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function handleEmailSample() {
+    setSampleSending(true);
+    setSampleMessage(null);
+    try {
+      const res = await fetch(`/api/events/${slug}/certificate-sample`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setSampleMessage({ text: data?.error ?? "Couldn't send the sample. Please try again.", isError: true });
+        return;
+      }
+      setSampleMessage({ text: "Sample certificate sent to your email.", isError: false });
+    } catch {
+      setSampleMessage({ text: "Couldn't reach the server. Please try again.", isError: true });
+    } finally {
+      setSampleSending(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -483,14 +503,27 @@ export function EditEventForm({
         <div className="border-t border-gray-200 dark:border-slate-700 pt-4">
           <h2 className="mb-3 font-semibold">Certificate</h2>
           <div className="flex flex-col gap-4">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.certificateEnabled}
-                onChange={(e) => set("certificateEnabled", e.target.checked)}
-              />
-              Issue certificates for this event
-            </label>
+            <div className="flex items-center justify-between rounded border border-gray-200 bg-gray-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800/50">
+              <span className="text-sm">
+                Status:{" "}
+                <strong
+                  className={
+                    form.certificateEnabled
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-gray-500 dark:text-slate-400"
+                  }
+                >
+                  Automatic Certification is {form.certificateEnabled ? "ON" : "OFF"}
+                </strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => set("certificateEnabled", !form.certificateEnabled)}
+                className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+              >
+                Turn {form.certificateEnabled ? "OFF" : "ON"}
+              </button>
+            </div>
             {form.certificateEnabled && (
               <>
                 <div>
@@ -518,6 +551,16 @@ export function EditEventForm({
                     onChange={(e) => set("googleSlidesTemplateId", e.target.value)}
                     className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
                   />
+                  {form.googleSlidesTemplateId && (
+                    <a
+                      href={`https://docs.google.com/presentation/d/${form.googleSlidesTemplateId}/edit`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-block text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+                    >
+                      Preview template ↗
+                    </a>
+                  )}
                   <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                     Design the certificate in Google Slides using placeholders{" "}
                     <code>{"{{NAME}}"}</code>, <code>{"{{EVENT_TITLE}}"}</code>,{" "}
@@ -553,6 +596,28 @@ export function EditEventForm({
                       className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
                     />
                   </div>
+                </div>
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleEmailSample}
+                    disabled={!form.googleSlidesTemplateId || sampleSending}
+                    className="rounded border border-gray-300 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-slate-600 dark:hover:bg-slate-800"
+                  >
+                    {sampleSending ? "Sending…" : "📧 Email me a sample"}
+                  </button>
+                  {!form.googleSlidesTemplateId && (
+                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                      Set a template ID above first.
+                    </p>
+                  )}
+                  {sampleMessage && (
+                    <p
+                      className={`mt-1 text-xs ${sampleMessage.isError ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}`}
+                    >
+                      {sampleMessage.text}
+                    </p>
+                  )}
                 </div>
               </>
             )}
