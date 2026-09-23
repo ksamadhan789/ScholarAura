@@ -546,6 +546,50 @@ export async function sendCompetitionSubmissionReceivedEmail(
   return true;
 }
 
+export async function sendAccountDeletionEmail(
+  to: string,
+  adminName: string,
+  deleted: { name: string; email: string; reason: string | null }
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send account deletion email");
+    return false;
+  }
+
+  const safeAdminName = escapeHtml(adminName.trim() || "there");
+  const safeName = escapeHtml(deleted.name);
+  const safeEmail = escapeHtml(deleted.email);
+  const reasonLine = deleted.reason ? `\n\nReason given: "${deleted.reason}"` : "\n\nNo reason was given.";
+  const reasonHtml = deleted.reason
+    ? `<p>Reason given: &ldquo;${escapeHtml(deleted.reason)}&rdquo;</p>`
+    : `<p>No reason was given.</p>`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `A student deleted their account: ${deleted.name}`,
+      text: `Hi ${adminName},\n\n${deleted.name} (${deleted.email}) just deleted their ScholarAura account.${reasonLine}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${safeAdminName},</p>
+        <p><strong>${safeName}</strong> (${safeEmail}) just deleted their ScholarAura account.</p>
+        ${reasonHtml}
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send account deletion email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send account deletion email:", err);
+    return false;
+  }
+
+  return true;
+}
+
 export async function sendJobApplicationReceivedEmail(
   to: string,
   name: string,

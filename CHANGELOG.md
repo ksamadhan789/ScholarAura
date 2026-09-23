@@ -5,6 +5,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-23
 
 ### Added
+- Self-service "Delete my account" in Edit Profile's new "Danger zone" section (`app/dashboard/profile/EditProfileForm.tsx`) — type "DELETE" to confirm, optional free-text reason, then immediately signed out. It's a deactivate-and-anonymize (`lib/accountDeletion.ts`'s `deactivateAccount()`), not a hard delete: Drive-backed personal files (photo/resume/ID card) are deleted, every identifying `User` field is scrubbed (name, email replaced with a synthetic placeholder so the real address frees up, password/Google ID cleared), and new `User.deactivatedAt`/`deletionReason` columns are set — but certificates, payment history, job applications, and referral credit already earned are left alone, since those are either other people's records or things the platform needs to keep. New `POST /api/account/delete` captures the pre-scrub name/email/reason and emails + in-app-notifies every ADMIN user (`sendAccountDeletionEmail`, `ACCOUNT_DELETED` notification type) — there's no dedicated admin page for this yet, the notification is the only record.
 - Dashboard (`/dashboard`) profile summary card now has a "👤 View profile" button to the left of "Edit profile", opening `/portfolio/[userId]` in a new tab — only shown when `publicProfileEnabled` is true, since that page 404s for anyone who hasn't turned on "make my certificates public" (Edit Profile's `PublicProfileToggle`).
 
 ### Fixed

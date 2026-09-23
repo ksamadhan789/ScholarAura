@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { upload } from "@vercel/blob/client";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
 import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
@@ -82,6 +83,34 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDeleteAccount() {
+    setDeleteError(null);
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: deleteReason || undefined }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setDeleteError(data?.error ?? "Couldn't delete your account. Please try again.");
+        return;
+      }
+      await signOut({ callbackUrl: "/" });
+    } catch {
+      setDeleteError("Couldn't reach the server. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -571,6 +600,80 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
         )}
         {idCardError && <p className="text-sm text-red-600 dark:text-red-400">{idCardError}</p>}
       </Section>
+
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-5 dark:border-red-900 dark:bg-red-950/20">
+        <h2 className="mb-1 font-semibold text-red-900 dark:text-red-300">Danger zone</h2>
+        {!showDeleteConfirm ? (
+          <>
+            <p className="mb-3 text-sm text-red-700 dark:text-red-400">
+              Deleting your account disables your login and removes your personal details. Your course,
+              event and competition history stays on record, same as any platform.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="rounded border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-100 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
+            >
+              Delete my account
+            </button>
+          </>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-red-700 dark:text-red-400">
+              This can&rsquo;t be undone from your side. You&rsquo;ll be signed out immediately and won&rsquo;t
+              be able to log back in with this email.
+            </p>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-red-900 dark:text-red-300">
+                Why are you leaving? (optional, helps us improve)
+              </label>
+              <textarea
+                rows={3}
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                disabled={deleting}
+                className="w-full rounded border border-red-300 px-3 py-2 text-sm dark:border-red-800 dark:bg-slate-800 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-red-900 dark:text-red-300">
+                Type DELETE to confirm
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                disabled={deleting}
+                className="w-full max-w-xs rounded border border-red-300 px-3 py-2 text-sm dark:border-red-800 dark:bg-slate-800 dark:text-white"
+              />
+            </div>
+            {deleteError && <p className="text-sm text-red-600 dark:text-red-400">{deleteError}</p>}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleting || deleteConfirmText !== "DELETE"}
+                className="rounded bg-red-600 px-4 py-2 text-sm text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? "Deleting…" : "Permanently delete my account"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeleteReason("");
+                  setDeleteConfirmText("");
+                  setDeleteError(null);
+                }}
+                disabled={deleting}
+                className="rounded border border-gray-300 px-4 py-2 text-sm dark:border-slate-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

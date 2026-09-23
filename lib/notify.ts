@@ -14,7 +14,8 @@ export type NotificationType =
   | "JOB_MESSAGE"
   | "FREELANCE_MESSAGE"
   | "SUPPORT_TICKET_CREATED"
-  | "SUPPORT_TICKET_RESOLVED";
+  | "SUPPORT_TICKET_RESOLVED"
+  | "ACCOUNT_DELETED";
 
 /**
  * Creates an in-app notification alongside (never instead of) the existing
