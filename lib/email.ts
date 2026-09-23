@@ -118,6 +118,54 @@ export async function sendCertificateReadyEmail(
   return true;
 }
 
+export async function sendCertificateSampleEmail(
+  to: string,
+  adminName: string,
+  title: string,
+  pdfBytes: Uint8Array
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send sample certificate email");
+    return false;
+  }
+
+  const displayName = adminName.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeTitle = escapeHtml(title);
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Sample certificate for ${title}`,
+      text: `Hi ${displayName},\n\nAttached is a sample certificate for "${title}", generated from the current template with placeholder data ("Jane Student"). It's not a real certificate and isn't saved anywhere — this is just so you can see what the template produces before it goes live.\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${safeDisplayName},</p>
+        <p>Attached is a sample certificate for <strong>${safeTitle}</strong>, generated from the current template with placeholder data ("Jane Student"). It's not a real certificate and isn't saved anywhere — this is just so you can see what the template produces before it goes live.</p>
+        <p>Team ScholarAura</p>
+      `,
+      attachments: [
+        {
+          filename: "sample-certificate.pdf",
+          content: Buffer.from(pdfBytes),
+          contentType: "application/pdf",
+        },
+      ],
+    });
+
+    if (error) {
+      console.error("Failed to send sample certificate email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send sample certificate email:", err);
+    return false;
+  }
+
+  return true;
+}
+
 function formatDateTime(date: Date): string {
   return date.toLocaleString("en-IN", {
     day: "numeric",

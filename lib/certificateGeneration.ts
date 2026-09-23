@@ -11,6 +11,8 @@ import { replacePlaceholders } from "@/lib/google/slidesService";
 import { stampVerificationOnPdf } from "@/lib/generateCertificatePdf";
 import { sendCertificateReadyEmail } from "@/lib/email";
 
+const SAMPLE_CERTIFICATE_NUMBER = "SAMPLE-0000000";
+
 function buildPlaceholders(params: {
   name: string;
   eventTitle: string;
@@ -260,6 +262,65 @@ export async function generateCompetitionCertificate(
       await deleteFile(slideCopyId).catch(() => {});
     }
     return { ok: false, error: message };
+  }
+}
+
+/**
+ * Runs the same Slides -> PDF pipeline as a real certificate, but with fake
+ * placeholder data and no Certificate row — used by the "Email me a sample"
+ * button so an admin can see what their template actually renders like
+ * before it goes live. The Slides copy is always deleted afterward (even on
+ * failure) since nothing should be left behind for a preview that was never
+ * saved anywhere.
+ */
+export async function generateSampleCertificatePdf(params: {
+  googleSlidesTemplateId: string;
+  title: string;
+  certificateType: string;
+  signatoryName: string | null;
+  signatoryTitle: string | null;
+}): Promise<Uint8Array> {
+  const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
+  if (!rootFolderId) {
+    throw new Error("GOOGLE_DRIVE_ROOT_FOLDER_ID is not configured");
+  }
+
+  const samplesFolderId = await findOrCreateFolder("samples", rootFolderId);
+
+  let slideCopyId: string | undefined;
+  try {
+    slideCopyId = await copyFile(
+      params.googleSlidesTemplateId,
+      `SAMPLE - ${params.title}`,
+      samplesFolderId
+    );
+
+    await replacePlaceholders(
+      slideCopyId,
+      buildPlaceholders({
+        name: "Jane Student",
+        eventTitle: params.title,
+        certificateNumber: SAMPLE_CERTIFICATE_NUMBER,
+        issuedAt: new Date(),
+        certificateType: params.certificateType,
+        signatoryName: params.signatoryName,
+        signatoryTitle: params.signatoryTitle,
+        college: "Sample University",
+      })
+    );
+
+    const exportedPdf = await exportAsPdf(slideCopyId);
+    return await stampVerificationOnPdf(
+      exportedPdf,
+      SAMPLE_CERTIFICATE_NUMBER,
+      `${SITE_URL}/verify/${SAMPLE_CERTIFICATE_NUMBER}`
+    );
+  } finally {
+    if (slideCopyId) {
+      await deleteFile(slideCopyId).catch((err) =>
+        console.error(`Failed to delete sample slide copy ${slideCopyId}:`, err)
+      );
+    }
   }
 }
 
