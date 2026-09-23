@@ -4,6 +4,9 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-23
 
+### Added
+- Dashboard (`/dashboard`) profile summary card now has a "👤 View profile" button to the left of "Edit profile", opening `/portfolio/[userId]` in a new tab — only shown when `publicProfileEnabled` is true, since that page 404s for anyone who hasn't turned on "make my certificates public" (Edit Profile's `PublicProfileToggle`).
+
 ### Fixed
 - A student could still upload/replace their student ID card from the competition entry page (`SubmissionForm.tsx`'s `IdCardSection`) after the submission deadline had passed, even though every other control on that page (entry file, link, notes, the submit button) already locked correctly. `IdCardSection` now also takes `deadlinePassed` and hides its upload/replace control once true, matching the rest of the form.
 
