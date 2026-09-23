@@ -4,6 +4,9 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-23
 
+### Fixed
+- A student could still upload/replace their student ID card from the competition entry page (`SubmissionForm.tsx`'s `IdCardSection`) after the submission deadline had passed, even though every other control on that page (entry file, link, notes, the submit button) already locked correctly. `IdCardSection` now also takes `deadlinePassed` and hides its upload/replace control once true, matching the rest of the form.
+
 ### Changed
 - Competition entry submission (`SubmissionForm.tsx`) now **requires** both the student ID card and the entry file — previously either the file or the "Competition entry link" alone was enough, and the ID card wasn't enforced at submission time at all. Both fields now show a red `*`, and submitting is blocked (client-side instantly, then re-checked server-side in `POST /api/competitions/[slug]/submit`) with a specific message — "Upload your student ID card before submitting your entry" or "Attach your entry file to submit your entry" — for whichever is missing. The `IdCardSection`'s uploaded filename is now lifted into the parent form's state (previously local to that subcomponent) so the parent can see it immediately for this check. The "Competition entry link" field stays fully optional alongside the now-required file, for entries hosted elsewhere (e.g. a YouTube video).
 - Successfully submitting an entry now shows a bigger green confirmation banner ("🎉 Your entry has been submitted!") in the same style as the page's existing "You're entered in this competition!" banner, replacing the small plain "Saved." text.
