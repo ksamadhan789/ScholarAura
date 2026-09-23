@@ -37,7 +37,7 @@ export default async function CompetitionEntriesPage({
 
   const page = Math.max(1, Number(searchParams.page) || 1);
 
-  const [entries, totalCount] = await Promise.all([
+  const [entries, totalCount, entryFileCount] = await Promise.all([
     prisma.competitionEntry.findMany({
       where: { competitionId: competition.id },
       include: { user: { select: { name: true, email: true, idCardFileId: true } } },
@@ -46,6 +46,9 @@ export default async function CompetitionEntriesPage({
       take: PAGE_SIZE,
     }),
     prisma.competitionEntry.count({ where: { competitionId: competition.id } }),
+    prisma.competitionEntry.count({
+      where: { competitionId: competition.id, submissionFileId: { not: null } },
+    }),
   ]);
 
   return (
@@ -58,12 +61,22 @@ export default async function CompetitionEntriesPage({
       </Link>
       <div className="mt-2 mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">{competition.title} — Entries</h1>
-        <a
-          href={`/api/admin/competitions/${competition.slug}/entries/export`}
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Export CSV
-        </a>
+        <div className="flex gap-2">
+          {entryFileCount > 0 && (
+            <a
+              href={`/api/admin/competitions/${competition.slug}/entries/bulk-zip`}
+              className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+            >
+              Download entry files (ZIP)
+            </a>
+          )}
+          <a
+            href={`/api/admin/competitions/${competition.slug}/entries/export`}
+            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          >
+            Export CSV
+          </a>
+        </div>
       </div>
 
       {entries.length === 0 ? (
