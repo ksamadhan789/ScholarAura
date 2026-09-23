@@ -98,7 +98,7 @@ export default async function DashboardPage() {
   const displayName = session.user?.name ?? session.user?.email ?? "there";
   const currentUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { photoFileId: true },
+    select: { photoFileId: true, publicProfileEnabled: true },
   });
 
   return (
@@ -119,12 +119,24 @@ export default async function DashboardPage() {
             </p>
           </div>
         </div>
-        <Link
-          href="/dashboard/profile"
-          className="w-fit shrink-0 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50 dark:border-slate-600 dark:hover:bg-slate-700"
-        >
-          ✏️ Edit profile
-        </Link>
+        <div className="flex shrink-0 gap-2">
+          {currentUser?.publicProfileEnabled && (
+            <Link
+              href={`/portfolio/${session.user.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-fit rounded-full border border-gray-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50 dark:border-slate-600 dark:hover:bg-slate-700"
+            >
+              👤 View profile
+            </Link>
+          )}
+          <Link
+            href="/dashboard/profile"
+            className="w-fit rounded-full border border-gray-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50 dark:border-slate-600 dark:hover:bg-slate-700"
+          >
+            ✏️ Edit profile
+          </Link>
+        </div>
       </div>
 
       {isNewUser && (
