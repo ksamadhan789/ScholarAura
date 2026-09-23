@@ -502,6 +502,50 @@ export async function sendCompetitionEntryConfirmationEmail(
   return true;
 }
 
+export async function sendCompetitionSubmissionReceivedEmail(
+  to: string,
+  name: string,
+  competitionTitle: string
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send competition submission received email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeCompetitionTitle = escapeHtml(competitionTitle);
+  const entriesUrl = `${SITE_URL}/dashboard/entries`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Your entry for ${competitionTitle} has been submitted`,
+      text: `Hi ${displayName},\n\nWe've received your entry submission for "${competitionTitle}" — your student ID card and entry file are both on file.\n\nView your entry: ${entriesUrl}\n\nGood luck!\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${safeDisplayName},</p>
+        <p>We've received your entry submission for <strong>${safeCompetitionTitle}</strong> — your student ID card and entry file are both on file.</p>
+        <p>
+          <a href="${entriesUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View your entry</a>
+        </p>
+        <p>Good luck!<br>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send competition submission received email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send competition submission received email:", err);
+    return false;
+  }
+
+  return true;
+}
+
 export async function sendJobApplicationReceivedEmail(
   to: string,
   name: string,

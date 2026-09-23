@@ -10,9 +10,16 @@ import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
 // of being sent away to their profile page first. Saves to the profile
 // (POST /api/account/id-card), same as EditProfileForm's own ID card
 // section — it's reused for every future competition, not tied to this one.
-function IdCardSection({ initialFileName }: { initialFileName: string | null }) {
+// `fileName`/`onUploaded` are lifted to the parent form so it can enforce
+// the ID card as a required field before letting a submission go through.
+function IdCardSection({
+  fileName,
+  onUploaded,
+}: {
+  fileName: string | null;
+  onUploaded: (fileName: string) => void;
+}) {
   const router = useRouter();
-  const [fileName, setFileName] = useState(initialFileName);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +58,7 @@ function IdCardSection({ initialFileName }: { initialFileName: string | null }) 
         return;
       }
       const data = await res.json();
-      setFileName(data.idCardFileName);
+      onUploaded(data.idCardFileName);
       router.refresh();
     } catch {
       setError("Couldn't reach the server. Please try again.");
@@ -62,7 +69,9 @@ function IdCardSection({ initialFileName }: { initialFileName: string | null }) 
 
   return (
     <div className="flex flex-col gap-2 rounded border border-gray-200 dark:border-slate-700 p-4">
-      <h2 className="font-medium">Student ID card</h2>
+      <h2 className="font-medium">
+        Student ID card <span className="font-normal text-red-500">*</span>
+      </h2>
       {fileName ? (
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm text-slate-700 dark:text-slate-300">🪪 {fileName}</p>
@@ -129,6 +138,7 @@ export function SubmissionForm({
   const [url, setUrl] = useState(initialUrl);
   const [notes, setNotes] = useState(initialNotes);
   const [fileName, setFileName] = useState(initialFileName);
+  const [idCardFileName, setIdCardFileName] = useState(initialIdCardFileName);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -159,6 +169,18 @@ export function SubmissionForm({
     e.preventDefault();
     setError(null);
     setSaved(false);
+
+    // Checked here, before any upload starts, so a missing required field
+    // fails instantly instead of after a slow file upload.
+    if (!idCardFileName) {
+      setError("Upload your student ID card before submitting your entry.");
+      return;
+    }
+    if (!fileName && !pendingFile) {
+      setError("Attach your entry file to submit your entry.");
+      return;
+    }
+
     setLoading(true);
     setUploadProgress(0);
 
@@ -215,7 +237,7 @@ export function SubmissionForm({
 
   return (
     <div className="flex flex-col gap-4">
-      <IdCardSection initialFileName={initialIdCardFileName} />
+      <IdCardSection fileName={idCardFileName} onUploaded={setIdCardFileName} />
 
       <form
         onSubmit={handleSubmit}
@@ -226,7 +248,9 @@ export function SubmissionForm({
         </h2>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Attach your entry file</label>
+          <label className="mb-1 block text-sm font-medium">
+            Attach your entry file <span className="font-normal text-red-500">*</span>
+          </label>
           {(fileName || pendingFile) && (
             <p className="mb-2 text-sm text-slate-700 dark:text-slate-300">
               📎 {pendingFile ? pendingFile.name : fileName}
@@ -270,7 +294,10 @@ export function SubmissionForm({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">Competition entry link</label>
+          <label className="mb-1 block text-sm font-medium">
+            Competition entry link{" "}
+            <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+          </label>
           <input
             type="url"
             disabled={deadlinePassed}
@@ -292,7 +319,11 @@ export function SubmissionForm({
           />
         </div>
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        {saved && <p className="text-sm text-green-600 dark:text-green-400">Saved.</p>}
+        {saved && (
+          <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
+            🎉 Your entry has been submitted! A confirmation email is on its way.
+          </p>
+        )}
         {!deadlinePassed && (
           <button
             type="submit"

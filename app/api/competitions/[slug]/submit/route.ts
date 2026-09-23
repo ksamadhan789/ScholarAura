@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadCompetitionEntryFile, deleteCompetitionEntryFile } from "@/lib/competitionEntryFileStorage";
 import { downloadBlobBytes, deleteBlob } from "@/lib/blobUpload";
+import { sendCompetitionSubmissionReceivedEmail } from "@/lib/email";
 import {
   ALLOWED_UPLOAD_TYPES_LABEL,
   MAX_UPLOAD_BYTES,
@@ -44,6 +45,17 @@ export async function POST(
     return NextResponse.json({ error: "You haven't entered this competition" }, { status: 403 });
   }
 
+  const student = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { idCardFileId: true },
+  });
+  if (!student?.idCardFileId) {
+    return NextResponse.json(
+      { error: "Upload your student ID card before submitting your entry" },
+      { status: 400 }
+    );
+  }
+
   const payload = await request.json().catch(() => null);
   if (!payload) {
     return NextResponse.json({ error: "Invalid form submission" }, { status: 400 });
@@ -61,9 +73,9 @@ export async function POST(
     return NextResponse.json({ error: "Enter a valid URL" }, { status: 400 });
   }
   const willHaveFile = hasNewFile || (!!entry.submissionFileId && !removeFile);
-  if (!submissionUrl && !willHaveFile) {
+  if (!willHaveFile) {
     return NextResponse.json(
-      { error: "Attach a file or paste a link to your work" },
+      { error: "Attach your entry file to submit your entry" },
       { status: 400 }
     );
   }
@@ -140,6 +152,12 @@ export async function POST(
       console.error(`Failed to delete replaced entry file ${entry.submissionFileId}:`, err)
     );
   }
+
+  await sendCompetitionSubmissionReceivedEmail(
+    session.user.email!,
+    session.user.name ?? "",
+    competition.title
+  ).catch((err) => console.error("Failed to send competition submission received email:", err));
 
   return NextResponse.json(updated);
 }
