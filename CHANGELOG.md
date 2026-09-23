@@ -2,6 +2,15 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-23
+
+### Changed
+- Competition entry submission (`SubmissionForm.tsx`) now **requires** both the student ID card and the entry file — previously either the file or the "Competition entry link" alone was enough, and the ID card wasn't enforced at submission time at all. Both fields now show a red `*`, and submitting is blocked (client-side instantly, then re-checked server-side in `POST /api/competitions/[slug]/submit`) with a specific message — "Upload your student ID card before submitting your entry" or "Attach your entry file to submit your entry" — for whichever is missing. The `IdCardSection`'s uploaded filename is now lifted into the parent form's state (previously local to that subcomponent) so the parent can see it immediately for this check. The "Competition entry link" field stays fully optional alongside the now-required file, for entries hosted elsewhere (e.g. a YouTube video).
+- Successfully submitting an entry now shows a bigger green confirmation banner ("🎉 Your entry has been submitted!") in the same style as the page's existing "You're entered in this competition!" banner, replacing the small plain "Saved." text.
+
+### Added
+- New `sendCompetitionSubmissionReceivedEmail()` (`lib/email.ts`) emails the student a confirmation every time they submit or update their competition entry, sent from `POST /api/competitions/[slug]/submit` after a successful save (same fire-and-forget, error-logged-not-thrown pattern as the site's other confirmation emails). Distinct from the existing `sendCompetitionEntryConfirmationEmail`, which fires once on payment/registration, not on each submission.
+
 ## 2026-09-22
 
 ### Added
