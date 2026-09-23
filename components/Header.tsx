@@ -104,6 +104,14 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
+          {status !== "loading" && !session && (
+            <Link
+              href="/login"
+              className="rounded-full bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-700"
+            >
+              Sign up/in
+            </Link>
+          )}
           <ThemeToggle />
           <NotificationBell />
           <button
