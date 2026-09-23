@@ -15,9 +15,11 @@ import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
 function IdCardSection({
   fileName,
   onUploaded,
+  deadlinePassed,
 }: {
   fileName: string | null;
   onUploaded: (fileName: string) => void;
+  deadlinePassed: boolean;
 }) {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
@@ -83,17 +85,21 @@ function IdCardSection({
           >
             View
           </a>
-          <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
-            {uploading ? `Uploading… ${progress}%` : "Replace"}
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-              onChange={handleFileSelected}
-              disabled={uploading}
-              className="hidden"
-            />
-          </label>
+          {!deadlinePassed && (
+            <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
+              {uploading ? `Uploading… ${progress}%` : "Replace"}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                onChange={handleFileSelected}
+                disabled={uploading}
+                className="hidden"
+              />
+            </label>
+          )}
         </div>
+      ) : deadlinePassed ? (
+        <p className="text-sm text-gray-500 dark:text-slate-400">No ID card was uploaded before the deadline.</p>
       ) : (
         <div>
           <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">
@@ -237,7 +243,11 @@ export function SubmissionForm({
 
   return (
     <div className="flex flex-col gap-4">
-      <IdCardSection fileName={idCardFileName} onUploaded={setIdCardFileName} />
+      <IdCardSection
+        fileName={idCardFileName}
+        onUploaded={setIdCardFileName}
+        deadlinePassed={deadlinePassed}
+      />
 
       <form
         onSubmit={handleSubmit}
