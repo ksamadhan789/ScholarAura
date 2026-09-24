@@ -62,6 +62,12 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
   }
 
   const d = parsed.data;
+  if (d.isPublished === true && listing.removedByAdminAt) {
+    return NextResponse.json(
+      { error: "This listing was removed by an admin after a report and can't be republished" },
+      { status: 403 }
+    );
+  }
   const updated = await prisma.freelanceListing.update({
     where: { slug: params.slug },
     data: {

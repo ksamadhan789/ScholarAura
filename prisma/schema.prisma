@@ -180,6 +180,7 @@ model User {
   freelanceThreadsStarted FreelanceThread[] @relation("FreelanceThreadInitiator")
   sentFreelanceMessages   FreelanceMessage[] @relation("FreelanceMessageSender")
   freelanceReviews        FreelanceReview[]
+  freelanceReports        FreelanceReport[]
   supportTickets          SupportTicket[]
 
   @@map("users")
@@ -1118,6 +1119,9 @@ model FreelanceListing {
   portfolioUrl   String?
   contactEmail   String
   isPublished    Boolean  @default(true)
+  // Set when an admin takes the listing down after a report — while set the
+  // owner can't republish it themselves (only an admin restore clears it).
+  removedByAdminAt DateTime?
   postedByUserId String
   postedByUser   User     @relation(fields: [postedByUserId], references: [id])
   createdAt      DateTime @default(now())
@@ -1125,6 +1129,7 @@ model FreelanceListing {
 
   threads        FreelanceThread[]
   reviews        FreelanceReview[]
+  reports        FreelanceReport[]
 
   @@index([category])
   @@index([postedByUserId])
@@ -1183,6 +1188,33 @@ model FreelanceReview {
   @@unique([listingId, reviewerId])
   @@index([listingId])
   @@map("freelance_reviews")
+}
+
+enum FreelanceReportStatus {
+  OPEN
+  DISMISSED // admin looked and decided the listing is fine
+  ACTIONED  // admin removed the listing
+}
+
+// A logged-in user flagging a freelance listing for admin review. Freelance
+// listings publish immediately without moderation, so this is the safety
+// valve — see lib/freelanceReport.ts. `reason` is one of the fixed keys in
+// lib/freelanceReportReasons.ts, validated in code.
+model FreelanceReport {
+  id         String                @id @default(uuid())
+  listingId  String
+  listing    FreelanceListing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reporterId String
+  reporter   User                  @relation(fields: [reporterId], references: [id])
+  reason     String
+  details    String?
+  status     FreelanceReportStatus @default(OPEN)
+  createdAt  DateTime              @default(now())
+  resolvedAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([listingId])
+  @@map("freelance_reports")
 }
 
 enum SupportTicketStatus {

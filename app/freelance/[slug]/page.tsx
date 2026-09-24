@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { Avatar } from "@/components/Avatar";
 import { ContactButton } from "@/components/freelance/ContactButton";
+import { ReportListingButton } from "@/components/freelance/ReportListingButton";
 import { ReviewSection } from "@/components/ReviewSection";
 import { StarRating } from "@/components/StarRating";
 import { canReviewFreelanceListing } from "@/lib/freelanceReview";
@@ -72,10 +73,17 @@ export default async function FreelanceListingPage({
         )}
       </div>
 
-      {!listing.isPublished && (
-        <p className="mb-4 text-sm text-amber-700 dark:text-amber-400">
-          ⏸️ This listing is paused — only you can see it right now.
+      {listing.removedByAdminAt ? (
+        <p className="mb-4 text-sm text-red-700 dark:text-red-400">
+          🚫 This listing was removed by an admin after it was reported — only you can see it. Raise
+          a support ticket via Aura if you think this was a mistake.
         </p>
+      ) : (
+        !listing.isPublished && (
+          <p className="mb-4 text-sm text-amber-700 dark:text-amber-400">
+            ⏸️ This listing is paused — only you can see it right now.
+          </p>
+        )
       )}
 
       <h1 className="text-2xl font-semibold">{listing.title}</h1>
@@ -137,6 +145,12 @@ export default async function FreelanceListingPage({
           >
             or email directly
           </a>
+        </div>
+      )}
+
+      {!isOwner && (
+        <div className="mt-4">
+          <ReportListingButton slug={listing.slug} isLoggedIn={!!session} />
         </div>
       )}
 

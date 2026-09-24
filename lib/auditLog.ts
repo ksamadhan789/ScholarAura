@@ -22,7 +22,10 @@ export type AuditAction =
   | "BUNDLE_CREATED"
   | "BUNDLE_UPDATED"
   | "BUNDLE_DELETED"
-  | "SUPPORT_TICKET_RESOLVED";
+  | "SUPPORT_TICKET_RESOLVED"
+  | "FREELANCE_REPORT_DISMISSED"
+  | "FREELANCE_LISTING_REMOVED"
+  | "FREELANCE_LISTING_RESTORED";
 
 export type AuditTargetType =
   | "CoursePurchase"
@@ -37,7 +40,9 @@ export type AuditTargetType =
   | "JobApplication"
   | "College"
   | "CourseBundle"
-  | "SupportTicket";
+  | "SupportTicket"
+  | "FreelanceReport"
+  | "FreelanceListing";
 
 /**
  * Best-effort, like the email/notification side effects it sits alongside —

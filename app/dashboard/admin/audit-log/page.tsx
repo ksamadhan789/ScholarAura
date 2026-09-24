@@ -29,6 +29,9 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   BUNDLE_UPDATED: "Bundle updated",
   BUNDLE_DELETED: "Bundle deleted",
   SUPPORT_TICKET_RESOLVED: "Support ticket resolved",
+  FREELANCE_REPORT_DISMISSED: "Freelance report dismissed",
+  FREELANCE_LISTING_REMOVED: "Freelance listing removed",
+  FREELANCE_LISTING_RESTORED: "Freelance listing restored",
 };
 
 function formatMetadata(metadata: unknown): string | null {

@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 export function FreelanceListingActions({
   slug,
   isPublished,
+  removedByAdmin,
 }: {
   slug: string;
   isPublished: boolean;
+  removedByAdmin: boolean;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -23,7 +25,12 @@ export function FreelanceListingActions({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isPublished: !isPublished }),
       });
-      if (res.ok) router.refresh();
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error ?? "Couldn't update listing");
+        return;
+      }
+      router.refresh();
     } finally {
       setLoading(false);
     }
@@ -49,13 +56,15 @@ export function FreelanceListingActions({
   return (
     <div className="flex flex-col items-end gap-1">
       <div className="flex gap-1.5">
-        <button
-          onClick={togglePublished}
-          disabled={loading}
-          className="rounded border border-gray-300 dark:border-slate-600 px-2.5 py-1 text-xs disabled:opacity-50"
-        >
-          {loading ? "…" : isPublished ? "Pause" : "Publish"}
-        </button>
+        {!removedByAdmin && (
+          <button
+            onClick={togglePublished}
+            disabled={loading}
+            className="rounded border border-gray-300 dark:border-slate-600 px-2.5 py-1 text-xs disabled:opacity-50"
+          >
+            {loading ? "…" : isPublished ? "Pause" : "Publish"}
+          </button>
+        )}
         <button
           onClick={remove}
           disabled={loading}
