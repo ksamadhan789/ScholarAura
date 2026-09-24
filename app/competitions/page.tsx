@@ -1,11 +1,23 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { Clock, MapPin, Trophy, Users } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
-import { Thumbnail } from "@/components/Thumbnail";
 import { SaveButton } from "@/components/SaveButton";
+import { MediaCard, formatPrice } from "@/components/listing/MediaCard";
+import {
+  CardGrid,
+  EmptyState,
+  FILTER_FIELD_CLASS,
+  FilterActions,
+  FilterGroup,
+  FilterPanel,
+  ListingHeader,
+  ListingShell,
+  ResultsSection,
+} from "@/components/listing/ListingLayout";
+import { getDeadlineUrgency } from "@/lib/eventLabels";
 import { readLocationCookie } from "@/lib/location";
 
 export const metadata: Metadata = {
@@ -38,36 +50,42 @@ function CompetitionCard({
   };
   isSaved: boolean | null;
 }) {
+  const urgency = getDeadlineUrgency(competition.submissionDeadline);
   return (
-    <div className="relative">
-      {isSaved !== null && (
-        <div className="absolute right-2 top-2 z-10">
+    <MediaCard
+      href={`/competitions/${competition.slug}`}
+      thumbnailUrl={competition.thumbnailUrl}
+      placeholderIcon={<Trophy className="h-10 w-10" />}
+      title={competition.title}
+      badges={
+        <>
+          <Badge variant="brand">Competition</Badge>
+          {urgency && <Badge variant={urgency.variant}>{urgency.label}</Badge>}
+        </>
+      }
+      meta={[
+        { icon: Clock, text: `Submit by ${formatDeadline(competition.submissionDeadline)}` },
+        {
+          icon: Users,
+          text: competition.maxTeamSize > 1 ? `Teams of up to ${competition.maxTeamSize}` : "Individual entry",
+        },
+        ...(competition.city ? [{ icon: MapPin, text: competition.city }] : []),
+      ]}
+      footer={
+        <span className="font-bold text-slate-900 dark:text-white">
+          {Number(competition.fee) === 0 ? "Free entry" : formatPrice(competition.fee)}
+        </span>
+      }
+      overlay={
+        isSaved !== null && (
           <SaveButton
             endpoint={`/api/competitions/${competition.slug}/wishlist`}
             isSaved={isSaved}
             variant="overlay"
           />
-        </div>
-      )}
-      <Link
-        href={`/competitions/${competition.slug}`}
-        className="block overflow-hidden rounded-lg border border-gray-200 dark:border-slate-700 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
-      >
-        <Thumbnail url={competition.thumbnailUrl} alt={competition.title} icon="🏆" />
-        <div className="p-4">
-          <Badge variant="brand">Competition</Badge>
-          <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{competition.title}</h3>
-          <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-            Submit by {formatDeadline(competition.submissionDeadline)} ·{" "}
-            {competition.maxTeamSize > 1 ? `Team of up to ${competition.maxTeamSize}` : "Individual"}
-            {competition.city && ` · ${competition.city}`}
-          </p>
-          <p className="mt-2 font-semibold text-slate-900 dark:text-white">
-            {Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`}
-          </p>
-        </div>
-      </Link>
-    </div>
+        )
+      }
+    />
   );
 }
 
@@ -137,89 +155,79 @@ export default async function CompetitionsPage({
   const open = competitions.filter((c) => c.submissionDeadline >= now);
   const closed = competitions.filter((c) => c.submissionDeadline < now);
 
+  const hasFilters = Boolean(q || activeTeam || activeCity);
+
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">🏆 Competitions</h1>
+    <main>
+      <ListingHeader
+        title="Competitions"
+        subtitle="Enter individually or as a team, submit your work and compete for prizes and certificates."
+      />
 
-      <form className="mb-8 flex flex-wrap gap-2" action="/competitions">
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="Search by title or description..."
-          className="min-w-[200px] flex-1 rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        />
-        <select
-          name="team"
-          defaultValue={activeTeam ?? ""}
-          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        >
-          {TEAM_SIZE_OPTIONS.map(({ value, label }) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <select
-          name="city"
-          defaultValue={activeCity ?? ""}
-          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        >
-          <option value="">Any location</option>
-          {cities.map((city) => (
-            <option key={city} value={city}>
-              {city}
-            </option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
-        >
-          Search
-        </button>
-        {(q || activeTeam || activeCity) && (
-          <Link
-            href="/competitions"
-            className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            Clear filters
-          </Link>
+      <ListingShell
+        sidebar={
+          <FilterPanel action="/competitions">
+            <FilterGroup label="Search">
+              <input
+                type="search"
+                name="q"
+                defaultValue={q}
+                placeholder="Title or description…"
+                className={FILTER_FIELD_CLASS}
+              />
+            </FilterGroup>
+            <FilterGroup label="Team size">
+              <select name="team" defaultValue={activeTeam ?? ""} className={FILTER_FIELD_CLASS}>
+                {TEAM_SIZE_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </FilterGroup>
+            <FilterGroup label="Location">
+              <select name="city" defaultValue={activeCity ?? ""} className={FILTER_FIELD_CLASS}>
+                <option value="">Any location</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            </FilterGroup>
+            <FilterActions clearHref={hasFilters ? "/competitions" : undefined} />
+          </FilterPanel>
+        }
+      >
+        {competitions.length === 0 ? (
+          <EmptyState
+            title={hasFilters ? "No competitions match your search" : "No competitions yet"}
+            text={hasFilters ? "Try removing a filter or searching for something else." : "New competitions are added regularly — check back soon."}
+          />
+        ) : (
+          <div className="flex flex-col gap-10">
+            {open.length > 0 && (
+              <ResultsSection title="Open for entries" count={open.length}>
+                <CardGrid>
+                  {open.map((c) => (
+                    <CompetitionCard key={c.id} competition={c} isSaved={savedCompetitionIds ? savedCompetitionIds.has(c.id) : null} />
+                  ))}
+                </CardGrid>
+              </ResultsSection>
+            )}
+
+            {closed.length > 0 && (
+              <ResultsSection title="Closed" count={closed.length}>
+                <CardGrid>
+                  {closed.map((c) => (
+                    <CompetitionCard key={c.id} competition={c} isSaved={savedCompetitionIds ? savedCompetitionIds.has(c.id) : null} />
+                  ))}
+                </CardGrid>
+              </ResultsSection>
+            )}
+          </div>
         )}
-      </form>
-
-      {competitions.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">
-          👀 No competitions {q || activeTeam || activeCity ? "matched your search" : "published yet"} —
-          check back soon!
-        </p>
-      ) : (
-        <div className="flex flex-col gap-10">
-          {open.length > 0 && (
-            <section>
-              <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
-                🟢 Open for entries
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {open.map((c) => (
-                  <CompetitionCard key={c.id} competition={c} isSaved={savedCompetitionIds ? savedCompetitionIds.has(c.id) : null} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {closed.length > 0 && (
-            <section>
-              <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">🔒 Closed</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {closed.map((c) => (
-                  <CompetitionCard key={c.id} competition={c} isSaved={savedCompetitionIds ? savedCompetitionIds.has(c.id) : null} />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      )}
+      </ListingShell>
     </main>
   );
 }

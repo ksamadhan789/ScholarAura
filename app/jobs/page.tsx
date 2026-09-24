@@ -4,9 +4,21 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPE_TABS, formatJobDate } from "@/lib/jobLabels";
+import { Briefcase, Clock, IndianRupee, MapPin } from "lucide-react";
 import { Badge } from "@/components/Badge";
-import { FilterPill, FilterPillBar } from "@/components/FilterPill";
 import { SaveButton } from "@/components/SaveButton";
+import {
+  EmptyState,
+  FILTER_FIELD_CLASS,
+  FilterActions,
+  FilterGroup,
+  FilterOption,
+  FilterOptionList,
+  FilterPanel,
+  ListingHeader,
+  ListingShell,
+  ResultsSection,
+} from "@/components/listing/ListingLayout";
 import { readLocationCookie, getKnownCities } from "@/lib/location";
 import { formatJobLocation, jobCityWhere } from "@/lib/jobCity";
 
@@ -39,19 +51,20 @@ function JobCard({
 }) {
   const isInternship = job.employmentType === "INTERNSHIP";
   const isFeatured = Boolean(job.featuredUntil && job.featuredUntil > new Date());
+  const pay = isInternship ? job.stipendRange : job.salaryRange;
   return (
     <div className="relative">
       {isSaved !== null && (
-        <div className="absolute right-2 top-2 z-10">
+        <div className="absolute right-3 top-3 z-10">
           <SaveButton endpoint={`/api/jobs/${job.slug}/wishlist`} isSaved={isSaved} variant="overlay" />
         </div>
       )}
       <Link
         href={`/jobs/${job.slug}`}
-        className={`flex items-start gap-4 rounded-lg border p-4 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800 ${
+        className={`group flex items-start gap-4 rounded-xl border bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5 dark:bg-slate-800 ${
           isFeatured
-            ? "border-amber-300 bg-amber-50/50 dark:border-amber-700 dark:bg-amber-900/10"
-            : "border-gray-200 dark:border-slate-700"
+            ? "border-amber-300 ring-1 ring-amber-200 dark:border-amber-700 dark:ring-amber-900"
+            : "border-slate-200 hover:border-brand-300 dark:border-slate-700 dark:hover:border-brand-700"
         }`}
       >
         {job.companyLogoUrl ? (
@@ -59,36 +72,41 @@ function JobCard({
           <img
             src={job.companyLogoUrl}
             alt=""
-            className="h-12 w-12 shrink-0 rounded object-contain"
+            className="h-12 w-12 shrink-0 rounded-lg border border-slate-100 bg-white object-contain p-1 dark:border-slate-700"
           />
         ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-brand-50 text-xl dark:bg-slate-800">
-            💼
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-slate-700 dark:text-brand-400">
+            <Briefcase aria-hidden className="h-6 w-6" />
           </div>
         )}
         <div className="min-w-0 flex-1 pr-8">
-          <h3 className="font-medium text-slate-900 dark:text-white">{job.title}</h3>
-          <p className="text-sm text-gray-600 dark:text-slate-400">{job.companyName}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
-            {isFeatured && <Badge variant="warning">⭐ Featured</Badge>}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {isFeatured && <Badge variant="warning">Featured</Badge>}
             <Badge variant="brand">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</Badge>
-            <span>{job.isRemote ? "Remote" : formatJobLocation(job)}</span>
-            {isInternship ? (
-              <>
-                {job.stipendRange && <span>· {job.stipendRange}</span>}
-                {job.durationMonths && (
-                  <span>
-                    · {job.durationMonths} month{job.durationMonths === 1 ? "" : "s"}
-                  </span>
-                )}
-              </>
-            ) : (
-              job.salaryRange && <span>· {job.salaryRange}</span>
-            )}
           </div>
-          <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
-            Posted {formatJobDate(job.createdAt)}
-          </p>
+          <h3 className="mt-1.5 font-semibold text-slate-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400">
+            {job.title}
+          </h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400">{job.companyName}</p>
+          <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-slate-600 dark:text-slate-400">
+            <li className="flex items-center gap-1.5">
+              <MapPin aria-hidden className="h-4 w-4 text-slate-400" />
+              {job.isRemote ? "Remote" : formatJobLocation(job)}
+            </li>
+            {pay && (
+              <li className="flex items-center gap-1.5">
+                <IndianRupee aria-hidden className="h-4 w-4 text-slate-400" />
+                {pay}
+              </li>
+            )}
+            {isInternship && job.durationMonths && (
+              <li className="flex items-center gap-1.5">
+                <Clock aria-hidden className="h-4 w-4 text-slate-400" />
+                {job.durationMonths} month{job.durationMonths === 1 ? "" : "s"}
+              </li>
+            )}
+          </ul>
+          <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">Posted {formatJobDate(job.createdAt)}</p>
         </div>
       </Link>
     </div>
@@ -156,100 +174,95 @@ export default async function JobsPage({
   const featuredJobs = jobs.filter((j) => j.featuredUntil && j.featuredUntil > now);
   const regularJobs = jobs.filter((j) => !j.featuredUntil || j.featuredUntil <= now);
 
+  const hasFilters = Boolean(q || activeCity || activeType || remoteOnly);
+
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-16">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">💼 Jobs</h1>
-        <Link href="/recruiter/register" className="text-sm text-brand-600 underline dark:text-brand-400">
-          Are you hiring? Post a job
-        </Link>
-      </div>
+    <main>
+      <ListingHeader
+        title={activeType === "INTERNSHIP" ? "Internships" : "Jobs"}
+        subtitle="Academic and professional openings from approved recruiters."
+        action={
+          <Link
+            href="/recruiter/register"
+            className="rounded-lg border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50 dark:border-slate-600 dark:bg-slate-800 dark:text-brand-300 dark:hover:bg-slate-700"
+          >
+            Hiring? Post a job
+          </Link>
+        }
+      />
 
-      <form className="mb-6 flex flex-wrap gap-2" action="/jobs">
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="Search by title, company, or location..."
-          className="min-w-[200px] flex-1 rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        />
-        {activeType && <input type="hidden" name="employmentType" value={activeType} />}
-        {remoteOnly && <input type="hidden" name="remote" value="true" />}
-        <select
-          name="city"
-          defaultValue={activeCity ?? ""}
-          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        >
-          <option value="">Any location</option>
-          {cities.map((city) => (
-            <option key={city} value={city}>
-              {city}
-            </option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
-        >
-          Search
-        </button>
-      </form>
-
-      <FilterPillBar>
-        <FilterPill href="/jobs" active={!activeType && !remoteOnly}>
-          ✨ All
-        </FilterPill>
-        {EMPLOYMENT_TYPE_TABS.map(({ type, label }) => (
-          <FilterPill key={type} href={`/jobs?employmentType=${type}`} active={activeType === type}>
-            {label}
-          </FilterPill>
-        ))}
-        <FilterPill href="/jobs?remote=true" active={remoteOnly}>
-          🌐 Remote
-        </FilterPill>
-      </FilterPillBar>
-
-      {jobs.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">
-          👀 No jobs match right now — check back soon!
-        </p>
-      ) : (
-        <div className="flex flex-col gap-8">
-          {featuredJobs.length > 0 && (
-            <section>
-              <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
-                ⭐ Featured
-              </h2>
-              <div className="flex flex-col gap-3">
-                {featuredJobs.map((job) => (
-                  <JobCard
-                    key={job.slug}
-                    job={job}
-                    isSaved={savedJobIds ? savedJobIds.has(job.id) : null}
-                  />
+      <ListingShell
+        sidebar={
+          <FilterPanel action="/jobs">
+            {activeType && <input type="hidden" name="employmentType" value={activeType} />}
+            {remoteOnly && <input type="hidden" name="remote" value="true" />}
+            <FilterGroup label="Search">
+              <input
+                type="search"
+                name="q"
+                defaultValue={q}
+                placeholder="Title, company or location…"
+                className={FILTER_FIELD_CLASS}
+              />
+            </FilterGroup>
+            <FilterGroup label="Job type">
+              <FilterOptionList>
+                <FilterOption href="/jobs" active={!activeType && !remoteOnly}>
+                  All jobs
+                </FilterOption>
+                {EMPLOYMENT_TYPE_TABS.map(({ type, label }) => (
+                  <FilterOption key={type} href={`/jobs?employmentType=${type}`} active={activeType === type}>
+                    {label}
+                  </FilterOption>
                 ))}
-              </div>
-            </section>
-          )}
-
-          <section>
+                <FilterOption href="/jobs?remote=true" active={remoteOnly}>
+                  Remote
+                </FilterOption>
+              </FilterOptionList>
+            </FilterGroup>
+            <FilterGroup label="Location">
+              <select name="city" defaultValue={activeCity ?? ""} className={FILTER_FIELD_CLASS}>
+                <option value="">Any location</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            </FilterGroup>
+            <FilterActions clearHref={hasFilters ? "/jobs" : undefined} />
+          </FilterPanel>
+        }
+      >
+        {jobs.length === 0 ? (
+          <EmptyState
+            title="No jobs match right now"
+            text={hasFilters ? "Try removing a filter or searching for something else." : "New roles are posted regularly — check back soon."}
+          />
+        ) : (
+          <div className="flex flex-col gap-8">
             {featuredJobs.length > 0 && (
-              <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
-                All jobs
-              </h2>
+              <ResultsSection title="Featured" count={featuredJobs.length}>
+                <div className="flex flex-col gap-3">
+                  {featuredJobs.map((job) => (
+                    <JobCard key={job.slug} job={job} isSaved={savedJobIds ? savedJobIds.has(job.id) : null} />
+                  ))}
+                </div>
+              </ResultsSection>
             )}
-            <div className="flex flex-col gap-3">
-              {regularJobs.map((job) => (
-                <JobCard
-                  key={job.slug}
-                  job={job}
-                  isSaved={savedJobIds ? savedJobIds.has(job.id) : null}
-                />
-              ))}
-            </div>
-          </section>
-        </div>
-      )}
+
+            {regularJobs.length > 0 && (
+              <ResultsSection title={featuredJobs.length > 0 ? "All jobs" : `${regularJobs.length} open role${regularJobs.length === 1 ? "" : "s"}`}>
+                <div className="flex flex-col gap-3">
+                  {regularJobs.map((job) => (
+                    <JobCard key={job.slug} job={job} isSaved={savedJobIds ? savedJobIds.has(job.id) : null} />
+                  ))}
+                </div>
+              </ResultsSection>
+            )}
+          </div>
+        )}
+      </ListingShell>
     </main>
   );
 }

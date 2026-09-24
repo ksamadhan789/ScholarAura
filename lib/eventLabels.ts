@@ -1,44 +1,44 @@
 export const EVENT_TYPE_LABELS: Record<string, string> = {
-  INTERNATIONAL_CONFERENCE: "🌍 International Conference",
-  NATIONAL_CONFERENCE: "🏛️ National Conference",
-  FDP: "🎓 Faculty Development Program",
-  HANDS_ON_TRAINING: "🧪 Hands-on Training",
-  WEBINAR: "💻 Webinar",
-  ALUMNI_MEET: "🎉 Meet Alumni",
+  INTERNATIONAL_CONFERENCE: "International Conference",
+  NATIONAL_CONFERENCE: "National Conference",
+  FDP: "Faculty Development Program",
+  HANDS_ON_TRAINING: "Hands-on Training",
+  WEBINAR: "Webinar",
+  ALUMNI_MEET: "Meet Alumni",
 };
 
 // Plural labels + stable order, used for nav/tab lists.
 export const EVENT_TYPE_TABS: { type: string; label: string }[] = [
-  { type: "INTERNATIONAL_CONFERENCE", label: "🌍 International Conferences" },
-  { type: "NATIONAL_CONFERENCE", label: "🏛️ National Conferences" },
-  { type: "WEBINAR", label: "💻 Webinars" },
-  { type: "FDP", label: "🎓 Faculty Development Programs" },
-  { type: "HANDS_ON_TRAINING", label: "🧪 Hands-on Trainings" },
-  { type: "ALUMNI_MEET", label: "🎉 Meet Alumni" },
+  { type: "INTERNATIONAL_CONFERENCE", label: "International Conferences" },
+  { type: "NATIONAL_CONFERENCE", label: "National Conferences" },
+  { type: "WEBINAR", label: "Webinars" },
+  { type: "FDP", label: "Faculty Development Programs" },
+  { type: "HANDS_ON_TRAINING", label: "Hands-on Trainings" },
+  { type: "ALUMNI_MEET", label: "Meet Alumni" },
 ];
 
 export const EVENT_FORMAT_LABELS: Record<string, string> = {
-  ONLINE: "💻 Online",
-  OFFLINE: "📍 In person",
-  HYBRID: "🔀 Hybrid",
+  ONLINE: "Online",
+  OFFLINE: "In person",
+  HYBRID: "Hybrid",
 };
 
 export const EVENT_FORMAT_OPTIONS: { value: string; label: string }[] = [
-  { value: "ONLINE", label: "💻 Online" },
-  { value: "OFFLINE", label: "📍 In person" },
-  { value: "HYBRID", label: "🔀 Hybrid" },
+  { value: "ONLINE", label: "Online" },
+  { value: "OFFLINE", label: "In person" },
+  { value: "HYBRID", label: "Hybrid" },
 ];
 
 export const EVENT_AUDIENCE_LABELS: Record<string, string> = {
-  STUDENT: "🎓 Students",
-  PROFESSIONAL: "💼 Professionals",
-  EVERYONE: "🌐 Everyone",
+  STUDENT: "Students",
+  PROFESSIONAL: "Professionals",
+  EVERYONE: "Everyone",
 };
 
 export const EVENT_AUDIENCE_OPTIONS: { value: string; label: string }[] = [
-  { value: "STUDENT", label: "🎓 Students" },
-  { value: "PROFESSIONAL", label: "💼 Professionals" },
-  { value: "EVERYONE", label: "🌐 Everyone" },
+  { value: "STUDENT", label: "Students" },
+  { value: "PROFESSIONAL", label: "Professionals" },
+  { value: "EVERYONE", label: "Everyone" },
 ];
 
 // This app is India-only, but these run in Server Components on a server

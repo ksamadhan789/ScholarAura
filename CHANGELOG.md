@@ -4,6 +4,16 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-24
 
+### Changed — site revamp, step 4 (listing pages)
+- `/courses`, `/events`, `/competitions`, `/jobs` and `/freelance` rebuilt on one shared layout (`components/listing/`): a title band, filters in a left sidebar on desktop (folded behind a "Search & filters" button on phones), and results in a 1/2/3-column grid instead of 2 oversized cards per row. Every filter, search and URL works exactly as before — verified each one against sample data.
+- One shared card (`MediaCard`) for courses, events and competitions: 16:9 image or branded icon placeholder, badges, two-line title, icon-led details (dates, format/city, seats left, deadline, team size, instructor, rating) and the price. Competition cards now also show the real "N days left" deadline badge. Jobs stay a list with restyled rows (company logo, type badge, location/pay/duration with icons); freelance uses compact cards led by the freelancer's photo and rating.
+- Friendlier empty states ("No events match your search — try removing a filter") instead of a plain 👀 line.
+- The public Courses stats bar no longer shows zeros (e.g. "0 enrollments") and only appears once there are at least two real numbers.
+- Emoji removed from event type/format/audience labels (`lib/eventLabels.ts`) — affects every page showing them.
+
+### Removed
+- `components/FilterPill.tsx` (replaced by the sidebar filters; nothing else used it).
+
 ### Changed — site revamp, step 3 (homepage)
 - New homepage top section (`components/home/HomeHero.tsx`): a headline saying what ScholarAura is ("Learn, take part and get hired — all in one place"), a large search box (new `size="lg"` variant of `SearchBar`), quick links to every section (desktop/tablet only — phones already have the icon strip), and live count tiles (courses, upcoming events, open competitions, open jobs) that link to each section — a zero count is hidden, never shown or faked.
 - The category carousel is now the second section, titled "Browse by category" on a plain background (the hero took over the gradient and the page's main heading).
