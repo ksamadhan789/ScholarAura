@@ -47,5 +47,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 
 ## Known Issues to Revisit
 
+- (Fixed 2026-09-24) Schema changes without migration files — see the catch-up migration note in PROJECT_STATE.md "Do Not Change".
+
 - Jobs posted before 2026-09-24 whose location didn't name a recognizable city still have no structured `city` and use the loose location-text match — an admin/recruiter can fix one by setting City on its edit form
 - No refund path for job boosts
