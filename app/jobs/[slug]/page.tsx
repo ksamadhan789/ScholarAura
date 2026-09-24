@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ShareButtons } from "@/components/ShareButtons";
 import { SITE_URL } from "@/lib/siteUrl";
+import { buildJobPostingSchema, serializeJsonLd } from "@/lib/jobPostingSchema";
 import { Briefcase, Building2, CalendarDays, Clock, MapPin } from "lucide-react";
 import { ActionCard, ActionStatus, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
 import { notFound } from "next/navigation";
@@ -59,8 +60,18 @@ export default async function JobDetailPage({ params }: { params: { slug: string
   const isFeatured = Boolean(job.featuredUntil && job.featuredUntil > new Date());
   const urgency = job.applicationDeadline ? getDeadlineUrgency(job.applicationDeadline) : null;
 
+  // Google for Jobs structured data — null (so no tag) for drafts, pending
+  // approval, and jobs past their application deadline.
+  const jobPostingSchema = buildJobPostingSchema(job, SITE_URL);
+
   return (
     <main className="mx-auto max-w-[1200px] px-4 py-10 sm:py-16">
+      {jobPostingSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(jobPostingSchema) }}
+        />
+      )}
       {!job.isPublished && (
         <p className="mb-4 inline-block rounded bg-amber-100 dark:bg-amber-900/40 px-3 py-1 text-sm text-amber-800 dark:text-amber-300">
           Draft — not visible to the public yet
