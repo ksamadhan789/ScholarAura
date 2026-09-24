@@ -22,10 +22,13 @@ export function jobCityWhere(city: string): Prisma.JobWhereInput {
 
 /**
  * What to show as a job's place: its free-text location, plus the structured
- * city when the location doesn't already mention it ("Whitefield" +
- * "Bengaluru" → "Whitefield, Bengaluru").
+ * city when the location doesn't already mention it under any of its names
+ * ("Whitefield" + "Bengaluru" → "Whitefield, Bengaluru", but "Bangalore,
+ * India" + "Bengaluru" stays as is).
  */
 export function formatJobLocation(job: { location: string; city: string | null }): string {
-  if (!job.city || job.location.toLowerCase().includes(job.city.toLowerCase())) return job.location;
-  return `${job.location}, ${job.city}`;
+  if (!job.city) return job.location;
+  const location = job.location.toLowerCase();
+  const alreadyNamed = getCityAliases(job.city).some((name) => location.includes(name.toLowerCase()));
+  return alreadyNamed ? job.location : `${job.location}, ${job.city}`;
 }

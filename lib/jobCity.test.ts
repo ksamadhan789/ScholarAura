@@ -23,6 +23,7 @@ describe("formatJobLocation", () => {
   it("appends the city only when the location doesn't already name it", () => {
     expect(formatJobLocation({ location: "Whitefield", city: "Bengaluru" })).toBe("Whitefield, Bengaluru");
     expect(formatJobLocation({ location: "Bengaluru, India", city: "Bengaluru" })).toBe("Bengaluru, India");
+    expect(formatJobLocation({ location: "Bangalore, India", city: "Bengaluru" })).toBe("Bangalore, India");
     expect(formatJobLocation({ location: "Anywhere", city: null })).toBe("Anywhere");
   });
 });

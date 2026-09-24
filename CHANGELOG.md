@@ -4,6 +4,10 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-24
 
+### Fixed
+- Job cards showed the city twice when the location text used an old name for it ("Gurgaon, Gurugram", "Bangalore, India, Bengaluru") — `formatJobLocation()` now checks every name for the city, not just the canonical one.
+- The homepage "Hands-on Training" card still carried a "VR Training" label left over from the 2026-09-18 rename — now "Training".
+
 ### Changed
 - Jobs now have a proper **City** field (new optional `Job.city`, like events/competitions already have), in addition to the free-text Location. All four job forms (admin + recruiter, new + edit) get a City box that suggests the standard city list but accepts any city; the server normalizes it before saving ("bangalore" → "Bengaluru", "mumbai" → "Mumbai") via `canonicalCityName()`. The `/jobs` city filter now matches this field exactly (including old/new names) via `lib/jobCity.ts`, and only falls back to the old loose location-text match for jobs that have no city set. The migration (`20260924140000_job_city`) backfills City for existing jobs whose location names a known city or an old name for one. Job cards and the job page show "Location, City" when the location text doesn't already mention the city; job cities also now appear in the location picker's city list, and the jobs search box matches on city too.
 
