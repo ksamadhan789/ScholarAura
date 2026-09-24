@@ -79,10 +79,15 @@ describe("settleCoursePurchase", () => {
 describe("settleEventRegistration", () => {
   const event = {
     id: "event-1",
+    slug: "test-event",
     title: "Test Event",
+    shortDescription: null,
     seatsTotal: 10,
     seatsFilled: 5,
-    startDate: new Date(),
+    startDate: new Date("2026-10-04T04:30:00Z"),
+    endDate: new Date("2026-10-04T08:30:00Z"),
+    format: "ONLINE",
+    city: null,
     venueOrLink: "https://example.com",
   };
 
@@ -120,7 +125,8 @@ describe("settleEventRegistration", () => {
       "Test Event",
       event.startDate,
       event.venueOrLink,
-      "EVT-2026-000001"
+      "EVT-2026-000001",
+      expect.objectContaining({ icsUrl: expect.stringContaining("/api/events/test-event/calendar") })
     );
   });
 

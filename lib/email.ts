@@ -449,7 +449,8 @@ export async function sendEventRegistrationConfirmationEmail(
   eventTitle: string,
   startDate: Date,
   venueOrLink: string,
-  enrollmentNumber: string | null
+  enrollmentNumber: string | null,
+  calendar?: { googleUrl: string; outlookUrl: string; icsUrl: string }
 ): Promise<boolean> {
   const resend = getClient();
   if (!resend) {
@@ -467,18 +468,25 @@ export async function sendEventRegistrationConfirmationEmail(
   const enrollmentHtml = enrollmentNumber
     ? `<p>Enrollment number: <strong>${enrollmentNumber}</strong></p>`
     : "";
+  const calendarLine = calendar
+    ? `\n\nAdd to your calendar:\nGoogle: ${calendar.googleUrl}\nOutlook: ${calendar.outlookUrl}\nApple / other: ${calendar.icsUrl}`
+    : "";
+  const calendarHtml = calendar
+    ? `<p>Add to your calendar: <a href="${escapeHtml(calendar.googleUrl)}">Google</a> · <a href="${escapeHtml(calendar.outlookUrl)}">Outlook</a> · <a href="${escapeHtml(calendar.icsUrl)}">Apple / other</a></p>`
+    : "";
 
   try {
     const { error } = await resend.emails.send({
       from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
       to,
       subject: `You're registered for ${eventTitle}`,
-      text: `Hi ${displayName},\n\nYou're confirmed for "${eventTitle}" on ${when}.\n\nVenue/link: ${venueOrLink}${enrollmentLine}\n\nView your registration: ${registrationsUrl}\n\nSee you there!\nTeam ScholarAura`,
+      text: `Hi ${displayName},\n\nYou're confirmed for "${eventTitle}" on ${when}.\n\nVenue/link: ${venueOrLink}${enrollmentLine}${calendarLine}\n\nView your registration: ${registrationsUrl}\n\nSee you there!\nTeam ScholarAura`,
       html: `
         <p>Hi ${safeDisplayName},</p>
         <p>You're confirmed for <strong>${safeEventTitle}</strong> on <strong>${when}</strong>.</p>
         <p>Venue/link: ${safeVenueOrLink}</p>
         ${enrollmentHtml}
+        ${calendarHtml}
         <p>
           <a href="${registrationsUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">View Registration</a>
         </p>

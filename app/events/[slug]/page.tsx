@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { ShareButtons } from "@/components/ShareButtons";
+import { AddToCalendar } from "@/components/events/AddToCalendar";
+import { eventToCalendar } from "@/lib/eventCalendar";
 import { SITE_URL } from "@/lib/siteUrl";
 import { CalendarDays, Clock, FileText, MapPin, Monitor, Users } from "lucide-react";
 import { ActionCard, ActionStatus, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
@@ -199,6 +201,12 @@ export default async function EventDetailPage({
                 )}
                 {session && !isRegistered && (
                   <SaveButton endpoint={`/api/events/${event.slug}/wishlist`} isSaved={!!wishlistEntry} />
+                )}
+                {event.isPublished && event.endDate > new Date() && (
+                  <AddToCalendar
+                    calendar={eventToCalendar(event, SITE_URL, { includeVenue: canSeeVenue })}
+                    icsUrl={`/api/events/${event.slug}/calendar`}
+                  />
                 )}
                 {event.isPublished && (
                   <ShareButtons url={`${SITE_URL}/events/${event.slug}`} title={event.title} />

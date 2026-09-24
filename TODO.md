@@ -26,6 +26,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Freelance reviews/ratings (1–5 stars + comment, only after the freelancer has replied to you in-app)
 - Freelance "Report this listing" + admin moderation page (dismiss / remove / restore)
 - Structured city field for jobs (`Job.city`), with old/new city-name matching
+- Add to calendar for events (Google, Outlook, .ics), also in the registration confirmation email
 - Job alerts: saved /jobs searches emailed daily, managed at /dashboard/job-alerts
 - Google for Jobs structured data (JobPosting JSON-LD) on job pages
 - Share buttons (WhatsApp/LinkedIn/X/Facebook/email/copy/native share) on detail pages and certificates, plus "Add to LinkedIn" for certificates
