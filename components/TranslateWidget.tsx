@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Globe } from "lucide-react";
 
 declare global {
   interface Window {
@@ -47,11 +48,11 @@ export function TranslateWidget() {
     document.body.appendChild(script);
   }, []);
 
+  // Lives in the footer's bottom bar (components/Footer.tsx) rather than
+  // floating over the page, where it used to cover content on small screens.
   return (
-    <div className="translate-fab fixed bottom-4 left-4 z-50 flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
-      <span aria-hidden className="text-base">
-        🌐
-      </span>
+    <div className="flex items-center gap-2 rounded-lg border border-white/15 px-3 py-1.5 text-slate-200">
+      <Globe aria-hidden className="h-4 w-4" />
       <div id="google_translate_element" className="translate-widget" />
     </div>
   );

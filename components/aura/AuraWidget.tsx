@@ -94,7 +94,12 @@ export function AuraWidget() {
         {
           query: trimmed,
           response: {
-            faqAnswer: { keywords: [], answer: "Couldn't reach the server — please try again." },
+            faqAnswer: {
+              keywords: [],
+              question: "",
+              group: "account",
+              answer: "Couldn't reach the server — please try again.",
+            },
             resultSections: [],
           },
         },

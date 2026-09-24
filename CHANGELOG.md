@@ -4,6 +4,16 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-24
 
+### Changed — site revamp, step 1–2 (foundation, header & footer)
+- **Light is now the default theme** for first-time visitors (it was dark). Anyone who picked dark with the toggle keeps dark. Brand navy stays for the desktop category bar and the new footer.
+- Header: real icons (`lucide-react`, new dependency) instead of emoji in the desktop category bar, the mobile category strip (now icons on soft blue tiles), the theme toggle and the mobile menu button; richer navy bar with hover highlights; slightly bolder Sign up button. Links unchanged, now from one shared list (`lib/navItems.ts`).
+- New footer: navy, multi-column (Explore / For you / Company / Legal) with a short description. The Google Translate language picker moved from a floating button — which covered page content on small screens — into the footer's bottom bar.
+
+### Added
+- `/about`, `/contact` and `/faq` pages (linked from the footer, added to the sitemap). The FAQ reuses Aura's own answers (`lib/auraFaq.ts`, which gained a `question` and `group` per entry) so the two never disagree. Contact lists the existing support email, Aura support tickets, recruiter sign-up and certificate verification — no new contact form.
+- A proper "page not found" page (`app/not-found.tsx`) with links to every section, replacing Next.js's plain default.
+- Individual freelance listings are now in the sitemap.
+
 ### Fixed
 - Job cards showed the city twice when the location text used an old name for it ("Gurgaon, Gurugram", "Bangalore, India, Bengaluru") — `formatJobLocation()` now checks every name for the city, not just the canonical one.
 - The homepage "Hands-on Training" card still carried a "VR Training" label left over from the 2026-09-18 rename — now "Training".

@@ -8,19 +8,14 @@ import { SearchBar } from "./SearchBar";
 import { NotificationBell } from "./NotificationBell";
 import { LocationPicker } from "./LocationPicker";
 import { Avatar } from "./Avatar";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { EVENT_TYPE_TABS } from "@/lib/eventLabels";
+import { MAIN_NAV_ITEMS } from "@/lib/navItems";
 
-// Mirrors the desktop category strip — shown as a swipeable horizontal
-// strip in the mobile menu instead of a tall vertical list, Amazon-app style.
-const MOBILE_NAV_ITEMS = [
-  { href: "/courses", emoji: "📚", label: "Courses" },
-  { href: "/competitions", emoji: "🏆", label: "Competitions" },
-  { href: "/jobs", emoji: "💼", label: "Jobs" },
-  { href: "/jobs?employmentType=INTERNSHIP", emoji: "🧑‍🎓", label: "Internships" },
-  { href: "/freelance", emoji: "🧰", label: "Freelance" },
-  { href: "/events?type=ALUMNI_MEET", emoji: "🎉", label: "Meet Alumni" },
-  { href: "/events", emoji: "📅", label: "Events" },
-];
+// Every category except Events, which the desktop bar renders as a
+// dropdown of event types instead of a plain link.
+const DESKTOP_LINK_ITEMS = MAIN_NAV_ITEMS.filter((item) => item.href !== "/events");
+const EventsIcon = MAIN_NAV_ITEMS.find((item) => item.href === "/events")!.icon;
 
 export function Header() {
   const { data: session, status } = useSession();
@@ -39,7 +34,7 @@ export function Header() {
   const firstName = session?.user?.name?.split(" ")[0] ?? "there";
 
   return (
-    <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90">
+    <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
       <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3">
         <Link
           href="/"
@@ -79,7 +74,7 @@ export function Header() {
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="rounded border border-slate-300 px-3 py-1.5 text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Sign out
               </button>
@@ -95,7 +90,7 @@ export function Header() {
               </Link>
               <Link
                 href="/register"
-                className="rounded bg-brand-600 px-3 py-1.5 text-white transition-colors hover:bg-brand-700"
+                className="rounded-lg bg-brand-600 px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
               >
                 Sign up
               </Link>
@@ -119,9 +114,9 @@ export function Header() {
             onClick={() => setMobileOpen((v) => !v)}
             aria-expanded={mobileOpen}
             aria-label="Toggle menu"
-            className="rounded border border-slate-300 p-2 text-slate-700 dark:border-slate-600 dark:text-slate-200"
+            className="rounded-lg border border-slate-300 p-2 text-slate-700 dark:border-slate-600 dark:text-slate-200"
           >
-            {mobileOpen ? "✕" : "☰"}
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
@@ -133,16 +128,21 @@ export function Header() {
           .no-scrollbar in globals.css. */}
       <div className="overflow-x-auto border-b border-slate-200 bg-white no-scrollbar md:hidden dark:border-slate-700 dark:bg-slate-900">
         <div className="flex w-max gap-1 px-3 py-3">
-          {MOBILE_NAV_ITEMS.map((item) => (
+          {MAIN_NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="flex w-16 shrink-0 flex-col items-center gap-1.5 rounded-lg px-1 py-1 text-center text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400"
+              className="group flex w-[4.25rem] shrink-0 flex-col items-center gap-1.5 rounded-lg px-1 py-1 text-center text-slate-600 dark:text-slate-300"
             >
-              <span aria-hidden className="text-2xl leading-none">
-                {item.emoji}
+              <span
+                aria-hidden
+                className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-100 dark:bg-slate-800 dark:text-brand-400"
+              >
+                <item.icon className="h-5 w-5" strokeWidth={2} />
               </span>
-              <span className="text-[11px] font-medium leading-tight">{item.label}</span>
+              <span className="text-[11px] font-medium leading-tight group-hover:text-brand-600 dark:group-hover:text-brand-400">
+                {item.label}
+              </span>
             </Link>
           ))}
         </div>
@@ -150,31 +150,18 @@ export function Header() {
 
       {/* Category strip — deliberately always dark, independent of the site
           theme, matching the reference marketplace header's static navy bar. */}
-      <nav className="hidden border-t border-slate-800 bg-slate-900 md:block">
-        <div className="mx-auto flex max-w-[1600px] items-center gap-5 px-4 py-2 text-sm text-slate-200">
-          <Link href="/courses" className="hover:text-white">
-            📚 Courses
-          </Link>
-
-          <Link href="/competitions" className="hover:text-white">
-            🏆 Competitions
-          </Link>
-
-          <Link href="/jobs" className="hover:text-white">
-            💼 Jobs
-          </Link>
-
-          <Link href="/jobs?employmentType=INTERNSHIP" className="hover:text-white">
-            🧑‍🎓 Internships
-          </Link>
-
-          <Link href="/freelance" className="hover:text-white">
-            🧰 Freelance
-          </Link>
-
-          <Link href="/events?type=ALUMNI_MEET" className="hover:text-white">
-            🎉 Meet Alumni
-          </Link>
+      <nav className="hidden bg-navy-900 md:block">
+        <div className="mx-auto flex max-w-[1600px] items-center gap-1 px-2 py-1.5 text-sm font-medium text-slate-200">
+          {DESKTOP_LINK_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <item.icon aria-hidden className="h-4 w-4 opacity-80" />
+              {item.label}
+            </Link>
+          ))}
 
           <div
             className="relative"
@@ -184,16 +171,17 @@ export function Header() {
             <button
               type="button"
               onClick={() => setEventsOpen((v) => !v)}
-              className="flex items-center gap-1 hover:text-white"
+              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors hover:bg-white/10 hover:text-white"
               aria-expanded={eventsOpen}
             >
-              📅 Events
-              <span aria-hidden className="text-[10px]">▾</span>
+              <EventsIcon aria-hidden className="h-4 w-4 opacity-80" />
+              Events
+              <ChevronDown aria-hidden className="h-3.5 w-3.5 opacity-70" />
             </button>
 
             {eventsOpen && (
               <div
-                className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-slate-200 bg-white py-2 text-slate-700 shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="absolute left-0 top-full z-20 mt-1 w-64 rounded-xl border border-slate-200 bg-white py-2 text-slate-700 shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 onMouseEnter={openEventsMenu}
                 onMouseLeave={scheduleCloseEventsMenu}
               >
@@ -202,7 +190,7 @@ export function Header() {
                   onClick={() => setEventsOpen(false)}
                   className="block px-4 py-2 font-medium hover:bg-brand-50 dark:hover:bg-slate-700"
                 >
-                  ✨ All Events
+                  All Events
                 </Link>
                 <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
                 {EVENT_TYPE_TABS.map(({ type, label }) => (

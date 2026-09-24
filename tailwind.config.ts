@@ -21,6 +21,13 @@ const config: Config = {
           800: "#1e40af",
           900: "#1e3a8a",
         },
+        // Brand navy — the always-dark category bar, homepage banner and
+        // footer. Deliberately the same in light and dark theme.
+        navy: {
+          700: "#1c2d5a",
+          800: "#142247",
+          900: "#0d1836",
+        },
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],

@@ -5,7 +5,6 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { TranslateWidget } from "@/components/TranslateWidget";
 import { AuraWidget } from "@/components/aura/AuraWidget";
 import { SITE_URL } from "@/lib/siteUrl";
 
@@ -34,15 +33,16 @@ export const metadata: Metadata = {
   },
 };
 
-// Dark is the default theme — a first-time visitor (no stored preference)
-// gets dark regardless of OS preference. Someone who explicitly picked
-// light via the toggle keeps seeing light on their next visit.
+// Light is the default theme — a first-time visitor (no stored preference)
+// gets light regardless of OS preference. Someone who explicitly picked dark
+// via the toggle keeps seeing dark on their next visit.
 const themeInitScript = `
   (function () {
-    var stored = localStorage.getItem("theme");
-    if (stored !== "light") {
-      document.documentElement.classList.add("dark");
-    }
+    try {
+      if (localStorage.getItem("theme") === "dark") {
+        document.documentElement.classList.add("dark");
+      }
+    } catch (e) {}
   })();
 `;
 
@@ -76,7 +76,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
           <div className="min-w-0 flex-1">{children}</div>
           <Footer />
-          <TranslateWidget />
           <AuraWidget />
         </Providers>
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
