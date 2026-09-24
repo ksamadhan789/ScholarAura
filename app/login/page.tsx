@@ -1,24 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { GoogleOneTap } from "@/components/GoogleOneTap";
+import { VerifyEmailPrompt } from "@/components/auth/VerifyEmailPrompt";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setUnverifiedEmail(null);
     setLoading(true);
 
     try {
@@ -28,12 +29,19 @@ export default function LoginPage() {
         redirect: false,
       });
 
+      // Right password, unverified email — a fresh link was just emailed.
+      if (result?.error === "EMAIL_NOT_VERIFIED") {
+        setUnverifiedEmail(email);
+        return;
+      }
       if (result?.error) {
         setError("Incorrect email or password");
         return;
       }
 
-      router.push("/dashboard");
+      // Full page load, not router.push: the router may hold a cached
+      // "redirect to /login" for dashboard URLs prefetched while signed out.
+      window.location.assign("/dashboard");
     } catch {
       setError("Couldn't reach the server. Please try again.");
     } finally {
@@ -101,6 +109,12 @@ export default function LoginPage() {
               Or continue with email
               <div className="h-px flex-1 bg-slate-200 dark:bg-slate-600" />
             </div>
+
+            {unverifiedEmail && (
+              <div className="mb-3">
+                <VerifyEmailPrompt email={unverifiedEmail} intro="Please verify your email before signing in." />
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
               <div>

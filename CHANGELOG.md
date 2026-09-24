@@ -5,6 +5,15 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-24
 
 ### Added
+- Email verification, required before signing in with email and password (applies to existing never-verified accounts too). Signing up — as a student or recruiter — now emails a 24-hour verification link and shows a "Check your inbox" screen with a resend button instead of logging straight in. Trying to sign in with the right password on an unverified account shows the same prompt and automatically emails a fresh link (rate-limited), so nobody is simply stuck. A password reset also verifies the email. Google sign-in is unchanged (Google verifies emails). New `email_verification_tokens` table (migration `20260924200000_email_verification_tokens`), `lib/emailVerification.ts`, `/verify-email/[token]` page, `POST /api/auth/verify-email/resend`, `sendEmailVerificationEmail()`. Safety valves: ADMIN accounts are never blocked, and setting `REQUIRE_EMAIL_VERIFICATION=false` in Vercel switches enforcement off without a code change.
+
+### Security
+- Signing in with Google on an account whose email was never verified now marks it verified and clears its password — otherwise someone could pre-register a victim's email address with their own password and keep access after the victim linked Google.
+
+### Fixed
+- After signing in, people could be sent straight back to the sign-in page even though they were signed in: the footer's "My dashboard" / "My certificates" / "Refer & earn" links (added in the revamp) were prefetched while signed out, and the router replayed that cached redirect after sign-in. Login, sign-up, recruiter sign-up and Google One Tap now do a full page load to the dashboard, and those footer links no longer prefetch.
+
+### Added
 - "Add to calendar" for events: Google Calendar, Outlook and "Apple / other" (a downloadable `.ics` file that Apple Calendar and most calendar apps open) in the action card of every published event that hasn't ended, and the same links in the registration confirmation email. The exact venue / meeting link stays private as before: visitors and the public `.ics` only get the format and city ("In person · Mumbai", "Online") plus the event page link; people who've registered get the real venue in their Google/Outlook links on the page and in the email. New `lib/calendarLinks.ts`, `lib/eventCalendar.ts` (with tests) and `GET /api/events/[slug]/calendar`. Building the email's links can never fail a payment settlement — on any problem the email just goes out without them.
 
 ### Added

@@ -6,6 +6,7 @@ import { OAuth2Client } from "google-auth-library";
 import { prisma } from "@/lib/prisma";
 import { findOrCreateGoogleUser } from "@/lib/googleAccount";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { EMAIL_NOT_VERIFIED, mustVerifyBeforeLogin, sendVerificationEmail } from "@/lib/emailVerification";
 
 const LOGIN_ATTEMPT_LIMIT = 5;
 const LOGIN_WINDOW_MS = 5 * 60 * 1000;
@@ -48,6 +49,17 @@ export const authOptions: NextAuthOptions = {
 
         const valid = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!valid) return null;
+
+        // Correct password but unverified email: send a fresh link (rate-
+        // limited) and tell the login page why, instead of a generic failure,
+        // so someone who never verified isn't simply stuck. Only reached
+        // after the password check, so it reveals nothing to a guesser.
+        if (mustVerifyBeforeLogin(user)) {
+          await sendVerificationEmail(user).catch((err) =>
+            console.error("Failed to send verification email on login:", err)
+          );
+          throw new Error(EMAIL_NOT_VERIFIED);
+        }
 
         return {
           id: user.id,

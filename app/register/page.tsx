@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Turnstile } from "@/components/Turnstile";
 import { GoogleOneTap } from "@/components/GoogleOneTap";
+import { VerifyEmailPrompt } from "@/components/auth/VerifyEmailPrompt";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -29,6 +30,7 @@ function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,9 +50,16 @@ function RegisterForm() {
         }),
       });
 
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
         setError(data?.error ?? "Something went wrong. Please try again.");
+        return;
+      }
+
+      // Sign-in needs a verified email: show "check your inbox" instead of
+      // signing in (which would only bounce back with the same prompt).
+      if (data?.needsVerification) {
+        setRegisteredEmail(email);
         return;
       }
 
@@ -65,7 +74,9 @@ function RegisterForm() {
         return;
       }
 
-      router.push("/dashboard");
+      // Full page load, not router.push: the router may hold a cached
+      // "redirect to /login" for dashboard URLs prefetched while signed out.
+      window.location.assign("/dashboard");
     } catch {
       setError("Couldn't reach the server. Please try again.");
     } finally {
@@ -83,6 +94,14 @@ function RegisterForm() {
         </p>
       )}
 
+      {registeredEmail ? (
+        <div className="flex flex-col gap-4">
+          <VerifyEmailPrompt email={registeredEmail} intro="Your account is created." />
+          <Link href="/login" className="text-sm font-medium text-brand-600 underline dark:text-brand-400">
+            Go to sign in
+          </Link>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className="mb-1 block text-sm font-medium">Full name</label>
@@ -139,6 +158,7 @@ function RegisterForm() {
           {loading ? "Creating account…" : "Sign up"}
         </button>
       </form>
+      )}
 
       <button
         onClick={() => signIn("google", { callbackUrl: "/dashboard" })}

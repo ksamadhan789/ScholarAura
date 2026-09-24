@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Turnstile } from "@/components/Turnstile";
+import { VerifyEmailPrompt } from "@/components/auth/VerifyEmailPrompt";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
@@ -20,6 +21,7 @@ export default function RecruiterRegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,9 +43,14 @@ export default function RecruiterRegisterPage() {
         }),
       });
 
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
         setError(data?.error ?? "Something went wrong. Please try again.");
+        return;
+      }
+
+      if (data?.needsVerification) {
+        setRegisteredEmail(email);
         return;
       }
 
@@ -58,7 +65,9 @@ export default function RecruiterRegisterPage() {
         return;
       }
 
-      router.push("/dashboard/recruiter");
+      // Full page load, not router.push: the router may hold a cached
+      // "redirect to /login" for dashboard URLs prefetched while signed out.
+      window.location.assign("/dashboard/recruiter");
     } catch {
       setError("Couldn't reach the server. Please try again.");
     } finally {
@@ -74,6 +83,17 @@ export default function RecruiterRegisterPage() {
         account and each job posting are reviewed before going live.
       </p>
 
+      {registeredEmail ? (
+        <div className="flex flex-col gap-4">
+          <VerifyEmailPrompt
+            email={registeredEmail}
+            intro="Your recruiter account is created — our team will review it after you verify."
+          />
+          <Link href="/login" className="text-sm font-medium text-brand-600 underline dark:text-brand-400">
+            Go to sign in
+          </Link>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
           <label className="mb-1 block text-sm font-medium">Your name</label>
@@ -166,6 +186,7 @@ export default function RecruiterRegisterPage() {
           {loading ? "Creating account…" : "Create recruiter account"}
         </button>
       </form>
+      )}
 
       <p className="mt-6 text-sm text-gray-600 dark:text-slate-400">
         Looking for a job instead?{" "}

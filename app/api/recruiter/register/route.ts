@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { verifyTurnstileToken } from "@/lib/turnstile";
+import { isEmailVerificationRequired, sendVerificationEmail } from "@/lib/emailVerification";
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -70,7 +71,14 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ id: user.id, email: user.email }, { status: 201 });
+    await sendVerificationEmail(user).catch((err) =>
+      console.error("Failed to send verification email after recruiter registration:", err)
+    );
+
+    return NextResponse.json(
+      { id: user.id, email: user.email, needsVerification: isEmailVerificationRequired() },
+      { status: 201 }
+    );
   } catch (err) {
     console.error("Recruiter registration failed:", err);
     return NextResponse.json(

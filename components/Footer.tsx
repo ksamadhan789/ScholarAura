@@ -58,7 +58,14 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               {col.links.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="transition-colors hover:text-white">
+                  <Link
+                    href={link.href}
+                    // Dashboard pages redirect signed-out visitors to /login;
+                    // prefetching them while signed out would cache that
+                    // redirect and replay it right after signing in.
+                    prefetch={link.href.startsWith("/dashboard") ? false : undefined}
+                    className="transition-colors hover:text-white"
+                  >
                     {link.label}
                   </Link>
                 </li>
