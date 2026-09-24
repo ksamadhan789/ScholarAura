@@ -5,6 +5,12 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-24
 
 ### Added
+- Job alerts. On `/jobs`, a "Get new jobs by email" box under the filters saves the current search (text, job type, remote, city) as an alert — logged-out visitors are sent to log in and brought back. Once a day, inside the existing reminders cron, each active alert gets one email listing up to 10 new matching jobs (published, approved, still open, posted after the alert was created) with a "See all matches" link; nothing is sent when there's nothing new, and no job is ever sent to the same alert twice (new `job_alert_deliveries` table — also catches recruiter jobs approved a day late). New `/dashboard/job-alerts` page (pause/resume/delete, linked from the dashboard's Jobs tiles), and a no-login "Stop this alert" page linked from every email. Up to 10 alerts per person. New `job_alerts`/`job_alert_deliveries` tables (migration `20260924180000_job_alerts`), `lib/jobAlerts.ts`, `lib/jobAlertLabels.ts`, `sendJobAlertEmail()`.
+
+### Changed
+- The `/jobs` search filter moved into shared `lib/jobSearch.ts` (`jobSearchWhere()`) so job alerts match exactly what the Jobs page shows — no behavior change on the page.
+
+### Added
 - Google for Jobs support: every published, approved, still-open job page now includes hidden schema.org `JobPosting` data (title, description + requirements, company and logo, city or remote-in-India, job type, date posted, closing date, experience), built from existing fields by new `lib/jobPostingSchema.ts` (with tests). Drafts, pending recruiter jobs and jobs past their deadline get none, as Google requires. Salary is left out on purpose — it's free text and guessing numbers could show wrong pay. Recruiter-typed text is escaped so it can't break the page. Nothing visible changes; Google decides whether and when to show the jobs (usually days to weeks).
 
 ### Added

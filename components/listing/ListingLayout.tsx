@@ -33,11 +33,23 @@ export function ListingHeader({
   );
 }
 
-export function ListingShell({ sidebar, children }: { sidebar: ReactNode; children: ReactNode }) {
+export function ListingShell({
+  sidebar,
+  sidebarFooter,
+  children,
+}: {
+  sidebar: ReactNode;
+  /** Shown under the filter panel, always visible (not folded away on phones). */
+  sidebarFooter?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-8 px-4 py-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="min-w-0 lg:sticky lg:top-32 lg:self-start">
-        <CollapsibleFilters>{sidebar}</CollapsibleFilters>
+      <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-32 lg:self-start">
+        <div>
+          <CollapsibleFilters>{sidebar}</CollapsibleFilters>
+        </div>
+        {sidebarFooter}
       </aside>
       <div className="min-w-0">{children}</div>
     </div>

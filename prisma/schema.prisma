@@ -181,6 +181,7 @@ model User {
   sentFreelanceMessages   FreelanceMessage[] @relation("FreelanceMessageSender")
   freelanceReviews        FreelanceReview[]
   freelanceReports        FreelanceReport[]
+  jobAlerts               JobAlert[]
   supportTickets          SupportTicket[]
 
   @@map("users")
@@ -882,6 +883,7 @@ model Job {
   applications        JobApplication[]
   wishlistedBy        JobWishlist[]
   boosts              JobBoost[]
+  alertDeliveries     JobAlertDelivery[]
 
   @@index([city])
   @@map("jobs")
@@ -1247,4 +1249,43 @@ model SupportTicket {
 
   @@index([status, createdAt])
   @@map("support_tickets")
+}
+
+// A saved /jobs search a user wants emailed about. The daily cron
+// (lib/jobAlerts.ts, run from /api/cron/send-reminders) emails each active
+// alert the published, approved, still-open jobs matching it that were
+// posted after the alert was created and haven't been sent to it before.
+// Filters mirror /jobs exactly (lib/jobSearch.ts) so an alert matches what
+// the user saw when they created it.
+model JobAlert {
+  id             String          @id @default(uuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query          String?
+  employmentType EmploymentType?
+  remoteOnly     Boolean         @default(false)
+  city           String?
+  isActive       Boolean         @default(true)
+  lastSentAt     DateTime?
+  createdAt      DateTime        @default(now())
+
+  deliveries     JobAlertDelivery[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("job_alerts")
+}
+
+// One row per (alert, job) already emailed — what stops a job being sent
+// twice, including a recruiter job that was approved a day after posting.
+model JobAlertDelivery {
+  id       String   @id @default(uuid())
+  alertId  String
+  alert    JobAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  jobId    String
+  job      Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  sentAt   DateTime @default(now())
+
+  @@unique([alertId, jobId])
+  @@map("job_alert_deliveries")
 }

@@ -230,6 +230,9 @@ export default async function DashboardPage() {
           <TileLink href="/dashboard/job-applications" icon="💼">
             My applications
           </TileLink>
+          <TileLink href="/dashboard/job-alerts" icon="🔔">
+            Job alerts
+          </TileLink>
         </TileGroup>
 
         <TileGroup title="Freelance">
