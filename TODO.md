@@ -33,7 +33,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 
 ## In Progress
 
-- Site revamp (brighter, light-first — owner's choice 2026-09-24). Done: steps 1–2 (foundation, header, footer, About/Contact/FAQ, 404). Next: step 3 homepage, step 4 listing pages, step 5 detail pages. See PROJECT_STATE.md.
+- Site revamp (brighter, light-first — owner's choice 2026-09-24). Done: steps 1–3 (foundation, header, footer, About/Contact/FAQ, 404, homepage). Next: step 4 listing pages, step 5 detail pages. See PROJECT_STATE.md.
 
 ## Planned / Ideas (not started, not committed to)
 

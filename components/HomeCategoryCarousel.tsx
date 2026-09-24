@@ -206,24 +206,15 @@ export function HomeCategoryCarousel({ categories }: { categories: HomeCategoryI
   })).filter((g) => g.categories.length > 0);
 
   return (
-    <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-brand-50 to-white pb-12 pt-6 dark:border-slate-700 dark:from-slate-800/60 dark:to-slate-900 sm:pb-16 sm:pt-8">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-70 dark:opacity-20"
-        style={{
-          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(29,78,216,0.18) 1px, transparent 0)",
-          backgroundSize: "28px 28px",
-        }}
-      />
+    <section className="relative border-b border-slate-200 bg-white py-12 dark:border-slate-800 dark:bg-slate-900 sm:py-16">
       <div className="relative mx-auto max-w-[1200px] px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+          <p className="text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">
             Explore ScholarAura
-          </h1>
-          <p className="mt-2 max-w-xl text-base text-slate-600 dark:text-slate-400">
-            Discover courses, competitions, events, career opportunities and more — all in one
-            academic ecosystem.
           </p>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Browse by category
+          </h2>
         </div>
 
         <div className="flex flex-col gap-10">

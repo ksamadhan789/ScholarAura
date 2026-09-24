@@ -4,6 +4,11 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-24
 
+### Changed — site revamp, step 3 (homepage)
+- New homepage top section (`components/home/HomeHero.tsx`): a headline saying what ScholarAura is ("Learn, take part and get hired — all in one place"), a large search box (new `size="lg"` variant of `SearchBar`), quick links to every section (desktop/tablet only — phones already have the icon strip), and live count tiles (courses, upcoming events, open competitions, open jobs) that link to each section — a zero count is hidden, never shown or faked.
+- The category carousel is now the second section, titled "Browse by category" on a plain background (the hero took over the gradient and the page's main heading).
+- New "How it works" section (3 steps + "Create your free account") and a closing two-card band for recruiters ("Post a job") and event/competition organisers ("Get in touch" → `/contact`).
+
 ### Changed — site revamp, step 1–2 (foundation, header & footer)
 - **Light is now the default theme** for first-time visitors (it was dark). Anyone who picked dark with the toggle keeps dark. Brand navy stays for the desktop category bar and the new footer.
 - Header: real icons (`lucide-react`, new dependency) instead of emoji in the desktop category bar, the mobile category strip (now icons on soft blue tiles), the theme toggle and the mobile menu button; richer navy bar with hover highlights; slightly bolder Sign up button. Links unchanged, now from one shared list (`lib/navItems.ts`).

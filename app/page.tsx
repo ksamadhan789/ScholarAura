@@ -5,6 +5,9 @@ import { COURSE_CATEGORY_ICONS } from "@/lib/courseCategories";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
 import { HOME_CATEGORIES } from "@/lib/homeCategories";
 import { getHomeCategoryStats } from "@/lib/homeCategoryStats";
+import { HomeHero } from "@/components/home/HomeHero";
+import { HomeHowItWorks } from "@/components/home/HomeHowItWorks";
+import { HomePartnerBand } from "@/components/home/HomePartnerBand";
 
 export const dynamic = "force-dynamic";
 
@@ -72,11 +75,24 @@ export default async function HomePage() {
     })),
   ];
 
+  const heroStats = {
+    courses: categoryStats.courses,
+    events: events.length,
+    competitions: categoryStats.competitions,
+    jobs: categoryStats.jobs,
+  };
+
   return (
     <main className="flex flex-1 flex-col">
+      <HomeHero stats={heroStats} />
+
       <HomeCategoryCarousel categories={categoryItems} />
 
       <HomeBannerCarousel items={bannerItems} />
+
+      <HomeHowItWorks />
+
+      <HomePartnerBand />
     </main>
   );
 }
