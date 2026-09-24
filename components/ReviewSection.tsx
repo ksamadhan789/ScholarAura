@@ -23,20 +23,32 @@ function formatDate(date: string) {
   });
 }
 
-export function CourseReviewSection({
-  slug,
+// Shared star-rating review list + own-review form, used by course pages
+// and freelance listings. `apiBase` is the reviews route (POST to save your
+// own review, DELETE to remove it); each reviewer's photo is served from
+// `${apiBase}/${reviewId}/photo`, and admins remove any review via
+// `${adminDeleteBase}/${reviewId}`.
+export function ReviewSection({
+  apiBase,
+  adminDeleteBase,
   reviews,
   average,
   count,
-  isEnrolled,
+  canReview,
+  cannotReviewHint,
+  placeholder,
   currentUserId,
   isAdmin,
 }: {
-  slug: string;
+  apiBase: string;
+  adminDeleteBase: string;
   reviews: ReviewItem[];
   average: number;
   count: number;
-  isEnrolled: boolean;
+  canReview: boolean;
+  /** Shown instead of the form to a logged-in visitor who can't review yet. */
+  cannotReviewHint?: string;
+  placeholder: string;
   currentUserId: string | null;
   isAdmin: boolean;
 }) {
@@ -57,7 +69,7 @@ export function CourseReviewSection({
     }
     setLoading(true);
     try {
-      const res = await fetch(`/api/courses/${slug}/reviews`, {
+      const res = await fetch(apiBase, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rating, comment: comment.trim() || undefined }),
@@ -79,7 +91,7 @@ export function CourseReviewSection({
   async function deleteOwn() {
     setLoading(true);
     try {
-      await fetch(`/api/courses/${slug}/reviews`, { method: "DELETE" });
+      await fetch(apiBase, { method: "DELETE" });
       setRating(0);
       setComment("");
       router.refresh();
@@ -90,7 +102,7 @@ export function CourseReviewSection({
 
   async function deleteAsAdmin(reviewId: string) {
     if (!window.confirm("Remove this review?")) return;
-    await fetch(`/api/admin/course-reviews/${reviewId}`, { method: "DELETE" });
+    await fetch(`${adminDeleteBase}/${reviewId}`, { method: "DELETE" });
     router.refresh();
   }
 
@@ -110,7 +122,11 @@ export function CourseReviewSection({
         <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">No reviews yet.</p>
       )}
 
-      {isEnrolled && currentUserId && (ownReview === undefined || editing) && (
+      {!canReview && currentUserId && !ownReview && cannotReviewHint && (
+        <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">{cannotReviewHint}</p>
+      )}
+
+      {canReview && currentUserId && (ownReview === undefined || editing) && (
         <form
           onSubmit={submit}
           className="mb-8 flex flex-col gap-3 rounded border border-gray-200 dark:border-slate-700 p-4"
@@ -123,7 +139,7 @@ export function CourseReviewSection({
             rows={3}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="What did you think of this course? (optional)"
+            placeholder={placeholder}
             className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
           />
           {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
@@ -148,7 +164,7 @@ export function CourseReviewSection({
         </form>
       )}
 
-      {isEnrolled && currentUserId && ownReview && !editing && (
+      {currentUserId && ownReview && !editing && (
         <div className="mb-8 rounded border border-gray-200 dark:border-slate-700 p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium">Your review</p>
@@ -194,7 +210,7 @@ export function CourseReviewSection({
                   <div className="flex items-center gap-2">
                     <Avatar
                       name={review.user.name}
-                      src={review.user.photoFileId ? `/api/courses/${slug}/reviews/${review.id}/photo` : null}
+                      src={review.user.photoFileId ? `${apiBase}/${review.id}/photo` : null}
                       size={24}
                     />
                     <StarRating value={review.rating} />

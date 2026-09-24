@@ -117,7 +117,7 @@ export const HOME_CATEGORIES: HomeCategory[] = [
   },
   {
     id: "hands-on-training",
-    eyebrow: "VR Training",
+    eyebrow: "Training",
     title: "Hands-on Training",
     description: "Turn knowledge into practical, hands-on experience.",
     cta: "Explore Training",

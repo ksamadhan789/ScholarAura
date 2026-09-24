@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { canonicalCityName } from "@/lib/cityAliases";
 import { slugify } from "@/lib/slugify";
 
 const createJobSchema = z.object({
@@ -10,6 +11,7 @@ const createJobSchema = z.object({
   companyName: z.string().min(1, "Company name is required"),
   companyLogoUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
   location: z.string().min(1, "Location is required"),
+  city: z.string().trim().max(100).optional(),
   isRemote: z.boolean().optional(),
   employmentType: z.enum(["FULL_TIME", "PART_TIME", "INTERNSHIP", "CONTRACT"]),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -85,6 +87,7 @@ export async function POST(request: Request) {
         companyName: d.companyName,
         companyLogoUrl: d.companyLogoUrl || null,
         location: d.location,
+        city: canonicalCityName(d.city),
         isRemote: d.isRemote ?? false,
         employmentType: d.employmentType,
         description: d.description,

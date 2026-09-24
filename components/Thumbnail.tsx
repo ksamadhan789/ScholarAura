@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export function Thumbnail({
   url,
   alt,
@@ -5,7 +7,8 @@ export function Thumbnail({
 }: {
   url?: string | null;
   alt: string;
-  icon: string;
+  /** Shown centred on the placeholder when there's no image — an emoji or an icon element. */
+  icon: ReactNode;
 }) {
   if (url) {
     return (
@@ -17,7 +20,7 @@ export function Thumbnail({
   return (
     <div
       aria-hidden
-      className="flex aspect-video w-full items-center justify-center rounded-t-lg bg-gradient-to-br from-brand-50 to-brand-100 text-4xl dark:from-slate-800 dark:to-slate-700"
+      className="flex aspect-video w-full items-center justify-center rounded-t-lg bg-gradient-to-br from-brand-50 via-sky-50 to-brand-100 text-4xl text-brand-500 dark:from-slate-800 dark:via-slate-800 dark:to-slate-700 dark:text-brand-400"
     >
       {icon}
     </div>

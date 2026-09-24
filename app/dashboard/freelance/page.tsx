@@ -50,7 +50,14 @@ export default async function MyFreelanceListingsPage() {
               <div>
                 <h2 className="font-medium">{listing.title}</h2>
                 <p className="text-sm text-gray-500 dark:text-slate-400">
-                  {listing.category} · {listing.isPublished ? "Published" : "Paused"}
+                  {listing.category} ·{" "}
+                  {listing.removedByAdminAt ? (
+                    <span className="text-red-600 dark:text-red-400">Removed by admin</span>
+                  ) : listing.isPublished ? (
+                    "Published"
+                  ) : (
+                    "Paused"
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -68,7 +75,11 @@ export default async function MyFreelanceListingsPage() {
                     Edit
                   </Link>
                 </div>
-                <FreelanceListingActions slug={listing.slug} isPublished={listing.isPublished} />
+                <FreelanceListingActions
+                  slug={listing.slug}
+                  isPublished={listing.isPublished}
+                  removedByAdmin={!!listing.removedByAdminAt}
+                />
               </div>
             </div>
           ))}

@@ -25,6 +25,7 @@ export default async function EditJobPage({ params }: { params: { slug: string }
         companyName: job.companyName,
         companyLogoUrl: job.companyLogoUrl ?? "",
         location: job.location,
+        city: job.city ?? "",
         isRemote: job.isRemote,
         employmentType: job.employmentType,
         description: job.description,

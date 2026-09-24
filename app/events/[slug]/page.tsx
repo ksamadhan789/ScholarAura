@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { CalendarDays, Clock, FileText, MapPin, Monitor, Users } from "lucide-react";
+import { ActionCard, ActionStatus, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -114,19 +116,30 @@ export default async function EventDetailPage({
             {event.audience !== "EVERYONE" && (
               <Badge variant="neutral">{EVENT_AUDIENCE_LABELS[event.audience]}</Badge>
             )}
-            {urgency && <Badge variant={urgency.variant}>⏰ {urgency.label} to register</Badge>}
+            {urgency && <Badge variant={urgency.variant}>{urgency.label} to register</Badge>}
             <Badge variant="brand">{feeLabel === "Free" ? "Free entry" : `Entry ${feeLabel}`}</Badge>
           </>
         }
         title={event.title}
         meta={
           <>
-            <span>📅 {formatDateRange(event.startDate, event.endDate)}</span>
-            <span>
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarDays aria-hidden className="h-4 w-4" />
+              {formatDateRange(event.startDate, event.endDate)}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              {event.format === "ONLINE" ? (
+                <Monitor aria-hidden className="h-4 w-4" />
+              ) : (
+                <MapPin aria-hidden className="h-4 w-4" />
+              )}
               {EVENT_FORMAT_LABELS[event.format]}
               {event.city && ` · ${event.city}`}
             </span>
-            <span>{seatsLeft > 0 ? `${seatsLeft} of ${event.seatsTotal} seats left` : "Fully booked"}</span>
+            <span className="inline-flex items-center gap-1.5">
+              <Users aria-hidden className="h-4 w-4" />
+              {seatsLeft > 0 ? `${seatsLeft} of ${event.seatsTotal} seats left` : "Fully booked"}
+            </span>
           </>
         }
         actions={
@@ -135,119 +148,130 @@ export default async function EventDetailPage({
               href="#register"
               className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50"
             >
-              Register Now ↓
+              {isRegistered ? "Your registration ↓" : "Register now ↓"}
             </a>
             {event.brochureUrl && (
               <a
                 href={event.brochureUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-white/40 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-lg border border-white/40 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
               >
-                📄 Download Brochure
+                <FileText aria-hidden className="h-4 w-4" />
+                Download brochure
               </a>
             )}
           </>
         }
       />
 
-      {event.shortDescription && (
-        <p className="mt-4 text-base text-gray-600 dark:text-slate-400">{event.shortDescription}</p>
-      )}
-      <p className="mt-4 text-gray-700 dark:text-slate-300">{event.description}</p>
-
-      <DateCards milestones={dateMilestones} />
-      {event.registrationStartDate && (
-        <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
-          Registration opens {formatDateTime(event.registrationStartDate)}
-        </p>
-      )}
-
-      <PrizeCards
-        first={event.prizeFirst}
-        second={event.prizeSecond}
-        third={event.prizeThird}
-        description={event.prizeDescription}
-      />
-
-      {event.eligibility && (
-        <div className="mt-4">
-          <InfoCard icon="🎓" title="Who can participate?" tone="success">
-            <p>{event.eligibility}</p>
-          </InfoCard>
-        </div>
-      )}
-
-      <PeopleList people={(event.people as unknown as EventPerson[] | null) ?? []} />
-
-      <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">
-        {canSeeVenue
-          ? event.venueOrLink
-          : event.format === "ONLINE"
-            ? "The Zoom link will be shared here once you register."
-            : "The venue address will be shared here once you register."}
-      </p>
-
-      <div
-        id="register"
-        className="mt-8 scroll-mt-24 rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800/60"
-      >
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Ready to join?</h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Registration fee: {feeLabel}</p>
-
-        <div className="mt-4">
-          {!session ? (
-            <a href="/login" className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-5 py-2.5 text-white">
-              Log in to register
-            </a>
-          ) : isRegistered ? (
-            <div className="flex flex-col items-start gap-2">
-              <p className="rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
-                🎉 You&apos;re registered for this event!
-              </p>
-              {Number(event.fee) === 0 && event.startDate > new Date() && (
-                <CancelRegistrationButton slug={event.slug} />
-              )}
-            </div>
-          ) : seatsLeft <= 0 ? (
-            <WaitlistButton slug={event.slug} isWaitlisted={!!waitlistEntry} />
-          ) : (
-            <>
-              {Number(event.fee) > 0 && currentUser && Number(currentUser.creditBalance) > 0 && (
-                <p className="mb-2 text-sm text-green-700 dark:text-green-400">
-                  You have ₹{Number(currentUser.creditBalance).toFixed(2)} credit — applied
-                  automatically when paying in INR.
+      <DetailColumns
+        aside={
+          <ActionCard
+            label="Registration fee"
+            price={feeLabel}
+            priceNote={
+              event.registrationDeadline && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock aria-hidden className="h-4 w-4" />
+                  Register by {formatDateTime(event.registrationDeadline)}
+                </span>
+              )
+            }
+            footer={
+              <>
+                <p className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                  <Users aria-hidden className="h-4 w-4" />
+                  {seatsLeft > 0 ? `${seatsLeft} of ${event.seatsTotal} seats left` : "Fully booked"}
                 </p>
-              )}
-              <RegisterButton
-                slug={event.slug}
-                isPaid={Number(event.fee) > 0}
-                price={Number(event.fee)}
-                rates={serializedRates}
-                userName={session.user.name}
-                userEmail={session.user.email}
-              />
-            </>
-          )}
-        </div>
-
-        {event.brochureUrl && (
-          <a
-            href={event.brochureUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
+                {event.brochureUrl && (
+                  <a
+                    href={event.brochureUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
+                  >
+                    <FileText aria-hidden className="h-4 w-4" />
+                    Download brochure
+                  </a>
+                )}
+                {session && !isRegistered && (
+                  <SaveButton endpoint={`/api/events/${event.slug}/wishlist`} isSaved={!!wishlistEntry} />
+                )}
+              </>
+            }
           >
-            📄 Download brochure
-          </a>
+            {!session ? (
+              <a href="/login" className={ACTION_PRIMARY_CLASS}>
+                Log in to register
+              </a>
+            ) : isRegistered ? (
+              <>
+                <ActionStatus tone="success">You&apos;re registered for this event!</ActionStatus>
+                {Number(event.fee) === 0 && event.startDate > new Date() && (
+                  <CancelRegistrationButton slug={event.slug} />
+                )}
+              </>
+            ) : seatsLeft <= 0 ? (
+              <WaitlistButton slug={event.slug} isWaitlisted={!!waitlistEntry} />
+            ) : (
+              <>
+                {Number(event.fee) > 0 && currentUser && Number(currentUser.creditBalance) > 0 && (
+                  <p className="text-sm text-green-700 dark:text-green-400">
+                    You have ₹{Number(currentUser.creditBalance).toFixed(2)} credit — applied
+                    automatically when paying in INR.
+                  </p>
+                )}
+                <RegisterButton
+                  slug={event.slug}
+                  isPaid={Number(event.fee) > 0}
+                  price={Number(event.fee)}
+                  rates={serializedRates}
+                  userName={session.user.name}
+                  userEmail={session.user.email}
+                />
+              </>
+            )}
+          </ActionCard>
+        }
+      >
+        {event.shortDescription && (
+          <p className="mt-4 text-base text-gray-600 dark:text-slate-400">{event.shortDescription}</p>
         )}
-      </div>
+        <p className="mt-4 text-gray-700 dark:text-slate-300">{event.description}</p>
 
-      {session && !isRegistered && (
-        <div className="mt-3">
-          <SaveButton endpoint={`/api/events/${event.slug}/wishlist`} isSaved={!!wishlistEntry} />
-        </div>
-      )}
+        <DateCards milestones={dateMilestones} />
+        {event.registrationStartDate && (
+          <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
+            Registration opens {formatDateTime(event.registrationStartDate)}
+          </p>
+        )}
+
+        <PrizeCards
+          first={event.prizeFirst}
+          second={event.prizeSecond}
+          third={event.prizeThird}
+          description={event.prizeDescription}
+        />
+
+        {event.eligibility && (
+          <div className="mt-4">
+            <InfoCard icon="🎓" title="Who can participate?" tone="success">
+              <p>{event.eligibility}</p>
+            </InfoCard>
+          </div>
+        )}
+
+        <PeopleList people={(event.people as unknown as EventPerson[] | null) ?? []} />
+
+        <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">
+          {canSeeVenue
+            ? event.venueOrLink
+            : event.format === "ONLINE"
+              ? "The Zoom link will be shared here once you register."
+              : "The venue address will be shared here once you register."}
+        </p>
+      </DetailColumns>
     </main>
   );
 }

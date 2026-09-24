@@ -23,6 +23,10 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Freelance gig marketplace (post/browse/manage own service listings)
 - Aura guided helper (canned FAQ + live search, not an LLM), later redesigned as a real chat-bubble interface
 - In-app messaging for freelance listings
+- Freelance reviews/ratings (1–5 stars + comment, only after the freelancer has replied to you in-app)
+- Freelance "Report this listing" + admin moderation page (dismiss / remove / restore)
+- Structured city field for jobs (`Job.city`), with old/new city-name matching
+- Site revamp, brighter and light-first (2026-09-24): light default theme, icon-based header, navy footer, About/Contact/FAQ/404 pages, new homepage, shared listing layout with sidebar filters, two-column detail pages with a sticky action card
 - Floating Aura chat widget (site-wide, like the language picker) alongside the full /aura page
 - Mobile nav redesigned as a touch-swipeable horizontal strip (Amazon-app style), replacing the vertical list
 - Homepage banner carousel: auto-scrolling featured courses/events/competitions cards below the hero, Amazon-app promo style
@@ -35,16 +39,13 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 ## Planned / Ideas (not started, not committed to)
 
 - Recruiter subscription plan (monthly/annual — build on top of the existing JobBoost model)
-- Structured city field for jobs (would replace the loose text match)
 - Placement-guarantee course tier (pair a course with a job outcome)
 - Bundles / learning paths — removed 2026-09-07; revisit only if there's a specific need (see CHANGELOG)
 - Homepage trust signals (stats bar, partner logos) once real numbers exist
 - Reconnect Google sign-in: the Google Cloud OAuth client was deleted and must be recreated (config task, not code — see CHANGELOG 2026-09-06 note)
 - Upgrade Aura to a real LLM-backed chatbot (deliberately kept as canned FAQ + search for now — needs an `ANTHROPIC_API_KEY` and has ongoing per-message cost)
-- Freelance: reviews/ratings for freelancers
-- Freelance: a report/moderation flow if abuse becomes a problem (currently unmoderated by design)
 
 ## Known Issues to Revisit
 
-- Job location filter is a loose text match (spelling variants like Bengaluru/Bangalore don't match)
+- Jobs posted before 2026-09-24 whose location didn't name a recognizable city still have no structured `city` and use the loose location-text match — an admin/recruiter can fix one by setting City on its edit form
 - No refund path for job boosts

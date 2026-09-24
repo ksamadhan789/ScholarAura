@@ -1034,6 +1034,54 @@ export async function sendSupportTicketCreatedEmail(
   return true;
 }
 
+export async function sendFreelanceReportEmail(
+  to: string,
+  adminName: string,
+  report: { listingTitle: string; listingSlug: string; reporterName: string; reason: string; details: string | null }
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send freelance report email");
+    return false;
+  }
+
+  const safeAdminName = escapeHtml(adminName.trim() || "there");
+  const safeTitle = escapeHtml(report.listingTitle);
+  const safeReporter = escapeHtml(report.reporterName);
+  const safeReason = escapeHtml(report.reason);
+  const safeDetails = report.details ? escapeHtml(report.details) : null;
+  const listingUrl = `${SITE_URL}/freelance/${encodeURIComponent(report.listingSlug)}`;
+  const reportsUrl = `${SITE_URL}/dashboard/admin/freelance-reports`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Freelance listing reported: ${report.listingTitle}`,
+      text: `Hi ${adminName},\n\n${report.reporterName} reported the freelance listing "${report.listingTitle}" (${listingUrl}).\n\nReason: ${report.reason}${report.details ? `\nDetails: ${report.details}` : ""}\n\nReview it from the admin dashboard: ${reportsUrl}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${safeAdminName},</p>
+        <p><strong>${safeReporter}</strong> reported the freelance listing <a href="${listingUrl}">&ldquo;${safeTitle}&rdquo;</a>.</p>
+        <p>Reason: ${safeReason}</p>
+        ${safeDetails ? `<p>Details: ${safeDetails}</p>` : ""}
+        <p>
+          <a href="${reportsUrl}" style="display:inline-block;padding:12px 24px;background-color:#4f46e5;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Review reports</a>
+        </p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send freelance report email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send freelance report email:", err);
+    return false;
+  }
+
+  return true;
+}
+
 export async function sendSupportTicketResolvedEmail(
   to: string,
   name: string,

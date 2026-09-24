@@ -4,6 +4,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { canonicalCityName } from "@/lib/cityAliases";
 import { sendJobApprovedEmail, sendJobRejectedEmail } from "@/lib/email";
 import { createNotification } from "@/lib/notify";
 import { logAdminAction } from "@/lib/auditLog";
@@ -17,6 +18,7 @@ const updateJobSchema = z
     companyName: z.string().min(1).optional(),
     companyLogoUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
     location: z.string().min(1).optional(),
+    city: z.string().trim().max(100).nullable().optional(),
     isRemote: z.boolean().optional(),
     employmentType: z.enum(["FULL_TIME", "PART_TIME", "INTERNSHIP", "CONTRACT"]).optional(),
     description: z.string().min(10).optional(),
@@ -92,6 +94,7 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
       ...(d.companyName !== undefined && { companyName: d.companyName }),
       ...(d.companyLogoUrl !== undefined && { companyLogoUrl: d.companyLogoUrl || null }),
       ...(d.location !== undefined && { location: d.location }),
+      ...(d.city !== undefined && { city: canonicalCityName(d.city) }),
       ...(d.isRemote !== undefined && { isRemote: d.isRemote }),
       ...(d.employmentType !== undefined && { employmentType: d.employmentType }),
       ...(d.description !== undefined && { description: d.description }),

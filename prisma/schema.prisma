@@ -179,6 +179,8 @@ model User {
   freelanceListings   FreelanceListing[]
   freelanceThreadsStarted FreelanceThread[] @relation("FreelanceThreadInitiator")
   sentFreelanceMessages   FreelanceMessage[] @relation("FreelanceMessageSender")
+  freelanceReviews        FreelanceReview[]
+  freelanceReports        FreelanceReport[]
   supportTickets          SupportTicket[]
 
   @@map("users")
@@ -843,6 +845,10 @@ model Job {
   companyName         String
   companyLogoUrl      String?
   location            String
+  // Structured city for the /jobs city filter (canonical spelling via
+  // lib/cityAliases.ts). Optional — remote jobs may not have one, and jobs
+  // posted before this existed fall back to matching `location` text.
+  city                String?
   isRemote            Boolean            @default(false)
   employmentType      EmploymentType
   description         String
@@ -877,6 +883,7 @@ model Job {
   wishlistedBy        JobWishlist[]
   boosts              JobBoost[]
 
+  @@index([city])
   @@map("jobs")
 }
 
@@ -1117,12 +1124,17 @@ model FreelanceListing {
   portfolioUrl   String?
   contactEmail   String
   isPublished    Boolean  @default(true)
+  // Set when an admin takes the listing down after a report — while set the
+  // owner can't republish it themselves (only an admin restore clears it).
+  removedByAdminAt DateTime?
   postedByUserId String
   postedByUser   User     @relation(fields: [postedByUserId], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   threads        FreelanceThread[]
+  reviews        FreelanceReview[]
+  reports        FreelanceReport[]
 
   @@index([category])
   @@index([postedByUserId])
@@ -1159,6 +1171,55 @@ model FreelanceMessage {
 
   @@index([threadId, createdAt])
   @@map("freelance_messages")
+}
+
+// A star rating (+ optional comment) on a freelance listing, left by someone
+// who actually worked with the poster. There's no in-app order/payment for
+// freelance work, so "worked with" is approximated as: the reviewer started
+// a message thread on this listing and the poster replied in it at least
+// once (checked at write time in lib/freelanceReview.ts). One per
+// (listing, reviewer), editable — same shape as CourseReview.
+model FreelanceReview {
+  id         String           @id @default(uuid())
+  listingId  String
+  listing    FreelanceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer   User             @relation(fields: [reviewerId], references: [id])
+  rating     Int
+  comment    String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@unique([listingId, reviewerId])
+  @@index([listingId])
+  @@map("freelance_reviews")
+}
+
+enum FreelanceReportStatus {
+  OPEN
+  DISMISSED // admin looked and decided the listing is fine
+  ACTIONED  // admin removed the listing
+}
+
+// A logged-in user flagging a freelance listing for admin review. Freelance
+// listings publish immediately without moderation, so this is the safety
+// valve — see lib/freelanceReport.ts. `reason` is one of the fixed keys in
+// lib/freelanceReportReasons.ts, validated in code.
+model FreelanceReport {
+  id         String                @id @default(uuid())
+  listingId  String
+  listing    FreelanceListing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reporterId String
+  reporter   User                  @relation(fields: [reporterId], references: [id])
+  reason     String
+  details    String?
+  status     FreelanceReportStatus @default(OPEN)
+  createdAt  DateTime              @default(now())
+  resolvedAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([listingId])
+  @@map("freelance_reports")
 }
 
 enum SupportTicketStatus {

@@ -2,6 +2,53 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-24
+
+### Changed — site revamp, step 5 (detail pages) — revamp complete
+- Course, event, competition, job and freelance detail pages now use two columns (`components/detail/DetailLayout.tsx`): content on the left, and an action card on the right holding the price and the real enroll / register / enter / apply / message button — it stays in view while scrolling on desktop and follows the content on phones. The card also lists key facts (lectures and total length, final quiz, certificate on completion; seats left; team size; job location, experience, internship duration/start date) and holds the save/wishlist button, brochure link and, for freelance, the report link. Every button and every rule for who sees what is unchanged — verified logged out and logged in (enrolled, entered) against sample data.
+- A course you're enrolled in now has a "Go to course" button (first lecture) in that card.
+- A competition you've entered shows your submission form in the main column under "Your submission" instead of squeezed into the card; the hero button reads "Your entry ↓".
+- Emoji replaced with icons in the detail heroes (dates, location, seats, brochure).
+
+### Changed — site revamp, step 4 (listing pages)
+- `/courses`, `/events`, `/competitions`, `/jobs` and `/freelance` rebuilt on one shared layout (`components/listing/`): a title band, filters in a left sidebar on desktop (folded behind a "Search & filters" button on phones), and results in a 1/2/3-column grid instead of 2 oversized cards per row. Every filter, search and URL works exactly as before — verified each one against sample data.
+- One shared card (`MediaCard`) for courses, events and competitions: 16:9 image or branded icon placeholder, badges, two-line title, icon-led details (dates, format/city, seats left, deadline, team size, instructor, rating) and the price. Competition cards now also show the real "N days left" deadline badge. Jobs stay a list with restyled rows (company logo, type badge, location/pay/duration with icons); freelance uses compact cards led by the freelancer's photo and rating.
+- Friendlier empty states ("No events match your search — try removing a filter") instead of a plain 👀 line.
+- The public Courses stats bar no longer shows zeros (e.g. "0 enrollments") and only appears once there are at least two real numbers.
+- Emoji removed from event type/format/audience labels (`lib/eventLabels.ts`) — affects every page showing them.
+
+### Removed
+- `components/FilterPill.tsx` (replaced by the sidebar filters; nothing else used it).
+
+### Changed — site revamp, step 3 (homepage)
+- New homepage top section (`components/home/HomeHero.tsx`): a headline saying what ScholarAura is ("Learn, take part and get hired — all in one place"), a large search box (new `size="lg"` variant of `SearchBar`), quick links to every section (desktop/tablet only — phones already have the icon strip), and live count tiles (courses, upcoming events, open competitions, open jobs) that link to each section — a zero count is hidden, never shown or faked.
+- The category carousel is now the second section, titled "Browse by category" on a plain background (the hero took over the gradient and the page's main heading).
+- New "How it works" section (3 steps + "Create your free account") and a closing two-card band for recruiters ("Post a job") and event/competition organisers ("Get in touch" → `/contact`).
+
+### Changed — site revamp, step 1–2 (foundation, header & footer)
+- **Light is now the default theme** for first-time visitors (it was dark). Anyone who picked dark with the toggle keeps dark. Brand navy stays for the desktop category bar and the new footer.
+- Header: real icons (`lucide-react`, new dependency) instead of emoji in the desktop category bar, the mobile category strip (now icons on soft blue tiles), the theme toggle and the mobile menu button; richer navy bar with hover highlights; slightly bolder Sign up button. Links unchanged, now from one shared list (`lib/navItems.ts`).
+- New footer: navy, multi-column (Explore / For you / Company / Legal) with a short description. The Google Translate language picker moved from a floating button — which covered page content on small screens — into the footer's bottom bar.
+
+### Added
+- `/about`, `/contact` and `/faq` pages (linked from the footer, added to the sitemap). The FAQ reuses Aura's own answers (`lib/auraFaq.ts`, which gained a `question` and `group` per entry) so the two never disagree. Contact lists the existing support email, Aura support tickets, recruiter sign-up and certificate verification — no new contact form.
+- A proper "page not found" page (`app/not-found.tsx`) with links to every section, replacing Next.js's plain default.
+- Individual freelance listings are now in the sitemap.
+
+### Fixed
+- Job cards showed the city twice when the location text used an old name for it ("Gurgaon, Gurugram", "Bangalore, India, Bengaluru") — `formatJobLocation()` now checks every name for the city, not just the canonical one.
+- The homepage "Hands-on Training" card still carried a "VR Training" label left over from the 2026-09-18 rename — now "Training".
+
+### Changed
+- Jobs now have a proper **City** field (new optional `Job.city`, like events/competitions already have), in addition to the free-text Location. All four job forms (admin + recruiter, new + edit) get a City box that suggests the standard city list but accepts any city; the server normalizes it before saving ("bangalore" → "Bengaluru", "mumbai" → "Mumbai") via `canonicalCityName()`. The `/jobs` city filter now matches this field exactly (including old/new names) via `lib/jobCity.ts`, and only falls back to the old loose location-text match for jobs that have no city set. The migration (`20260924140000_job_city`) backfills City for existing jobs whose location names a known city or an old name for one. Job cards and the job page show "Location, City" when the location text doesn't already mention the city; job cities also now appear in the location picker's city list, and the jobs search box matches on city too.
+
+### Added
+- "🚩 Report this listing" on freelance listings, plus an admin moderation page. Any logged-in user (other than the owner) can report a listing with a reason (scam, spam, inappropriate, misleading, other) and optional details; reporting again just updates their existing open report. Every admin gets an email (`sendFreelanceReportEmail`) and an in-app notification. New `/dashboard/admin/freelance-reports` (linked from the admin dashboard, with an "open reports" stat tile) groups open reports per listing: **Dismiss** closes a report and leaves the listing up; **Remove listing** hides it, closes all its open reports, notifies the owner, and stops them republishing it (new `FreelanceListing.removedByAdminAt`); a **Removed listings** section lets an admin **Restore** one if it was a mistake. All admin actions are audit-logged. New `FreelanceReport` table (migration `20260924120000_freelance_reports`), `lib/freelanceReport.ts` with tests. The owner's dashboard now shows "Removed by admin" for such listings (no Publish button), and the Pause/Publish button now shows an error instead of silently doing nothing when the server refuses.
+- Freelancer reviews and ratings: 1–5 stars plus an optional comment on a freelance listing, one per person, editable/deletable by its author and removable by an admin. To keep reviews genuine, only someone who messaged the freelancer through the listing *and got a reply* can leave one (`lib/freelanceReview.ts`). The average rating shows on `/freelance` browse cards and next to the poster's name on the listing page, with the full review list below; the freelancer gets an in-app notification for each new review. New `FreelanceReview` table (migration `20260924100000_freelance_reviews`), `POST/DELETE /api/freelance/[slug]/reviews`, a public reviewer-photo route, and admin `DELETE /api/admin/freelance-reviews/[id]`. The course review component was moved to a shared `components/ReviewSection.tsx` so both use the same form/list instead of a copy — course reviews look and behave the same, except a student who's no longer enrolled can now still see (and delete) their own old review instead of it disappearing from their view.
+
+### Fixed
+- Jobs city filter (`/jobs`) now treats old and new names of the same city as a match — picking "Bengaluru" also finds jobs written as "Bangalore" (and Mumbai/Bombay, Kolkata/Calcutta, Chennai/Madras, Gurugram/Gurgaon, and a few more). New `lib/cityAliases.ts` (`getCityAliases()`) with tests.
+
 ## 2026-09-23
 
 ### Added

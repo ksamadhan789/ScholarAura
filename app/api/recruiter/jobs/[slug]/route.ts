@@ -4,6 +4,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { canonicalCityName } from "@/lib/cityAliases";
 
 const updateJobSchema = z
   .object({
@@ -11,6 +12,7 @@ const updateJobSchema = z
     companyName: z.string().min(1).optional(),
     companyLogoUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
     location: z.string().min(1).optional(),
+    city: z.string().trim().max(100).nullable().optional(),
     isRemote: z.boolean().optional(),
     employmentType: z.enum(["FULL_TIME", "PART_TIME", "INTERNSHIP", "CONTRACT"]).optional(),
     description: z.string().min(10).optional(),
@@ -89,6 +91,7 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
         ...(content.companyName !== undefined && { companyName: content.companyName }),
         ...(content.companyLogoUrl !== undefined && { companyLogoUrl: content.companyLogoUrl || null }),
         ...(content.location !== undefined && { location: content.location }),
+        ...(content.city !== undefined && { city: canonicalCityName(content.city) }),
         ...(content.isRemote !== undefined && { isRemote: content.isRemote }),
         ...(content.employmentType !== undefined && { employmentType: content.employmentType }),
         ...(content.description !== undefined && { description: content.description }),

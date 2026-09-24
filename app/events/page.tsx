@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -10,10 +9,23 @@ import {
   EVENT_AUDIENCE_LABELS,
   formatDateRange,
 } from "@/lib/eventLabels";
+import { CalendarDays, MapPin, Monitor, Users } from "lucide-react";
 import { Badge } from "@/components/Badge";
-import { Thumbnail } from "@/components/Thumbnail";
 import { SaveButton } from "@/components/SaveButton";
-import { FilterPill, FilterPillBar } from "@/components/FilterPill";
+import { MediaCard, formatPrice } from "@/components/listing/MediaCard";
+import {
+  CardGrid,
+  EmptyState,
+  FILTER_FIELD_CLASS,
+  FilterActions,
+  FilterGroup,
+  FilterOption,
+  FilterOptionList,
+  FilterPanel,
+  ListingHeader,
+  ListingShell,
+  ResultsSection,
+} from "@/components/listing/ListingLayout";
 import { readLocationCookie } from "@/lib/location";
 
 export function generateMetadata({
@@ -55,39 +67,36 @@ function EventCard({
 }) {
   const seatsLeft = event.seatsTotal - event.seatsFilled;
   return (
-    <div className="relative">
-      {isSaved !== null && (
-        <div className="absolute right-2 top-2 z-10">
+    <MediaCard
+      href={`/events/${event.slug}`}
+      thumbnailUrl={event.thumbnailUrl}
+      placeholderIcon={<CalendarDays className="h-10 w-10" />}
+      title={event.title}
+      badges={
+        <>
+          <Badge variant="brand">{EVENT_TYPE_LABELS[event.type]}</Badge>
+          {event.audience !== "EVERYONE" && (
+            <Badge variant="neutral">{EVENT_AUDIENCE_LABELS[event.audience]}</Badge>
+          )}
+        </>
+      }
+      meta={[
+        { icon: CalendarDays, text: formatDateRange(event.startDate, event.endDate) },
+        {
+          icon: event.format === "ONLINE" ? Monitor : MapPin,
+          text: `${EVENT_FORMAT_LABELS[event.format]}${event.city ? ` · ${event.city}` : ""}`,
+        },
+        { icon: Users, text: seatsLeft > 0 ? `${seatsLeft} seats left` : "Full — join the waitlist" },
+      ]}
+      footer={
+        <span className="font-bold text-slate-900 dark:text-white">{formatPrice(event.fee)}</span>
+      }
+      overlay={
+        isSaved !== null && (
           <SaveButton endpoint={`/api/events/${event.slug}/wishlist`} isSaved={isSaved} variant="overlay" />
-        </div>
-      )}
-      <Link
-        href={`/events/${event.slug}`}
-        className="block overflow-hidden rounded-lg border border-gray-200 dark:border-slate-700 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
-      >
-        <Thumbnail url={event.thumbnailUrl} alt={event.title} icon="📅" />
-        <div className="p-4">
-          <div className="flex flex-wrap gap-1.5">
-            <Badge variant="brand">{EVENT_TYPE_LABELS[event.type]}</Badge>
-            {event.audience !== "EVERYONE" && (
-              <Badge variant="neutral">{EVENT_AUDIENCE_LABELS[event.audience]}</Badge>
-            )}
-          </div>
-          <h3 className="mt-2 font-medium text-slate-900 dark:text-white">{event.title}</h3>
-          <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-            {formatDateRange(event.startDate, event.endDate)}
-          </p>
-          <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-            {EVENT_FORMAT_LABELS[event.format]}
-            {event.city && ` · ${event.city}`} ·{" "}
-            {seatsLeft > 0 ? `${seatsLeft} seats left` : "Full"}
-          </p>
-          <p className="mt-2 font-semibold text-slate-900 dark:text-white">
-            {Number(event.fee) === 0 ? "Free" : `₹${event.fee}`}
-          </p>
-        </div>
-      </Link>
-    </div>
+        )
+      }
+    />
   );
 }
 
@@ -198,129 +207,112 @@ export default async function EventsPage({
     : null;
   const hasActiveFilters = Boolean(activeFormat || activePayment || activeCity || activeAudience);
 
+  const clearHref = activeType ? `/events?type=${activeType}` : "/events";
+
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">
-        {activeLabel ?? "📅 Upcoming & ongoing events"}
-      </h1>
+    <main>
+      <ListingHeader
+        title={activeLabel ?? "Upcoming & ongoing events"}
+        subtitle="Conferences, faculty development programs, hands-on trainings, webinars and alumni meets."
+      />
 
-      <form className="mb-4 flex flex-wrap gap-2" action="/events">
-        {activeType && <input type="hidden" name="type" value={activeType} />}
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="Search by title or description..."
-          className="min-w-[200px] flex-1 rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        />
-        <select
-          name="format"
-          defaultValue={activeFormat ?? ""}
-          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        >
-          <option value="">Any format</option>
-          {Object.entries(EVENT_FORMAT_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <select
-          name="payment"
-          defaultValue={activePayment ?? ""}
-          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        >
-          {PAYMENT_OPTIONS.map(({ value, label }) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <select
-          name="city"
-          defaultValue={activeCity ?? ""}
-          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        >
-          <option value="">Any location</option>
-          {cities.map((city) => (
-            <option key={city} value={city}>
-              {city}
-            </option>
-          ))}
-        </select>
-        <select
-          name="audience"
-          defaultValue={activeAudience ?? ""}
-          className="rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        >
-          <option value="">Any audience</option>
-          {Object.entries(EVENT_AUDIENCE_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
-        >
-          Search
-        </button>
-        {(q || hasActiveFilters) && (
-          <Link
-            href={activeType ? `/events?type=${activeType}` : "/events"}
-            className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            Clear filters
-          </Link>
+      <ListingShell
+        sidebar={
+          <FilterPanel action="/events">
+            {activeType && <input type="hidden" name="type" value={activeType} />}
+            <FilterGroup label="Search">
+              <input
+                type="search"
+                name="q"
+                defaultValue={q}
+                placeholder="Title or description…"
+                className={FILTER_FIELD_CLASS}
+              />
+            </FilterGroup>
+            <FilterGroup label="Event type">
+              <FilterOptionList>
+                <FilterOption href={buildQuery(searchParams, { type: undefined })} active={!activeType}>
+                  All events
+                </FilterOption>
+                {EVENT_TYPE_TABS.map(({ type, label }) => (
+                  <FilterOption key={type} href={buildQuery(searchParams, { type })} active={activeType === type}>
+                    {label}
+                  </FilterOption>
+                ))}
+              </FilterOptionList>
+            </FilterGroup>
+            <FilterGroup label="Format">
+              <select name="format" defaultValue={activeFormat ?? ""} className={FILTER_FIELD_CLASS}>
+                <option value="">Any format</option>
+                {Object.entries(EVENT_FORMAT_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </FilterGroup>
+            <FilterGroup label="Price">
+              <select name="payment" defaultValue={activePayment ?? ""} className={FILTER_FIELD_CLASS}>
+                {PAYMENT_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </FilterGroup>
+            <FilterGroup label="Location">
+              <select name="city" defaultValue={activeCity ?? ""} className={FILTER_FIELD_CLASS}>
+                <option value="">Any location</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            </FilterGroup>
+            <FilterGroup label="Audience">
+              <select name="audience" defaultValue={activeAudience ?? ""} className={FILTER_FIELD_CLASS}>
+                <option value="">Any audience</option>
+                {Object.entries(EVENT_AUDIENCE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </FilterGroup>
+            <FilterActions clearHref={q || hasActiveFilters ? clearHref : undefined} />
+          </FilterPanel>
+        }
+      >
+        {events.length === 0 ? (
+          <EmptyState
+            title={`No ${activeLabel ? activeLabel.toLowerCase() : "events"}${q || hasActiveFilters ? " match your search" : " yet"}`}
+            text={q || hasActiveFilters ? "Try removing a filter or searching for something else." : "New events are added regularly — check back soon."}
+          />
+        ) : (
+          <div className="flex flex-col gap-10">
+            {ongoing.length > 0 && (
+              <ResultsSection title="Happening now" count={ongoing.length}>
+                <CardGrid>
+                  {ongoing.map((event) => (
+                    <EventCard key={event.id} event={event} isSaved={savedEventIds ? savedEventIds.has(event.id) : null} />
+                  ))}
+                </CardGrid>
+              </ResultsSection>
+            )}
+
+            {upcoming.length > 0 && (
+              <ResultsSection title="Upcoming" count={upcoming.length}>
+                <CardGrid>
+                  {upcoming.map((event) => (
+                    <EventCard key={event.id} event={event} isSaved={savedEventIds ? savedEventIds.has(event.id) : null} />
+                  ))}
+                </CardGrid>
+              </ResultsSection>
+            )}
+          </div>
         )}
-      </form>
-
-      <FilterPillBar>
-        <FilterPill href={buildQuery(searchParams, { type: undefined })} active={!activeType}>
-          ✨ All
-        </FilterPill>
-        {EVENT_TYPE_TABS.map(({ type, label }) => (
-          <FilterPill key={type} href={buildQuery(searchParams, { type })} active={activeType === type}>
-            {label}
-          </FilterPill>
-        ))}
-      </FilterPillBar>
-
-      {events.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">
-          👀 No {activeLabel ? activeLabel.toLowerCase() : "events"}
-          {q || hasActiveFilters ? " match your search" : " published yet — check back soon!"}
-        </p>
-      ) : (
-        <div className="flex flex-col gap-10">
-          {ongoing.length > 0 && (
-            <section>
-              <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
-                Ongoing
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {ongoing.map((event) => (
-                  <EventCard key={event.id} event={event} isSaved={savedEventIds ? savedEventIds.has(event.id) : null} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {upcoming.length > 0 && (
-            <section>
-              <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
-                Upcoming
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {upcoming.map((event) => (
-                  <EventCard key={event.id} event={event} isSaved={savedEventIds ? savedEventIds.has(event.id) : null} />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      )}
+      </ListingShell>
     </main>
   );
 }

@@ -11,12 +11,11 @@ export function readLocationCookie(): string | undefined {
 
 /**
  * Every city worth offering in a picker: the curated list plus any city an
- * Event or Competition actually uses, deduped and sorted. Used by the
- * header LocationPicker and the Jobs filter (Job.location is free text, so
- * it has no clean distinct list of its own to draw from).
+ * Event, Competition or Job actually uses, deduped and sorted. Used by the
+ * header LocationPicker and the Jobs filter.
  */
 export async function getKnownCities(): Promise<string[]> {
-  const [eventCities, competitionCities] = await Promise.all([
+  const [eventCities, competitionCities, jobCities] = await Promise.all([
     prisma.event.findMany({
       where: { city: { not: null } },
       select: { city: true },
@@ -27,11 +26,17 @@ export async function getKnownCities(): Promise<string[]> {
       select: { city: true },
       distinct: ["city"],
     }),
+    prisma.job.findMany({
+      where: { city: { not: null }, isPublished: true },
+      select: { city: true },
+      distinct: ["city"],
+    }),
   ]);
 
   const cities = new Set<string>(CURATED_CITIES);
   for (const e of eventCities) if (e.city) cities.add(e.city);
   for (const c of competitionCities) if (c.city) cities.add(c.city);
+  for (const j of jobCities) if (j.city) cities.add(j.city);
 
   return Array.from(cities).sort((a, b) => a.localeCompare(b));
 }
