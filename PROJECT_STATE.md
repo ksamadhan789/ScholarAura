@@ -75,6 +75,7 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 ## Do Not Change
 
 - Prisma migrations are hand-written SQL files; never edit an already-applied migration — add a new one.
+- **Every schema change needs a migration file — never `prisma db push` against the live database.** Before 2026-09-24 several changes (referral credit, affiliates, multi-currency, external courses, the WEBINAR event type, one-certificate-per-course/event indexes) reached the live DB without one, so a fresh database built from `prisma/migrations` came out incomplete. `20260924160000_catch_up_schema_drift` fixed that with idempotent SQL (a no-op on the live DB). To check for drift: `npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url <empty db> --script` must print nothing.
 - Don't add `cookies()`/`headers()` calls to `app/layout.tsx`.
 - Don't import `lib/location.ts` from client components — use `lib/locationConstants.ts`.
 - Keep all Razorpay settlement functions idempotent (they can run twice).
