@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { eventCalendarEmailLinks } from "@/lib/eventCalendar";
+import { SITE_URL } from "@/lib/siteUrl";
 import { settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { claimCouponRedemption } from "@/lib/coupon";
 import { withEnrollmentNumber } from "@/lib/enrollment";
@@ -137,7 +139,8 @@ export async function settleEventRegistration(registrationId: string, paymentId:
       event.title,
       event.startDate,
       event.venueOrLink,
-      settled.enrollmentNumber
+      settled.enrollmentNumber,
+      eventCalendarEmailLinks(event, SITE_URL)
     ).catch((err) => console.error("Failed to send event registration confirmation email:", err));
   }
 

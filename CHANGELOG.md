@@ -5,6 +5,9 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-24
 
 ### Added
+- "Add to calendar" for events: Google Calendar, Outlook and "Apple / other" (a downloadable `.ics` file that Apple Calendar and most calendar apps open) in the action card of every published event that hasn't ended, and the same links in the registration confirmation email. The exact venue / meeting link stays private as before: visitors and the public `.ics` only get the format and city ("In person · Mumbai", "Online") plus the event page link; people who've registered get the real venue in their Google/Outlook links on the page and in the email. New `lib/calendarLinks.ts`, `lib/eventCalendar.ts` (with tests) and `GET /api/events/[slug]/calendar`. Building the email's links can never fail a payment settlement — on any problem the email just goes out without them.
+
+### Added
 - Job alerts. On `/jobs`, a "Get new jobs by email" box under the filters saves the current search (text, job type, remote, city) as an alert — logged-out visitors are sent to log in and brought back. Once a day, inside the existing reminders cron, each active alert gets one email listing up to 10 new matching jobs (published, approved, still open, posted after the alert was created) with a "See all matches" link; nothing is sent when there's nothing new, and no job is ever sent to the same alert twice (new `job_alert_deliveries` table — also catches recruiter jobs approved a day late). New `/dashboard/job-alerts` page (pause/resume/delete, linked from the dashboard's Jobs tiles), and a no-login "Stop this alert" page linked from every email. Up to 10 alerts per person. New `job_alerts`/`job_alert_deliveries` tables (migration `20260924180000_job_alerts`), `lib/jobAlerts.ts`, `lib/jobAlertLabels.ts`, `sendJobAlertEmail()`.
 
 ### Changed

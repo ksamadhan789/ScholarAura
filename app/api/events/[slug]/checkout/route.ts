@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { eventCalendarEmailLinks } from "@/lib/eventCalendar";
+import { SITE_URL } from "@/lib/siteUrl";
 import { getServerSession } from "next-auth";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
@@ -223,7 +225,8 @@ export async function POST(
             event.title,
             event.startDate,
             event.venueOrLink,
-            registration.enrollmentNumber
+            registration.enrollmentNumber,
+            eventCalendarEmailLinks(event, SITE_URL)
           ).catch((err) => console.error("Failed to send event registration confirmation email:", err));
         }
 
