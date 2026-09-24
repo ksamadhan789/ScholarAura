@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EMPLOYMENT_TYPE_LABELS, INTERNSHIP_PERKS } from "@/lib/jobLabels";
+import { JobCityField } from "@/components/jobs/JobCityField";
 
 type Initial = {
   title: string;
   companyName: string;
   companyLogoUrl: string;
   location: string;
+  city: string;
   isRemote: boolean;
   employmentType: string;
   description: string;
@@ -28,6 +30,7 @@ export function EditRecruiterJobForm({ slug, initial }: { slug: string; initial:
   const [companyName, setCompanyName] = useState(initial.companyName);
   const [companyLogoUrl, setCompanyLogoUrl] = useState(initial.companyLogoUrl);
   const [location, setLocation] = useState(initial.location);
+  const [city, setCity] = useState(initial.city);
   const [isRemote, setIsRemote] = useState(initial.isRemote);
   const [employmentType, setEmploymentType] = useState(initial.employmentType);
   const [description, setDescription] = useState(initial.description);
@@ -61,6 +64,7 @@ export function EditRecruiterJobForm({ slug, initial }: { slug: string; initial:
           companyName,
           companyLogoUrl: companyLogoUrl || null,
           location,
+          city,
           isRemote,
           employmentType,
           description,
@@ -139,6 +143,7 @@ export function EditRecruiterJobForm({ slug, initial }: { slug: string; initial:
               className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
             />
           </div>
+          <JobCityField value={city} onChange={setCity} />
           <div>
             <label className="mb-1 block text-sm font-medium">Employment type</label>
             <select

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EMPLOYMENT_TYPE_LABELS, INTERNSHIP_PERKS } from "@/lib/jobLabels";
+import { JobCityField } from "@/components/jobs/JobCityField";
 
 export default function NewJobPage() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function NewJobPage() {
   const [companyName, setCompanyName] = useState("");
   const [companyLogoUrl, setCompanyLogoUrl] = useState("");
   const [location, setLocation] = useState("");
+  const [city, setCity] = useState("");
   const [isRemote, setIsRemote] = useState(false);
   const [employmentType, setEmploymentType] = useState("FULL_TIME");
   const [description, setDescription] = useState("");
@@ -43,6 +45,7 @@ export default function NewJobPage() {
           companyName,
           companyLogoUrl: companyLogoUrl || undefined,
           location,
+          city,
           isRemote,
           employmentType,
           description,
@@ -119,6 +122,7 @@ export default function NewJobPage() {
               className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
             />
           </div>
+          <JobCityField value={city} onChange={setCity} />
           <div>
             <label className="mb-1 block text-sm font-medium">Employment type</label>
             <select

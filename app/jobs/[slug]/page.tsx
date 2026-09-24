@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { formatJobLocation } from "@/lib/jobCity";
 import { EMPLOYMENT_TYPE_LABELS, formatJobDate } from "@/lib/jobLabels";
 import { getDeadlineUrgency } from "@/lib/eventLabels";
 import { Badge } from "@/components/Badge";
@@ -86,7 +87,7 @@ export default async function JobDetailPage({ params }: { params: { slug: string
               )}
               {job.companyName}
             </span>
-            <span>{job.isRemote ? "Remote" : job.location}</span>
+            <span>{job.isRemote ? "Remote" : formatJobLocation(job)}</span>
             {isInternship ? (
               <>
                 {job.stipendRange && <span>{job.stipendRange}</span>}

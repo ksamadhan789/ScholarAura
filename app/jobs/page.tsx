@@ -8,7 +8,7 @@ import { Badge } from "@/components/Badge";
 import { FilterPill, FilterPillBar } from "@/components/FilterPill";
 import { SaveButton } from "@/components/SaveButton";
 import { readLocationCookie, getKnownCities } from "@/lib/location";
-import { getCityAliases } from "@/lib/cityAliases";
+import { formatJobLocation, jobCityWhere } from "@/lib/jobCity";
 
 export const metadata: Metadata = {
   title: "Jobs",
@@ -26,6 +26,7 @@ function JobCard({
     companyName: string;
     companyLogoUrl: string | null;
     location: string;
+    city: string | null;
     isRemote: boolean;
     employmentType: string;
     salaryRange: string | null;
@@ -71,7 +72,7 @@ function JobCard({
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
             {isFeatured && <Badge variant="warning">⭐ Featured</Badge>}
             <Badge variant="brand">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</Badge>
-            <span>{job.isRemote ? "Remote" : job.location}</span>
+            <span>{job.isRemote ? "Remote" : formatJobLocation(job)}</span>
             {isInternship ? (
               <>
                 {job.stipendRange && <span>· {job.stipendRange}</span>}
@@ -114,19 +115,10 @@ export default async function JobsPage({
         ...(activeType ? { employmentType: activeType as never } : {}),
         ...(remoteOnly ? { isRemote: true } : {}),
         AND: [
-          // Job.location is free text (e.g. "Bangalore, India"), not a clean
-          // city field like Event/Competition, so this is a loose text
-          // match against the chosen city (or any alternate name for it,
-          // e.g. Bengaluru/Bangalore) rather than an exact filter.
-          ...(activeCity
-            ? [
-                {
-                  OR: getCityAliases(activeCity).map((name) => ({
-                    location: { contains: name, mode: "insensitive" as const },
-                  })),
-                },
-              ]
-            : []),
+          // Matches the structured Job.city (any alternate name, e.g.
+          // Bengaluru/Bangalore); jobs without one fall back to a loose
+          // match on the free-text location — see lib/jobCity.ts.
+          ...(activeCity ? [jobCityWhere(activeCity)] : []),
           ...(q
             ? [
                 {
@@ -134,6 +126,7 @@ export default async function JobsPage({
                     { title: { contains: q, mode: "insensitive" as const } },
                     { companyName: { contains: q, mode: "insensitive" as const } },
                     { location: { contains: q, mode: "insensitive" as const } },
+                    { city: { contains: q, mode: "insensitive" as const } },
                   ],
                 },
               ]

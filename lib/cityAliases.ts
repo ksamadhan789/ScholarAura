@@ -1,6 +1,8 @@
-// Job.location is free text, so a recruiter may write the old or the new
-// name of the same city ("Bangalore" vs "Bengaluru"). Each group lists every
-// spelling we treat as the same place when filtering by city.
+import { CURATED_CITIES } from "@/lib/locationConstants";
+
+// Many Indian cities go by an old and a new name ("Bangalore" vs
+// "Bengaluru"). Each group lists every spelling we treat as the same place;
+// the first entry is the canonical one saved on new jobs.
 const CITY_ALIAS_GROUPS: string[][] = [
   ["Bengaluru", "Bangalore"],
   ["Mumbai", "Bombay"],
@@ -28,4 +30,20 @@ export function getCityAliases(city: string): string[] {
   const group = CITY_ALIAS_GROUPS.find((names) => names.some((n) => n.toLowerCase() === needle));
   if (!group) return [city.trim()];
   return [city.trim(), ...group.filter((n) => n.toLowerCase() !== needle)];
+}
+
+/**
+ * Normalizes a city typed into a form before it's saved: trims it, maps any
+ * known alternate name to the current one ("Bangalore" → "Bengaluru"), and
+ * matches the curated list's spelling regardless of case ("mumbai" →
+ * "Mumbai"). Anything else is kept as typed. Empty input → null.
+ */
+export function canonicalCityName(input: string | null | undefined): string | null {
+  const trimmed = input?.trim();
+  if (!trimmed) return null;
+  const needle = trimmed.toLowerCase();
+  const group = CITY_ALIAS_GROUPS.find((names) => names.some((n) => n.toLowerCase() === needle));
+  if (group) return group[0];
+  const curated = CURATED_CITIES.find((c) => c.toLowerCase() === needle);
+  return curated ?? trimmed;
 }

@@ -845,6 +845,10 @@ model Job {
   companyName         String
   companyLogoUrl      String?
   location            String
+  // Structured city for the /jobs city filter (canonical spelling via
+  // lib/cityAliases.ts). Optional — remote jobs may not have one, and jobs
+  // posted before this existed fall back to matching `location` text.
+  city                String?
   isRemote            Boolean            @default(false)
   employmentType      EmploymentType
   description         String
@@ -879,6 +883,7 @@ model Job {
   wishlistedBy        JobWishlist[]
   boosts              JobBoost[]
 
+  @@index([city])
   @@map("jobs")
 }
 

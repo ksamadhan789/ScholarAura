@@ -25,6 +25,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - In-app messaging for freelance listings
 - Freelance reviews/ratings (1–5 stars + comment, only after the freelancer has replied to you in-app)
 - Freelance "Report this listing" + admin moderation page (dismiss / remove / restore)
+- Structured city field for jobs (`Job.city`), with old/new city-name matching
 - Floating Aura chat widget (site-wide, like the language picker) alongside the full /aura page
 - Mobile nav redesigned as a touch-swipeable horizontal strip (Amazon-app style), replacing the vertical list
 - Homepage banner carousel: auto-scrolling featured courses/events/competitions cards below the hero, Amazon-app promo style
@@ -37,7 +38,6 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 ## Planned / Ideas (not started, not committed to)
 
 - Recruiter subscription plan (monthly/annual — build on top of the existing JobBoost model)
-- Structured city field for jobs (would replace the loose text match)
 - Placement-guarantee course tier (pair a course with a job outcome)
 - Bundles / learning paths — removed 2026-09-07; revisit only if there's a specific need (see CHANGELOG)
 - Homepage trust signals (stats bar, partner logos) once real numbers exist
@@ -46,5 +46,5 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 
 ## Known Issues to Revisit
 
-- Job location filter is still a loose text match — common old/new city names (Bengaluru/Bangalore etc.) now match via `lib/cityAliases.ts`, but other typos/variants won't
+- Jobs posted before 2026-09-24 whose location didn't name a recognizable city still have no structured `city` and use the loose location-text match — an admin/recruiter can fix one by setting City on its edit form
 - No refund path for job boosts
