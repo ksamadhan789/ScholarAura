@@ -20,7 +20,9 @@ import {
   ResultsSection,
 } from "@/components/listing/ListingLayout";
 import { readLocationCookie, getKnownCities } from "@/lib/location";
-import { formatJobLocation, jobCityWhere } from "@/lib/jobCity";
+import { formatJobLocation } from "@/lib/jobCity";
+import { jobSearchWhere, parseEmploymentType } from "@/lib/jobSearch";
+import { JobAlertButton } from "@/components/jobs/JobAlertButton";
 
 export const metadata: Metadata = {
   title: "Jobs",
@@ -130,26 +132,7 @@ export default async function JobsPage({
     prisma.job.findMany({
       where: {
         isPublished: true,
-        ...(activeType ? { employmentType: activeType as never } : {}),
-        ...(remoteOnly ? { isRemote: true } : {}),
-        AND: [
-          // Matches the structured Job.city (any alternate name, e.g.
-          // Bengaluru/Bangalore); jobs without one fall back to a loose
-          // match on the free-text location — see lib/jobCity.ts.
-          ...(activeCity ? [jobCityWhere(activeCity)] : []),
-          ...(q
-            ? [
-                {
-                  OR: [
-                    { title: { contains: q, mode: "insensitive" as const } },
-                    { companyName: { contains: q, mode: "insensitive" as const } },
-                    { location: { contains: q, mode: "insensitive" as const } },
-                    { city: { contains: q, mode: "insensitive" as const } },
-                  ],
-                },
-              ]
-            : []),
-        ],
+        ...jobSearchWhere({ query: q, employmentType: activeType, remoteOnly, city: activeCity }),
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -232,6 +215,20 @@ export default async function JobsPage({
             </FilterGroup>
             <FilterActions clearHref={hasFilters ? "/jobs" : undefined} />
           </FilterPanel>
+        }
+        sidebarFooter={
+          <JobAlertButton
+            isLoggedIn={!!session}
+            returnPath={`/jobs?${new URLSearchParams(
+              Object.entries(searchParams).filter((e): e is [string, string] => typeof e[1] === "string")
+            ).toString()}`}
+            filters={{
+              query: q ?? null,
+              employmentType: parseEmploymentType(activeType),
+              remoteOnly,
+              city: activeCity ?? null,
+            }}
+          />
         }
       >
         {jobs.length === 0 ? (

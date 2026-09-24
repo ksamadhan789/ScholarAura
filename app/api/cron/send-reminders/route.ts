@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEventReminderEmail, sendCompetitionReminderEmail } from "@/lib/email";
 import { secretsMatch } from "@/lib/timingSafeEqual";
+import { sendDueJobAlerts } from "@/lib/jobAlerts";
 
 // Runs once a day (see vercel.json). A generous look-ahead window plus the
 // reminderSentAt guard means a registration gets exactly one reminder even
@@ -77,5 +78,15 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ eventRemindersSent, competitionRemindersSent });
+  // Daily job-alert emails ride along on this existing daily cron rather than
+  // a cron of their own. Isolated so an alert failure can't hide the
+  // reminder counts above (which have already been sent and recorded).
+  let jobAlertEmailsSent = 0;
+  try {
+    jobAlertEmailsSent = (await sendDueJobAlerts(now)).emailsSent;
+  } catch (err) {
+    console.error("Sending job alerts failed:", err);
+  }
+
+  return NextResponse.json({ eventRemindersSent, competitionRemindersSent, jobAlertEmailsSent });
 }

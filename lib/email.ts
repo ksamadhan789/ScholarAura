@@ -1082,6 +1082,78 @@ export async function sendFreelanceReportEmail(
   return true;
 }
 
+export async function sendJobAlertEmail(
+  to: string,
+  name: string,
+  alert: {
+    alertName: string;
+    jobs: { title: string; companyName: string; place: string; url: string }[];
+    totalMatches: number;
+    searchUrl: string;
+    manageUrl: string;
+    unsubscribeUrl: string;
+  }
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send job alert email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const count = alert.totalMatches;
+  const subject = `${count} new job${count === 1 ? "" : "s"} for "${alert.alertName}"`;
+  const moreCount = count - alert.jobs.length;
+
+  const textJobs = alert.jobs.map((j) => `- ${j.title} — ${j.companyName}, ${j.place}\n  ${j.url}`).join("\n");
+  const htmlJobs = alert.jobs
+    .map(
+      (j) => `
+        <tr><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;">
+          <a href="${escapeHtml(j.url)}" style="font-weight:600;color:#1d4ed8;text-decoration:none;">${escapeHtml(j.title)}</a><br>
+          <span style="color:#475569;">${escapeHtml(j.companyName)} · ${escapeHtml(j.place)}</span>
+        </td></tr>`
+    )
+    .join("");
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject,
+      headers: { "List-Unsubscribe": `<${alert.unsubscribeUrl}>` },
+      text: `Hi ${displayName},\n\nNew jobs matching your alert "${alert.alertName}":\n\n${textJobs}\n${
+        moreCount > 0 ? `\n…and ${moreCount} more: ${alert.searchUrl}\n` : ""
+      }\nManage your alerts: ${alert.manageUrl}\nStop this alert: ${alert.unsubscribeUrl}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${escapeHtml(displayName)},</p>
+        <p>New jobs matching your alert <strong>${escapeHtml(alert.alertName)}</strong>:</p>
+        <table style="width:100%;border-collapse:collapse;">${htmlJobs}</table>
+        <p style="margin-top:16px;">
+          <a href="${escapeHtml(alert.searchUrl)}" style="display:inline-block;padding:12px 24px;background-color:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">${
+            moreCount > 0 ? `See all ${count} matches` : "See these jobs"
+          }</a>
+        </p>
+        <p style="font-size:12px;color:#64748b;">
+          You're getting this because you created a job alert on ScholarAura.
+          <a href="${escapeHtml(alert.manageUrl)}">Manage alerts</a> ·
+          <a href="${escapeHtml(alert.unsubscribeUrl)}">Stop this alert</a>
+        </p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send job alert email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send job alert email:", err);
+    return false;
+  }
+
+  return true;
+}
+
 export async function sendSupportTicketResolvedEmail(
   to: string,
   name: string,
