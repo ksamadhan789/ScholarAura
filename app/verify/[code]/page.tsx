@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ShareButtons } from "@/components/ShareButtons";
+import { SITE_URL } from "@/lib/siteUrl";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
@@ -100,6 +102,16 @@ export default async function VerifyCertificatePage({
           >
             View certificate PDF
           </a>
+
+          <div className="mt-5 border-t border-green-200 pt-4 dark:border-green-800">
+            <ShareButtons
+              label="Share this certificate"
+              url={`${SITE_URL}/verify/${certificate.certificateNumber}`}
+              title={`${certificate.user.name}'s ScholarAura certificate — ${
+                certificate.course?.title ?? certificate.event?.title ?? certificate.competition?.title
+              }`}
+            />
+          </div>
         </div>
       ) : (
         <div className="rounded border border-red-300 bg-red-50 p-5 dark:border-red-700 dark:bg-red-900/30">

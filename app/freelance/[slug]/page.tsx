@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ShareButtons } from "@/components/ShareButtons";
+import { SITE_URL } from "@/lib/siteUrl";
 import { ActionCard, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
@@ -115,7 +117,14 @@ export default async function FreelanceListingPage({
                 <span className="text-lg font-semibold text-slate-500 dark:text-slate-400">On request</span>
               )
             }
-            footer={!isOwner && <ReportListingButton slug={listing.slug} isLoggedIn={!!session} />}
+            footer={
+              <>
+                {listing.isPublished && !listing.removedByAdminAt && (
+                  <ShareButtons url={`${SITE_URL}/freelance/${listing.slug}`} title={listing.title} />
+                )}
+                {!isOwner && <ReportListingButton slug={listing.slug} isLoggedIn={!!session} />}
+              </>
+            }
           >
             {isOwner ? (
               <Link href={`/dashboard/freelance/${listing.slug}/edit`} className={ACTION_PRIMARY_CLASS}>

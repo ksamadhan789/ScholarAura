@@ -4,6 +4,11 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-24
 
+### Added
+- Share buttons (new `components/ShareButtons.tsx`) on every published course, event, competition, job and freelance listing page (in the right-hand action card) and on a valid certificate's public verify page: WhatsApp, LinkedIn, X, Facebook, email and "Copy link", plus a "Share" button that opens the phone's own share sheet where supported. Drafts, paused and removed listings don't show them.
+- "Add to LinkedIn" on My certificates: opens LinkedIn's add-certification form pre-filled with the certificate name, ScholarAura as issuer, issue month/year, certificate number and the public verify link, so anyone viewing the student's LinkedIn can check it's genuine.
+- `lib/shareLinks.ts` builds all these links (plain public share URLs — no SDKs, API keys or tracking), with tests.
+
 ### Fixed
 - Missing database migration files: about a dozen schema changes (referral credit and affiliates — `users.creditBalance/isAffiliate/affiliateRatePercent/referralCode/referredById`, `credit_transactions`; multi-currency — `exchange_rates`, `chargedAmount/creditApplied/currency` on course purchases and event registrations; `external_courses`; the `WEBINAR` event type; unique one-certificate-per-course/event indexes) had been applied to the live database without migration files, so a database rebuilt from `prisma/migrations` (disaster recovery, a staging copy) was incomplete. New catch-up migration `20260924160000_catch_up_schema_drift` adds them using only "if not exists" steps — a no-op on the live database — and never fails a deploy on unexpected data (a blocked index is skipped with a NOTICE). It also aligns the three `refund_requests` links with the schema (`ON DELETE SET NULL` instead of the hand-written `RESTRICT`; nothing in the app deletes those rows). Verified: fresh DB from migrations now matches the schema exactly; a production-like DB applies it with zero data changes; running it twice is safe; a DB with conflicting data still deploys.
 
