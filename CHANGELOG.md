@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-24
+
+### Fixed
+- Jobs city filter (`/jobs`) now treats old and new names of the same city as a match — picking "Bengaluru" also finds jobs written as "Bangalore" (and Mumbai/Bombay, Kolkata/Calcutta, Chennai/Madras, Gurugram/Gurgaon, and a few more). New `lib/cityAliases.ts` (`getCityAliases()`) with tests.
+
 ## 2026-09-23
 
 ### Added

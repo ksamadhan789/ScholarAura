@@ -8,6 +8,7 @@ import { Badge } from "@/components/Badge";
 import { FilterPill, FilterPillBar } from "@/components/FilterPill";
 import { SaveButton } from "@/components/SaveButton";
 import { readLocationCookie, getKnownCities } from "@/lib/location";
+import { getCityAliases } from "@/lib/cityAliases";
 
 export const metadata: Metadata = {
   title: "Jobs",
@@ -112,19 +113,32 @@ export default async function JobsPage({
         isPublished: true,
         ...(activeType ? { employmentType: activeType as never } : {}),
         ...(remoteOnly ? { isRemote: true } : {}),
-        // Job.location is free text (e.g. "Bangalore, India"), not a clean
-        // city field like Event/Competition, so this is a loose text
-        // match against the chosen city rather than an exact filter.
-        ...(activeCity ? { location: { contains: activeCity, mode: "insensitive" } } : {}),
-        ...(q
-          ? {
-              OR: [
-                { title: { contains: q, mode: "insensitive" } },
-                { companyName: { contains: q, mode: "insensitive" } },
-                { location: { contains: q, mode: "insensitive" } },
-              ],
-            }
-          : {}),
+        AND: [
+          // Job.location is free text (e.g. "Bangalore, India"), not a clean
+          // city field like Event/Competition, so this is a loose text
+          // match against the chosen city (or any alternate name for it,
+          // e.g. Bengaluru/Bangalore) rather than an exact filter.
+          ...(activeCity
+            ? [
+                {
+                  OR: getCityAliases(activeCity).map((name) => ({
+                    location: { contains: name, mode: "insensitive" as const },
+                  })),
+                },
+              ]
+            : []),
+          ...(q
+            ? [
+                {
+                  OR: [
+                    { title: { contains: q, mode: "insensitive" as const } },
+                    { companyName: { contains: q, mode: "insensitive" as const } },
+                    { location: { contains: q, mode: "insensitive" as const } },
+                  ],
+                },
+              ]
+            : []),
+        ],
       },
       orderBy: { createdAt: "desc" },
     }),

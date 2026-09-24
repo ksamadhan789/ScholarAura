@@ -46,5 +46,5 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 
 ## Known Issues to Revisit
 
-- Job location filter is a loose text match (spelling variants like Bengaluru/Bangalore don't match)
+- Job location filter is still a loose text match — common old/new city names (Bengaluru/Bangalore etc.) now match via `lib/cityAliases.ts`, but other typos/variants won't
 - No refund path for job boosts
