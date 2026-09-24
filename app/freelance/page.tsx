@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { Avatar } from "@/components/Avatar";
+import { StarRating } from "@/components/StarRating";
+import { getFreelanceRatingSummaries } from "@/lib/freelanceReview";
 
 export const metadata: Metadata = {
   title: "Freelance",
@@ -20,7 +22,13 @@ type Listing = {
   postedByUser: { name: string; photoFileId: string | null };
 };
 
-function ListingCard({ listing }: { listing: Listing }) {
+function ListingCard({
+  listing,
+  rating,
+}: {
+  listing: Listing;
+  rating?: { average: number; count: number };
+}) {
   const skills = Array.isArray(listing.skills) ? (listing.skills as string[]) : [];
   return (
     <Link
@@ -37,6 +45,15 @@ function ListingCard({ listing }: { listing: Listing }) {
         />
         <p className="text-sm text-gray-600 dark:text-slate-400">by {listing.postedByUser.name}</p>
       </div>
+      {rating && (
+        <div className="mt-1 flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400">
+          <StarRating value={rating.average} />
+          <span className="font-medium text-slate-700 dark:text-slate-200">
+            {rating.average.toFixed(1)}
+          </span>
+          ({rating.count})
+        </div>
+      )}
       {listing.rate && (
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{listing.rate}</p>
       )}
@@ -90,6 +107,7 @@ export default async function FreelancePage({
   ]);
 
   const categories = categoryRows.map((r) => r.category).sort();
+  const ratings = await getFreelanceRatingSummaries(listings.map((l) => l.id));
 
   return (
     <main className="mx-auto max-w-[1400px] px-4 py-16">
@@ -159,7 +177,7 @@ export default async function FreelancePage({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {listings.map((listing) => (
-            <ListingCard key={listing.slug} listing={listing} />
+            <ListingCard key={listing.slug} listing={listing} rating={ratings.get(listing.id)} />
           ))}
         </div>
       )}

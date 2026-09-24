@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EnrollButton } from "./EnrollButton";
-import { CourseReviewSection } from "./CourseReviewSection";
+import { ReviewSection } from "@/components/ReviewSection";
 import { CourseQASection } from "./CourseQASection";
 import { StarRating } from "@/components/StarRating";
 import { WishlistButton } from "@/components/courses/WishlistButton";
@@ -294,12 +294,14 @@ export default async function CourseDetailPage({
         isOwner={isOwner}
       />
 
-      <CourseReviewSection
-        slug={course.slug}
+      <ReviewSection
+        apiBase={`/api/courses/${course.slug}/reviews`}
+        adminDeleteBase="/api/admin/course-reviews"
         reviews={reviews.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
         average={reviewAverage}
         count={reviewCount}
-        isEnrolled={isEnrolled}
+        canReview={isEnrolled}
+        placeholder="What did you think of this course? (optional)"
         currentUserId={session?.user.id ?? null}
         isAdmin={isAdmin}
       />

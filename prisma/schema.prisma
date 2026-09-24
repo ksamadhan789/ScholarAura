@@ -179,6 +179,7 @@ model User {
   freelanceListings   FreelanceListing[]
   freelanceThreadsStarted FreelanceThread[] @relation("FreelanceThreadInitiator")
   sentFreelanceMessages   FreelanceMessage[] @relation("FreelanceMessageSender")
+  freelanceReviews        FreelanceReview[]
   supportTickets          SupportTicket[]
 
   @@map("users")
@@ -1123,6 +1124,7 @@ model FreelanceListing {
   updatedAt      DateTime @updatedAt
 
   threads        FreelanceThread[]
+  reviews        FreelanceReview[]
 
   @@index([category])
   @@index([postedByUserId])
@@ -1159,6 +1161,28 @@ model FreelanceMessage {
 
   @@index([threadId, createdAt])
   @@map("freelance_messages")
+}
+
+// A star rating (+ optional comment) on a freelance listing, left by someone
+// who actually worked with the poster. There's no in-app order/payment for
+// freelance work, so "worked with" is approximated as: the reviewer started
+// a message thread on this listing and the poster replied in it at least
+// once (checked at write time in lib/freelanceReview.ts). One per
+// (listing, reviewer), editable — same shape as CourseReview.
+model FreelanceReview {
+  id         String           @id @default(uuid())
+  listingId  String
+  listing    FreelanceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer   User             @relation(fields: [reviewerId], references: [id])
+  rating     Int
+  comment    String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@unique([listingId, reviewerId])
+  @@index([listingId])
+  @@map("freelance_reviews")
 }
 
 enum SupportTicketStatus {

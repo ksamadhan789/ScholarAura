@@ -7,6 +7,9 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { Avatar } from "@/components/Avatar";
 import { ContactButton } from "@/components/freelance/ContactButton";
+import { ReviewSection } from "@/components/ReviewSection";
+import { StarRating } from "@/components/StarRating";
+import { canReviewFreelanceListing } from "@/lib/freelanceReview";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +42,22 @@ export default async function FreelanceListingPage({
   const skills = Array.isArray(listing.skills) ? (listing.skills as string[]) : [];
   const isOwner = session?.user.id === listing.postedByUserId;
 
+  const [reviews, reviewAggregate, canReview] = await Promise.all([
+    prisma.freelanceReview.findMany({
+      where: { listingId: listing.id },
+      include: { reviewer: { select: { name: true, photoFileId: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.freelanceReview.aggregate({
+      where: { listingId: listing.id },
+      _avg: { rating: true },
+      _count: { _all: true },
+    }),
+    session ? canReviewFreelanceListing(listing, session.user.id) : Promise.resolve(false),
+  ]);
+  const reviewCount = reviewAggregate._count._all;
+  const reviewAverage = reviewAggregate._avg.rating ?? 0;
+
   return (
     <main className="mx-auto max-w-[1050px] px-4 py-16">
       <div className="mb-4 flex items-center justify-between">
@@ -67,6 +86,15 @@ export default async function FreelanceListingPage({
           size={28}
         />
         <p className="text-gray-500 dark:text-slate-400">by {listing.postedByUser.name}</p>
+        {reviewCount > 0 && (
+          <span className="flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400">
+            · <StarRating value={reviewAverage} />
+            <span className="font-medium text-slate-700 dark:text-slate-200">
+              {reviewAverage.toFixed(1)}
+            </span>
+            ({reviewCount})
+          </span>
+        )}
       </div>
       {listing.rate && <p className="mt-2 font-medium">{listing.rate}</p>}
 
@@ -111,6 +139,30 @@ export default async function FreelanceListingPage({
           </a>
         </div>
       )}
+
+      <ReviewSection
+        apiBase={`/api/freelance/${listing.slug}/reviews`}
+        adminDeleteBase="/api/admin/freelance-reviews"
+        reviews={reviews.map((r) => ({
+          id: r.id,
+          rating: r.rating,
+          comment: r.comment,
+          createdAt: r.createdAt.toISOString(),
+          userId: r.reviewerId,
+          user: r.reviewer,
+        }))}
+        average={reviewAverage}
+        count={reviewCount}
+        canReview={canReview}
+        cannotReviewHint={
+          isOwner
+            ? undefined
+            : "Worked with this freelancer? You can leave a review once you've messaged them here and they've replied."
+        }
+        placeholder="How was working with this freelancer? (optional)"
+        currentUserId={session?.user.id ?? null}
+        isAdmin={session?.user.role === "ADMIN"}
+      />
     </main>
   );
 }

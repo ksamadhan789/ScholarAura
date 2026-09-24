@@ -4,6 +4,9 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-24
 
+### Added
+- Freelancer reviews and ratings: 1–5 stars plus an optional comment on a freelance listing, one per person, editable/deletable by its author and removable by an admin. To keep reviews genuine, only someone who messaged the freelancer through the listing *and got a reply* can leave one (`lib/freelanceReview.ts`). The average rating shows on `/freelance` browse cards and next to the poster's name on the listing page, with the full review list below; the freelancer gets an in-app notification for each new review. New `FreelanceReview` table (migration `20260924100000_freelance_reviews`), `POST/DELETE /api/freelance/[slug]/reviews`, a public reviewer-photo route, and admin `DELETE /api/admin/freelance-reviews/[id]`. The course review component was moved to a shared `components/ReviewSection.tsx` so both use the same form/list instead of a copy — course reviews look and behave the same, except a student who's no longer enrolled can now still see (and delete) their own old review instead of it disappearing from their view.
+
 ### Fixed
 - Jobs city filter (`/jobs`) now treats old and new names of the same city as a match — picking "Bengaluru" also finds jobs written as "Bangalore" (and Mumbai/Bombay, Kolkata/Calcutta, Chennai/Madras, Gurugram/Gurgaon, and a few more). New `lib/cityAliases.ts` (`getCityAliases()`) with tests.
 
