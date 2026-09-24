@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { ShareButtons } from "@/components/ShareButtons";
+import { SITE_URL } from "@/lib/siteUrl";
 import { CalendarDays, Clock, FileText, MapPin, Users } from "lucide-react";
 import { ActionCard, ActionStatus, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
 import type { Metadata } from "next";
@@ -204,6 +206,9 @@ export default async function CompetitionDetailPage({
                     endpoint={`/api/competitions/${competition.slug}/wishlist`}
                     isSaved={!!wishlistEntry}
                   />
+                )}
+                {competition.isPublished && (
+                  <ShareButtons url={`${SITE_URL}/competitions/${competition.slug}`} title={competition.title} />
                 )}
               </>
             }

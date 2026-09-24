@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ShareButtons } from "@/components/ShareButtons";
+import { SITE_URL } from "@/lib/siteUrl";
 import { Briefcase, Building2, CalendarDays, Clock, MapPin } from "lucide-react";
 import { ActionCard, ActionStatus, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
 import { notFound } from "next/navigation";
@@ -148,6 +150,9 @@ export default async function JobDetailPage({ params }: { params: { slug: string
                 )}
                 {session && !application && (
                   <SaveButton endpoint={`/api/jobs/${job.slug}/wishlist`} isSaved={!!wishlistEntry} />
+                )}
+                {job.isPublished && (
+                  <ShareButtons url={`${SITE_URL}/jobs/${job.slug}`} title={`${job.title} at ${job.companyName}`} />
                 )}
               </>
             }

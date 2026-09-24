@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ShareButtons } from "@/components/ShareButtons";
+import { SITE_URL } from "@/lib/siteUrl";
 import { Award, ClipboardCheck, PlayCircle } from "lucide-react";
 import { ActionCard, ActionStatus, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
 import type { Metadata } from "next";
@@ -198,6 +200,9 @@ export default async function CourseDetailPage({
                   Certificate on completion
                 </p>
                 {session && !isEnrolled && <WishlistButton slug={course.slug} isWishlisted={!!wishlistEntry} />}
+                {course.isPublished && (
+                  <ShareButtons url={`${SITE_URL}/courses/${course.slug}`} title={course.title} />
+                )}
               </>
             }
           >

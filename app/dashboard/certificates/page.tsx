@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
 import { SITE_URL } from "@/lib/siteUrl";
 import { PublicProfileToggle } from "@/components/certificates/PublicProfileToggle";
+import { buildLinkedInAddCertificateUrl } from "@/lib/shareLinks";
 
 const STATUS_LABEL: Record<string, string> = {
   ELIGIBLE: "⏳ Processing",
@@ -75,7 +76,20 @@ export default async function MyCertificatesPage() {
                   </p>
                 </div>
                 {ready ? (
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <a
+                      href={buildLinkedInAddCertificateUrl({
+                        name: cert.course?.title ?? cert.event?.title ?? cert.competition?.title ?? "ScholarAura certificate",
+                        issuedAt: cert.issuedAt,
+                        certUrl: `${SITE_URL}/verify/${cert.certificateNumber}`,
+                        certId: cert.certificateNumber,
+                      })}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded bg-[#0A66C2] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#0957a5]"
+                    >
+                      Add to LinkedIn
+                    </a>
                     <a
                       href={`/verify/${cert.certificateNumber}`}
                       target="_blank"
