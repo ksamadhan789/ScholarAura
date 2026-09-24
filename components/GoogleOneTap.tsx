@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 declare global {
   interface Window {
@@ -50,7 +49,6 @@ function loadGsiScript(): Promise<void> {
 // suppresses the prompt; the regular "Continue with Google" OAuth button
 // stays as the reliable fallback everywhere this is used.
 export function GoogleOneTap({ clientId }: { clientId: string }) {
-  const router = useRouter();
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -70,8 +68,8 @@ export function GoogleOneTap({ clientId }: { clientId: string }) {
               redirect: false,
             });
             if (!result?.error) {
-              router.push("/dashboard");
-              router.refresh();
+              // Full page load so no router-cached signed-out redirect is reused.
+              window.location.assign("/dashboard");
             }
           },
           use_fedcm_for_prompt: true,

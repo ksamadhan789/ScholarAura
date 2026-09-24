@@ -182,6 +182,7 @@ model User {
   freelanceReviews        FreelanceReview[]
   freelanceReports        FreelanceReport[]
   jobAlerts               JobAlert[]
+  emailVerificationTokens EmailVerificationToken[]
   supportTickets          SupportTicket[]
 
   @@map("users")
@@ -198,6 +199,21 @@ model College {
   createdAt    DateTime      @default(now())
 
   @@map("colleges")
+}
+
+// One-time "verify your email" link for email/password sign-ups. Same
+// hashed-token design as PasswordResetToken (lib/emailVerification.ts).
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("email_verification_tokens")
 }
 
 model PasswordResetToken {

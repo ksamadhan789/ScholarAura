@@ -64,3 +64,9 @@ export async function checkRateLimit(key: string, limit: number, windowMs: numbe
   });
   return true;
 }
+
+// Verification emails, per target address — covers both the "resend" button
+// and the automatic resend when an unverified account tries to log in, so
+// one inbox can't be flooded however the requests arrive.
+export const VERIFY_EMAIL_SEND_LIMIT = 5;
+export const VERIFY_EMAIL_SEND_WINDOW_MS = 15 * 60 * 1000;

@@ -33,7 +33,9 @@ export async function POST(request: Request) {
   const passwordHash = await bcrypt.hash(password, 10);
 
   await prisma.$transaction([
-    prisma.user.update({ where: { id: resetToken.userId }, data: { passwordHash } }),
+    // The reset link reached this inbox, which proves ownership — so it
+    // also verifies the email (a second way in for never-verified accounts).
+    prisma.user.update({ where: { id: resetToken.userId }, data: { passwordHash, emailVerified: true } }),
     prisma.passwordResetToken.update({ where: { id: resetToken.id }, data: { usedAt: new Date() } }),
     // Invalidate any other outstanding reset requests for this user too.
     prisma.passwordResetToken.updateMany({

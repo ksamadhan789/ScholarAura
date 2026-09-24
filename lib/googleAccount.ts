@@ -32,8 +32,21 @@ export async function findOrCreateGoogleUser({
       throw err;
     }
   }
-  if (!existing.googleId) {
-    return prisma.user.update({ where: { email }, data: { googleId } });
+  // Google has verified this address, so the account's email is verified
+  // from here on. If it wasn't before, its password was set by whoever
+  // signed up with this address — never proven to be the inbox owner — so
+  // it's cleared: otherwise someone could pre-register a victim's email and
+  // keep a working password on the account after the victim links Google.
+  // The owner can set a password again via "Forgot password".
+  if (!existing.googleId || !existing.emailVerified) {
+    return prisma.user.update({
+      where: { email },
+      data: {
+        googleId: existing.googleId ?? googleId,
+        emailVerified: true,
+        ...(!existing.emailVerified && { passwordHash: null }),
+      },
+    });
   }
   return existing;
 }

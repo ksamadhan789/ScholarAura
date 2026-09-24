@@ -24,6 +24,49 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+export async function sendEmailVerificationEmail(
+  to: string,
+  name: string,
+  verifyUrl: string
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send email verification email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: "Verify your email for ScholarAura",
+      text: `Hi ${displayName},\n\nPlease confirm this is your email address so you can sign in to ScholarAura:\n\n${verifyUrl}\n\nThis link expires in 24 hours. If you didn't create a ScholarAura account, you can ignore this email.\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${safeDisplayName},</p>
+        <p>Please confirm this is your email address so you can sign in to ScholarAura.</p>
+        <p>
+          <a href="${escapeHtml(verifyUrl)}" style="display:inline-block;padding:12px 24px;background-color:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Verify my email</a>
+        </p>
+        <p>This link expires in 24 hours. If you didn't create a ScholarAura account, you can ignore this email.</p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send email verification email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send email verification email:", err);
+    return false;
+  }
+
+  return true;
+}
+
 export async function sendPasswordResetEmail(
   to: string,
   name: string,

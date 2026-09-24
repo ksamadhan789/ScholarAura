@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { generateReferralCode } from "@/lib/referral";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { checkRateLimit, REGISTER_ATTEMPT_LIMIT, REGISTER_WINDOW_MS } from "@/lib/rateLimit";
+import { isEmailVerificationRequired, sendVerificationEmail } from "@/lib/emailVerification";
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -78,7 +79,16 @@ export async function POST(request: Request) {
       data: { name, email, passwordHash, referralCode, referredById },
     });
 
-    return NextResponse.json({ id: user.id, email: user.email }, { status: 201 });
+    // Sent even when enforcement is switched off, so the address still gets
+    // confirmed; the page only waits for it when sign-in requires it.
+    await sendVerificationEmail(user).catch((err) =>
+      console.error("Failed to send verification email after registration:", err)
+    );
+
+    return NextResponse.json(
+      { id: user.id, email: user.email, needsVerification: isEmailVerificationRequired() },
+      { status: 201 }
+    );
   } catch (err) {
     console.error("Registration failed:", err);
     return NextResponse.json(
