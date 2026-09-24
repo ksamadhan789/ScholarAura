@@ -5,6 +5,9 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-24
 
 ### Added
+- Google for Jobs support: every published, approved, still-open job page now includes hidden schema.org `JobPosting` data (title, description + requirements, company and logo, city or remote-in-India, job type, date posted, closing date, experience), built from existing fields by new `lib/jobPostingSchema.ts` (with tests). Drafts, pending recruiter jobs and jobs past their deadline get none, as Google requires. Salary is left out on purpose — it's free text and guessing numbers could show wrong pay. Recruiter-typed text is escaped so it can't break the page. Nothing visible changes; Google decides whether and when to show the jobs (usually days to weeks).
+
+### Added
 - Share buttons (new `components/ShareButtons.tsx`) on every published course, event, competition, job and freelance listing page (in the right-hand action card) and on a valid certificate's public verify page: WhatsApp, LinkedIn, X, Facebook, email and "Copy link", plus a "Share" button that opens the phone's own share sheet where supported. Drafts, paused and removed listings don't show them.
 - "Add to LinkedIn" on My certificates: opens LinkedIn's add-certification form pre-filled with the certificate name, ScholarAura as issuer, issue month/year, certificate number and the public verify link, so anyone viewing the student's LinkedIn can check it's genuine.
 - `lib/shareLinks.ts` builds all these links (plain public share URLs — no SDKs, API keys or tracking), with tests.

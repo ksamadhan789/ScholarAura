@@ -26,6 +26,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Freelance reviews/ratings (1–5 stars + comment, only after the freelancer has replied to you in-app)
 - Freelance "Report this listing" + admin moderation page (dismiss / remove / restore)
 - Structured city field for jobs (`Job.city`), with old/new city-name matching
+- Google for Jobs structured data (JobPosting JSON-LD) on job pages
 - Share buttons (WhatsApp/LinkedIn/X/Facebook/email/copy/native share) on detail pages and certificates, plus "Add to LinkedIn" for certificates
 - Site revamp, brighter and light-first (2026-09-24): light default theme, icon-based header, navy footer, About/Contact/FAQ/404 pages, new homepage, shared listing layout with sidebar filters, two-column detail pages with a sticky action card
 - Floating Aura chat widget (site-wide, like the language picker) alongside the full /aura page
@@ -38,6 +39,8 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Nothing currently in progress.
 
 ## Planned / Ideas (not started, not committed to)
+
+- Set up Google Search Console for scholaraura.com (owner task, ~10 min) to monitor Google for Jobs pickup and indexing
 
 - Recruiter subscription plan (monthly/annual — build on top of the existing JobBoost model)
 - Placement-guarantee course tier (pair a course with a job outcome)
