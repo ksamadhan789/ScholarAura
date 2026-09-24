@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Briefcase, Building2, CalendarDays, Clock, MapPin } from "lucide-react";
+import { ActionCard, ActionStatus, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
@@ -67,8 +69,8 @@ export default async function JobDetailPage({ params }: { params: { slug: string
         eyebrow={EMPLOYMENT_TYPE_LABELS[job.employmentType]}
         badges={
           <>
-            {isFeatured && <Badge variant="warning">⭐ Featured</Badge>}
-            {urgency && <Badge variant={urgency.variant}>⏰ {urgency.label} to apply</Badge>}
+            {isFeatured && <Badge variant="warning">Featured</Badge>}
+            {urgency && <Badge variant={urgency.variant}>{urgency.label} to apply</Badge>}
           </>
         }
         title={job.title}
@@ -83,7 +85,7 @@ export default async function JobDetailPage({ params }: { params: { slug: string
                   className="h-5 w-5 rounded bg-white object-contain"
                 />
               ) : (
-                <span aria-hidden>💼</span>
+                <Building2 aria-hidden className="h-4 w-4" />
               )}
               {job.companyName}
             </span>
@@ -107,87 +109,109 @@ export default async function JobDetailPage({ params }: { params: { slug: string
         }
       />
 
-      {job.applicationDeadline && (
-        <p className="mt-4 text-sm text-gray-500 dark:text-slate-400">
-          Apply by {formatJobDate(job.applicationDeadline)}
-        </p>
-      )}
-
-      {isInternship && (
-        <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
-          Start date:{" "}
-          {job.internshipStartDate ? formatJobDate(job.internshipStartDate) : "Immediately"}
-        </p>
-      )}
-
-      {isInternship && Array.isArray(job.perks) && job.perks.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {(job.perks as string[]).map((perk) => (
-            <Badge key={perk} variant="neutral">
-              {perk}
-            </Badge>
-          ))}
-        </div>
-      )}
-
-      <div className="mt-6 whitespace-pre-wrap text-slate-800 dark:text-slate-200">
-        {job.description}
-      </div>
-
-      {job.requirements && (
-        <div className="mt-6">
-          <InfoCard icon="📋" title="Requirements">
-            <div className="whitespace-pre-wrap">{job.requirements}</div>
-          </InfoCard>
-        </div>
-      )}
-
-      <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-800/60">
-        {isAdmin && (
-          <Link
-            href={`/dashboard/jobs/${job.slug}/edit`}
-            className="mr-3 rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+      <DetailColumns
+        aside={
+          <ActionCard
+            label={isInternship ? "Stipend" : "Salary"}
+            price={
+              (isInternship ? job.stipendRange : job.salaryRange) ?? (
+                <span className="text-lg font-semibold text-slate-500 dark:text-slate-400">Not disclosed</span>
+              )
+            }
+            priceNote={job.applicationDeadline && `Apply by ${formatJobDate(job.applicationDeadline)}`}
+            footer={
+              <>
+                <p className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                  <MapPin aria-hidden className="h-4 w-4" />
+                  {job.isRemote ? "Remote" : formatJobLocation(job)}
+                </p>
+                {isInternship ? (
+                  <>
+                    {job.durationMonths && (
+                      <p className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                        <Clock aria-hidden className="h-4 w-4" />
+                        {job.durationMonths} month{job.durationMonths === 1 ? "" : "s"}
+                      </p>
+                    )}
+                    <p className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                      <CalendarDays aria-hidden className="h-4 w-4" />
+                      Starts {job.internshipStartDate ? formatJobDate(job.internshipStartDate) : "immediately"}
+                    </p>
+                  </>
+                ) : (
+                  job.minExperienceYears != null && (
+                    <p className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                      <Briefcase aria-hidden className="h-4 w-4" />
+                      {job.minExperienceYears}+ years experience
+                    </p>
+                  )
+                )}
+                {session && !application && (
+                  <SaveButton endpoint={`/api/jobs/${job.slug}/wishlist`} isSaved={!!wishlistEntry} />
+                )}
+              </>
+            }
           >
-            Edit
-          </Link>
-        )}
-        {!isAdmin && session?.user.role === "RECRUITER" && session.user.id === job.postedByUserId && (
-          <Link
-            href={`/dashboard/recruiter/jobs/${job.slug}/edit`}
-            className="mr-3 rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
-            Edit
-          </Link>
-        )}
-        {application ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <Badge variant="success">You've applied — status: {application.status}</Badge>
-            {application.status !== "HIRED" && <WithdrawApplicationButton jobSlug={job.slug} />}
+            {application ? (
+              <>
+                <ActionStatus tone="success">You&apos;ve applied — status: {application.status}</ActionStatus>
+                {application.status !== "HIRED" && <WithdrawApplicationButton jobSlug={job.slug} />}
+              </>
+            ) : !job.isPublished ? (
+              <ActionStatus tone="neutral">Draft — applications open once published</ActionStatus>
+            ) : deadlinePassed ? (
+              <ActionStatus tone="neutral">Applications closed</ActionStatus>
+            ) : session ? (
+              <Link href={`/jobs/${job.slug}/apply`} className={ACTION_PRIMARY_CLASS}>
+                Apply now
+              </Link>
+            ) : (
+              <Link href={`/login?callbackUrl=/jobs/${job.slug}`} className={ACTION_PRIMARY_CLASS}>
+                Log in to apply
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
+                href={`/dashboard/jobs/${job.slug}/edit`}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-center text-sm font-medium dark:border-slate-600"
+              >
+                Edit job
+              </Link>
+            )}
+            {!isAdmin && session?.user.role === "RECRUITER" && session.user.id === job.postedByUserId && (
+              <Link
+                href={`/dashboard/recruiter/jobs/${job.slug}/edit`}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-center text-sm font-medium dark:border-slate-600"
+              >
+                Edit job
+              </Link>
+            )}
+          </ActionCard>
+        }
+      >
+
+        {isInternship && Array.isArray(job.perks) && job.perks.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {(job.perks as string[]).map((perk) => (
+              <Badge key={perk} variant="neutral">
+                {perk}
+              </Badge>
+            ))}
           </div>
-        ) : !job.isPublished ? null : deadlinePassed ? (
-          <Badge variant="warning">Applications closed</Badge>
-        ) : session ? (
-          <Link
-            href={`/jobs/${job.slug}/apply`}
-            className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
-          >
-            Apply now
-          </Link>
-        ) : (
-          <Link
-            href={`/login?callbackUrl=/jobs/${job.slug}`}
-            className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
-          >
-            Log in to apply
-          </Link>
         )}
-      </div>
 
-      {session && !application && (
-        <div className="mt-4">
-          <SaveButton endpoint={`/api/jobs/${job.slug}/wishlist`} isSaved={!!wishlistEntry} />
+        <div className="mt-6 whitespace-pre-wrap text-slate-800 dark:text-slate-200">
+          {job.description}
         </div>
-      )}
+
+        {job.requirements && (
+          <div className="mt-6">
+            <InfoCard icon="📋" title="Requirements">
+              <div className="whitespace-pre-wrap">{job.requirements}</div>
+            </InfoCard>
+          </div>
+        )}
+      </DetailColumns>
     </main>
   );
 }

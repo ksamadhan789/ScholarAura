@@ -4,6 +4,12 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-24
 
+### Changed — site revamp, step 5 (detail pages) — revamp complete
+- Course, event, competition, job and freelance detail pages now use two columns (`components/detail/DetailLayout.tsx`): content on the left, and an action card on the right holding the price and the real enroll / register / enter / apply / message button — it stays in view while scrolling on desktop and follows the content on phones. The card also lists key facts (lectures and total length, final quiz, certificate on completion; seats left; team size; job location, experience, internship duration/start date) and holds the save/wishlist button, brochure link and, for freelance, the report link. Every button and every rule for who sees what is unchanged — verified logged out and logged in (enrolled, entered) against sample data.
+- A course you're enrolled in now has a "Go to course" button (first lecture) in that card.
+- A competition you've entered shows your submission form in the main column under "Your submission" instead of squeezed into the card; the hero button reads "Your entry ↓".
+- Emoji replaced with icons in the detail heroes (dates, location, seats, brochure).
+
 ### Changed — site revamp, step 4 (listing pages)
 - `/courses`, `/events`, `/competitions`, `/jobs` and `/freelance` rebuilt on one shared layout (`components/listing/`): a title band, filters in a left sidebar on desktop (folded behind a "Search & filters" button on phones), and results in a 1/2/3-column grid instead of 2 oversized cards per row. Every filter, search and URL works exactly as before — verified each one against sample data.
 - One shared card (`MediaCard`) for courses, events and competitions: 16:9 image or branded icon placeholder, badges, two-line title, icon-led details (dates, format/city, seats left, deadline, team size, instructor, rating) and the price. Competition cards now also show the real "N days left" deadline badge. Jobs stay a list with restyled rows (company logo, type badge, location/pay/duration with icons); freelance uses compact cards led by the freelancer's photo and rating.

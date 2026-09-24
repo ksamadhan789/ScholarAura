@@ -26,6 +26,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Freelance reviews/ratings (1–5 stars + comment, only after the freelancer has replied to you in-app)
 - Freelance "Report this listing" + admin moderation page (dismiss / remove / restore)
 - Structured city field for jobs (`Job.city`), with old/new city-name matching
+- Site revamp, brighter and light-first (2026-09-24): light default theme, icon-based header, navy footer, About/Contact/FAQ/404 pages, new homepage, shared listing layout with sidebar filters, two-column detail pages with a sticky action card
 - Floating Aura chat widget (site-wide, like the language picker) alongside the full /aura page
 - Mobile nav redesigned as a touch-swipeable horizontal strip (Amazon-app style), replacing the vertical list
 - Homepage banner carousel: auto-scrolling featured courses/events/competitions cards below the hero, Amazon-app promo style
@@ -33,7 +34,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 
 ## In Progress
 
-- Site revamp (brighter, light-first — owner's choice 2026-09-24). Done: steps 1–4 (foundation, header, footer, About/Contact/FAQ, 404, homepage, listing pages). Next: step 5 detail pages. See PROJECT_STATE.md.
+- Nothing currently in progress.
 
 ## Planned / Ideas (not started, not committed to)
 
