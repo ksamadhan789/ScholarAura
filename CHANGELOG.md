@@ -4,6 +4,9 @@ Short entries for meaningful changes. Newest first. No source code here.
 
 ## 2026-09-25
 
+### Added
+- Homepage trust signals. A strip under the hero with four points that are true of the platform today (verifiable certificates, secure Razorpay payments, every recruiter and job reviewed, clear refund policy). Further down, a "ScholarAura so far" band of real all-time numbers (members, certificates issued, events hosted, event registrations, competition entries) and up to three real 4–5 star course reviews. Both only appear once there's enough real data: a number needs to be at least 50, the band needs at least two such numbers, and figures are rounded down ("1,200+"). A "Trusted by" partner-logo strip is ready too but stays hidden until real partners are added to `lib/partners.ts`.
+
 ### Fixed
 - Google sign-in works again in production. The deleted Google Cloud OAuth client was recreated (config only, no code): new client in the ScholarAura Google Cloud project, consent screen published, keys updated in Vercel.
 - `www.scholaraura.com` showed Hostinger's parked-domain page (whose robots.txt blocks everything), so Google reported the www home page as "blocked by robots.txt". The `www` DNS record in Hostinger now points at Vercel, and Vercel permanently redirects `www` to `scholaraura.com` (DNS/config only, no code). Sitemap submitted in Google Search Console.

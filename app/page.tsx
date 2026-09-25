@@ -8,12 +8,17 @@ import { getHomeCategoryStats } from "@/lib/homeCategoryStats";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomeHowItWorks } from "@/components/home/HomeHowItWorks";
 import { HomePartnerBand } from "@/components/home/HomePartnerBand";
+import { HomeTrustPoints } from "@/components/home/HomeTrustPoints";
+import { HomeTrustSection } from "@/components/home/HomeTrustSection";
+import { HomePartnerLogos } from "@/components/home/HomePartnerLogos";
+import { getHomeTestimonials, getHomeTrustCounts } from "@/lib/homeTrustStats";
+import { pickTrustStats } from "@/lib/trustSignals";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const now = new Date();
-  const [courses, events, competitions, categoryStats] = await Promise.all([
+  const [courses, events, competitions, categoryStats, trustCounts, testimonials] = await Promise.all([
     prisma.course.findMany({
       where: { isPublished: true },
       include: { instructor: { select: { name: true } } },
@@ -30,6 +35,8 @@ export default async function HomePage() {
       take: 4,
     }),
     getHomeCategoryStats(),
+    getHomeTrustCounts(),
+    getHomeTestimonials(),
   ]);
   const categoryItems: HomeCategoryItem[] = HOME_CATEGORIES.map((c) => ({
     ...c,
@@ -86,11 +93,17 @@ export default async function HomePage() {
     <main className="flex flex-1 flex-col">
       <HomeHero stats={heroStats} />
 
+      <HomeTrustPoints />
+
       <HomeCategoryCarousel categories={categoryItems} />
 
       <HomeBannerCarousel items={bannerItems} />
 
+      <HomeTrustSection stats={pickTrustStats(trustCounts)} testimonials={testimonials} />
+
       <HomeHowItWorks />
+
+      <HomePartnerLogos />
 
       <HomePartnerBand />
     </main>
