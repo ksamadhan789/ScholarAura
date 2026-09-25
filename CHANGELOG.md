@@ -2,6 +2,14 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (recruiter & instructor dashboards polish)
+
+### Changed
+- Recruiter dashboard: the same navy banner as the learner dashboard (company initial, name, designation and website, "Post a job" and "Jobs board" buttons), four real stats (live jobs, total applicants, new applicants this week, shortlisted or hired), and job cards with status, type, "Featured" and "Closes in N days" tags, location, "Posted N days ago", an applicants tile showing how many are new this week, and View applicants / Edit / Boost / View listing / Pause listing actions. An approved-but-unpublished job now reads "Not published". The under-review and not-approved screens are clearer, with a Contact us link.
+- Instructor "My courses": stats (published courses, students enrolled, lectures uploaded, average rating), and course cards with image, Published/Draft tag, price (or "Free"), lectures and total length, students and rating, with Manage lectures, View and Publish/Unpublish.
+- Instructors get a "My courses" button in their dashboard banner, and the greeting skips titles — "Welcome back, Meera", not "Welcome back, Dr.".
+- The banner and stat cards are now shared components (`DashboardBanner`, `DashboardStatCard` in `components/dashboard/DashboardShell.tsx`).
+
 ## 2026-09-25 (profile editor polish)
 
 ### Changed

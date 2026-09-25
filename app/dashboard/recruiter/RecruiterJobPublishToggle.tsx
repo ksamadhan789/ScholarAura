@@ -2,14 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
-export function RecruiterJobPublishToggle({
-  slug,
-  isPublished,
-}: {
-  slug: string;
-  isPublished: boolean;
-}) {
+export function RecruiterJobPublishToggle({ slug, isPublished }: { slug: string; isPublished: boolean }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -31,11 +26,17 @@ export function RecruiterJobPublishToggle({
 
   return (
     <button
+      type="button"
       onClick={toggle}
       disabled={loading}
-      className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm disabled:opacity-50"
+      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
+        isPublished
+          ? "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+          : "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+      }`}
     >
-      {loading ? "…" : isPublished ? "Pause listing" : "Publish"}
+      {isPublished ? <EyeOff aria-hidden className="h-4 w-4" /> : <Eye aria-hidden className="h-4 w-4" />}
+      {loading ? "Saving…" : isPublished ? "Pause listing" : "Publish"}
     </button>
   );
 }
