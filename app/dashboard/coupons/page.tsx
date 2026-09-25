@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { CreateCouponForm } from "./CreateCouponForm";
 import { CouponActions } from "./CouponActions";
+import { Tag } from "lucide-react";
+import { DashboardEmptyState, DashboardShell } from "@/components/dashboard/DashboardShell";
 
 const APPLIES_TO_LABEL: Record<string, string> = {
   ALL: "Everything",
@@ -25,55 +27,57 @@ export default async function CouponsPage() {
   const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: "desc" } });
 
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">Coupons</h1>
-
+    <DashboardShell
+      title="Coupons"
+      backHref="/dashboard/admin"
+      backLabel="Admin"
+      description="Discount codes buyers enter at checkout. A coupon that's been used can be deactivated but not deleted."
+    >
       <CreateCouponForm />
 
       {coupons.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-slate-400">No coupons created yet.</p>
+        <DashboardEmptyState icon={Tag} title="No coupons yet" text="Create your first one above." />
       ) : (
-        <div className="overflow-x-auto rounded border border-gray-200 dark:border-slate-700">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-800">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/40 dark:text-slate-400">
               <tr>
-                <th className="px-4 py-2.5 font-medium">Code</th>
-                <th className="px-4 py-2.5 font-medium">Discount</th>
-                <th className="px-4 py-2.5 font-medium">Applies to</th>
-                <th className="px-4 py-2.5 font-medium">Redemptions</th>
-                <th className="px-4 py-2.5 font-medium">Expires</th>
-                <th className="px-4 py-2.5 font-medium">Status</th>
-                <th className="px-4 py-2.5 font-medium">Actions</th>
+                <th className="px-4 py-3 font-semibold">Code</th>
+                <th className="px-4 py-3 font-semibold">Discount</th>
+                <th className="px-4 py-3 font-semibold">Applies to</th>
+                <th className="px-4 py-3 font-semibold">Redemptions</th>
+                <th className="px-4 py-3 font-semibold">Expires</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
               {coupons.map((coupon) => {
                 const expired = coupon.expiresAt ? coupon.expiresAt < new Date() : false;
                 return (
-                  <tr key={coupon.id} className="border-t border-gray-200 dark:border-slate-700">
-                    <td className="px-4 py-2.5 font-mono">{coupon.code}</td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                      {coupon.discountType === "PERCENT"
-                        ? `${coupon.discountValue}%`
-                        : `₹${coupon.discountValue}`}
+                  <tr key={coupon.id} className="border-t border-slate-100 dark:border-slate-700">
+                    <td className="px-4 py-3 font-mono font-semibold text-slate-900 dark:text-white">{coupon.code}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                      {coupon.discountType === "PERCENT" ? `${coupon.discountValue}%` : `₹${coupon.discountValue}`}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                       {APPLIES_TO_LABEL[coupon.appliesTo] ?? coupon.appliesTo}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                       {coupon.redemptionCount}
                       {coupon.maxRedemptions != null ? ` / ${coupon.maxRedemptions}` : ""}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                       {coupon.expiresAt
                         ? coupon.expiresAt.toLocaleDateString("en-IN", {
                             day: "numeric",
                             month: "short",
                             year: "numeric",
+                            timeZone: "Asia/Kolkata",
                           })
                         : "—"}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-4 py-3">
                       {expired ? (
                         <Badge variant="neutral">Expired</Badge>
                       ) : (
@@ -82,7 +86,7 @@ export default async function CouponsPage() {
                         </Badge>
                       )}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-4 py-3">
                       <CouponActions
                         id={coupon.id}
                         isActive={coupon.isActive}
@@ -96,6 +100,6 @@ export default async function CouponsPage() {
           </table>
         </div>
       )}
-    </main>
+    </DashboardShell>
   );
 }

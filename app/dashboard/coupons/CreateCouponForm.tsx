@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { DASHBOARD_INPUT_CLASS, DASHBOARD_LABEL_CLASS } from "@/components/dashboard/DashboardShell";
 
 export function CreateCouponForm() {
   const router = useRouter();
@@ -52,33 +53,36 @@ export function CreateCouponForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mb-8 flex flex-col gap-4 rounded border border-gray-200 dark:border-slate-700 p-4">
-      <h2 className="font-semibold">Create a coupon</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="mb-8 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800"
+    >
+      <h2 className="font-semibold text-slate-900 dark:text-white">Create a coupon</h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div>
-          <label className="mb-1 block text-sm font-medium">Code</label>
+          <label className={DASHBOARD_LABEL_CLASS}>Code</label>
           <input
             type="text"
             required
             placeholder="WELCOME20"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm uppercase dark:bg-slate-800 dark:text-white"
+            className={`${DASHBOARD_INPUT_CLASS} font-mono uppercase`}
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Type</label>
+          <label className={DASHBOARD_LABEL_CLASS}>Type</label>
           <select
             value={discountType}
             onChange={(e) => setDiscountType(e.target.value as "PERCENT" | "FIXED")}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+            className={DASHBOARD_INPUT_CLASS}
           >
             <option value="PERCENT">Percent off</option>
             <option value="FIXED">Fixed amount off (₹)</option>
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label className={DASHBOARD_LABEL_CLASS}>
             {discountType === "PERCENT" ? "Percent (0-100)" : "Amount (₹)"}
           </label>
           <input
@@ -89,16 +93,12 @@ export function CreateCouponForm() {
             step="0.01"
             value={discountValue}
             onChange={(e) => setDiscountValue(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+            className={DASHBOARD_INPUT_CLASS}
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Applies to</label>
-          <select
-            value={appliesTo}
-            onChange={(e) => setAppliesTo(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-          >
+          <label className={DASHBOARD_LABEL_CLASS}>Applies to</label>
+          <select value={appliesTo} onChange={(e) => setAppliesTo(e.target.value)} className={DASHBOARD_INPUT_CLASS}>
             <option value="ALL">Everything</option>
             <option value="COURSE">Courses only</option>
             <option value="EVENT">Events only</option>
@@ -106,34 +106,34 @@ export function CreateCouponForm() {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Max redemptions (optional)</label>
+          <label className={DASHBOARD_LABEL_CLASS}>Max redemptions (optional)</label>
           <input
             type="number"
             min="1"
             placeholder="Unlimited"
             value={maxRedemptions}
             onChange={(e) => setMaxRedemptions(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+            className={DASHBOARD_INPUT_CLASS}
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Minimum order (₹, optional)</label>
+          <label className={DASHBOARD_LABEL_CLASS}>Minimum order (₹, optional)</label>
           <input
             type="number"
             min="0"
             step="0.01"
             value={minAmount}
             onChange={(e) => setMinAmount(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+            className={DASHBOARD_INPUT_CLASS}
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Expires (optional)</label>
+          <label className={DASHBOARD_LABEL_CLASS}>Expires (optional)</label>
           <input
             type="datetime-local"
             value={expiresAt}
             onChange={(e) => setExpiresAt(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+            className={DASHBOARD_INPUT_CLASS}
           />
         </div>
       </div>
@@ -141,7 +141,7 @@ export function CreateCouponForm() {
       <button
         type="submit"
         disabled={loading}
-        className="self-start rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-sm text-white disabled:opacity-50"
+        className="self-start rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
       >
         {loading ? "Creating…" : "Create coupon"}
       </button>

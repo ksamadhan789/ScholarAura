@@ -7,12 +7,18 @@ import { EVENT_TYPE_LABELS, formatDateRange } from "@/lib/eventLabels";
 import { EventPublishToggle } from "./EventPublishToggle";
 import { EventArchiveToggle } from "./EventArchiveToggle";
 import { Badge } from "@/components/Badge";
+import { Award, CalendarDays, Pencil, Plus, Users } from "lucide-react";
+import {
+  DASHBOARD_CARD_CLASS,
+  DASHBOARD_PRIMARY_BUTTON_CLASS,
+  DASHBOARD_SECONDARY_BUTTON_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+  DashboardTabs,
+  DateTile,
+} from "@/components/dashboard/DashboardShell";
 
-export default async function ManageEventsPage({
-  searchParams,
-}: {
-  searchParams: { tab?: string };
-}) {
+export default async function ManageEventsPage({ searchParams }: { searchParams: { tab?: string } }) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -32,98 +38,101 @@ export default async function ManageEventsPage({
   ]);
   const waitlistCountByEventId = new Map(waitlistCounts.map((w) => [w.eventId, w._count._all]));
 
-  return (
-    <main className="mx-auto max-w-[1200px] px-4 py-16">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Manage events</h1>
-        <Link
-          href="/dashboard/events/new"
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-sm text-white"
-        >
-          + New event
-        </Link>
-      </div>
+  const now = new Date();
 
-      <div className="mb-6 flex gap-2">
-        <Link
-          href="/dashboard/events"
-          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-            !showArchived
-              ? "bg-brand-600 text-white"
-              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-          }`}
-        >
-          Active ({activeCount})
+  return (
+    <DashboardShell
+      title="Manage events"
+      backHref="/dashboard/admin"
+      backLabel="Admin"
+      description="Conferences, webinars, workshops and FDPs, soonest first."
+      actions={
+        <Link href="/dashboard/events/new" className={`${DASHBOARD_PRIMARY_BUTTON_CLASS} py-1.5`}>
+          <Plus aria-hidden className="h-4 w-4" />
+          New event
         </Link>
-        <Link
-          href="/dashboard/events?tab=archived"
-          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-            showArchived
-              ? "bg-brand-600 text-white"
-              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-          }`}
-        >
-          Archived ({archivedCount})
-        </Link>
-      </div>
+      }
+    >
+      <DashboardTabs
+        active={showArchived ? "archived" : "active"}
+        tabs={[
+          { key: "active", label: "Active", count: activeCount, href: "/dashboard/events" },
+          { key: "archived", label: "Archived", count: archivedCount, href: "/dashboard/events?tab=archived" },
+        ]}
+      />
 
       {events.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">
-          {showArchived ? "No archived events." : "No events created yet."}
-        </p>
+        <DashboardEmptyState
+          icon={CalendarDays}
+          title={showArchived ? "No archived events" : "No events created yet"}
+          href={showArchived ? undefined : "/dashboard/events/new"}
+          cta={showArchived ? undefined : "Create an event"}
+        />
       ) : (
-        <div className="flex flex-col gap-3">
-          {events.map((event) => (
-            <div
-              key={event.id}
-              className="flex items-center justify-between rounded border border-gray-200 dark:border-slate-700 p-4"
-            >
-              <div>
-                <Link href={`/events/${event.slug}`} className="font-medium hover:underline">
-                  {event.title}
-                </Link>
-                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-                  {EVENT_TYPE_LABELS[event.type]} ·{" "}
-                  {formatDateRange(event.startDate, event.endDate)}
-                </p>
-                <div className="mt-1 flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
-                  <Badge variant={event.isPublished ? "success" : "warning"}>
-                    {event.isPublished ? "Published" : "Draft"}
-                  </Badge>
-                  <span>
-                    {event.seatsFilled}/{event.seatsTotal} registered
-                  </span>
-                  {(waitlistCountByEventId.get(event.id) ?? 0) > 0 && (
-                    <span>· {waitlistCountByEventId.get(event.id)} waitlisted</span>
-                  )}
+        <ul className="space-y-4">
+          {events.map((event) => {
+            const waitlisted = waitlistCountByEventId.get(event.id) ?? 0;
+            const fillPercent =
+              event.seatsTotal > 0 ? Math.min(100, Math.round((event.seatsFilled / event.seatsTotal) * 100)) : 0;
+            const ended = event.endDate < now;
+            return (
+              <li key={event.id} className={`${DASHBOARD_CARD_CLASS} p-5`}>
+                <div className="flex gap-4">
+                  <DateTile date={event.startDate} muted={ended} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge variant={event.isPublished ? "success" : "warning"}>
+                        {event.isPublished ? "Published" : "Draft"}
+                      </Badge>
+                      <Badge variant="brand">{EVENT_TYPE_LABELS[event.type]}</Badge>
+                      {ended && <Badge variant="neutral">Ended</Badge>}
+                    </div>
+                    <Link
+                      href={`/events/${event.slug}`}
+                      className="mt-1.5 block font-semibold leading-snug text-slate-900 hover:text-brand-700 dark:text-white dark:hover:text-brand-400"
+                    >
+                      {event.title}
+                    </Link>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                      {formatDateRange(event.startDate, event.endDate)}
+                    </p>
+                    <div className="mt-3 flex max-w-sm items-center gap-3">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                        <div className="h-full rounded-full bg-brand-600" style={{ width: `${fillPercent}%` }} />
+                      </div>
+                      <span className="shrink-0 text-xs tabular-nums text-slate-500 dark:text-slate-400">
+                        {event.seatsFilled}/{event.seatsTotal} registered
+                        {waitlisted > 0 && ` · ${waitlisted} waitlisted`}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/dashboard/events/${event.slug}/edit`}
-                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                >
-                  Edit
-                </Link>
-                <Link
-                  href={`/dashboard/events/${event.slug}/students`}
-                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                >
-                  Registrations
-                </Link>
-                <Link
-                  href={`/dashboard/events/${event.slug}/certificates`}
-                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                >
-                  Certificates
-                </Link>
-                <EventPublishToggle slug={event.slug} isPublished={event.isPublished} />
-                <EventArchiveToggle slug={event.slug} isArchived={event.isArchived} />
-              </div>
-            </div>
-          ))}
-        </div>
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4 dark:border-slate-700">
+                  <Link href={`/dashboard/events/${event.slug}/edit`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+                    <Pencil aria-hidden className="h-4 w-4" />
+                    Edit
+                  </Link>
+                  <Link href={`/dashboard/events/${event.slug}/students`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+                    <Users aria-hidden className="h-4 w-4" />
+                    Registrations
+                  </Link>
+                  <Link
+                    href={`/dashboard/events/${event.slug}/certificates`}
+                    className={DASHBOARD_SECONDARY_BUTTON_CLASS}
+                  >
+                    <Award aria-hidden className="h-4 w-4" />
+                    Certificates
+                  </Link>
+                  <span className="ml-auto flex flex-wrap gap-1">
+                    <EventPublishToggle slug={event.slug} isPublished={event.isPublished} />
+                    <EventArchiveToggle slug={event.slug} isArchived={event.isArchived} />
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }
