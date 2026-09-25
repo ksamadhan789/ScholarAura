@@ -6,6 +6,7 @@ import { canonicalMailbox, generateReferralCode } from "@/lib/referral";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { checkRateLimit, REGISTER_ATTEMPT_LIMIT, REGISTER_WINDOW_MS } from "@/lib/rateLimit";
 import { isEmailVerificationRequired, sendVerificationEmail } from "@/lib/emailVerification";
+import { handleSignupForExistingAccount, signupResponseBody } from "@/lib/signupExistingAccount";
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -58,12 +59,11 @@ export async function POST(request: Request) {
       }
     }
 
+    // Same response whether or not the email is taken — see
+    // lib/signupExistingAccount.ts. The real owner gets an email instead.
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json(
-        { error: "An account with this email already exists" },
-        { status: 409 }
-      );
+      return NextResponse.json(await handleSignupForExistingAccount(existing, password, email), { status: 201 });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     );
 
     return NextResponse.json(
-      { id: user.id, email: user.email, needsVerification: isEmailVerificationRequired() },
+      signupResponseBody(user.email, isEmailVerificationRequired()),
       { status: 201 }
     );
   } catch (err) {

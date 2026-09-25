@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (private sign-up)
+
+### Security
+- Sign-up (students and recruiters) no longer tells you whether an email already has an account. Signing up with a registered email now shows the same "Check your inbox" screen as a new sign-up, and the account's real owner gets an email: "You already have a ScholarAura account — sign in, or reset your password" (or "use Continue with Google" for Google accounts). So the sign-up form can't be used to find out who uses ScholarAura, and the real person still knows what to do. The email is rate-limited per address so the form can't be used to flood someone's inbox, and the reply takes the same time either way.
+
 ## 2026-09-25 (Content-Security-Policy)
 
 ### Security
