@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (Content-Security-Policy)
+
+### Security
+- Added a Content-Security-Policy (`lib/contentSecurityPolicy.mjs`). Enforced now on every page: no browser plugins, no framing of ScholarAura by other sites, no `<base>` tag hijacking, and all requests upgraded to https. The full policy — scripts, frames and connections allowed only from ScholarAura itself and the services it uses (Razorpay, Google sign-in, Cloudflare Turnstile, Google Analytics, Sentry, Vercel Blob, Bunny video, Google Translate) — runs in report-only mode first: browsers report what it would block to `/api/csp-report` (logged in Vercel) without blocking anything. Once the logs are clean, setting `CSP_ENFORCE=true` in Vercel turns full enforcement on.
+
 ## 2026-09-25 (My competitions, Refer & earn, Saved for later, Job alerts polish)
 
 ### Changed
