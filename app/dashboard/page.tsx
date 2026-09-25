@@ -29,7 +29,9 @@ import {
   BANNER_PRIMARY_BUTTON_CLASS,
   BANNER_SECONDARY_BUTTON_CLASS,
   DashboardBanner,
+  DashboardLinkGroup,
   DashboardStatCard,
+  type DashboardLink,
 } from "@/components/dashboard/DashboardShell";
 import { formatDateRange } from "@/lib/eventLabels";
 import { firstNameOf, istGreeting, pickContinueLearning, summarizeCourseProgress } from "@/lib/dashboardSummary";
@@ -63,33 +65,6 @@ function EmptyState({ icon: Icon, text, href, cta }: { icon: LucideIcon; text: s
         {cta}
         <ArrowRight aria-hidden className="h-4 w-4" />
       </Link>
-    </div>
-  );
-}
-
-type Shortcut = { href: string; icon: LucideIcon; label: string };
-
-function ShortcutGroup({ title, links }: { title: string; links: Shortcut[] }) {
-  return (
-    <div className={`${CARD_CLASS} p-5`}>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{title}</h3>
-      <ul className="mt-3 space-y-1">
-        {links.map(({ href, icon: Icon, label }) => (
-          <li key={href}>
-            <Link
-              href={href}
-              className="group flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-brand-700 dark:text-slate-200 dark:hover:bg-slate-700/50 dark:hover:text-brand-400"
-            >
-              <Icon aria-hidden className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-brand-600" />
-              <span className="flex-1">{label}</span>
-              <ArrowRight
-                aria-hidden
-                className="h-4 w-4 -translate-x-1 text-slate-300 opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100"
-              />
-            </Link>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
@@ -231,7 +206,7 @@ export default async function DashboardPage() {
   const roleLabel = isInstructor ? "Instructor" : "Student";
   const profileDetails = [roleLabel, user?.organization, headline].filter(Boolean).join(" · ");
 
-  const learningLinks: Shortcut[] = [
+  const learningLinks: DashboardLink[] = [
     { href: "/courses", icon: BookOpen, label: "Browse courses" },
     { href: "/dashboard/learning", icon: GraduationCap, label: "My learning" },
     ...(isInstructor
@@ -522,8 +497,8 @@ export default async function DashboardPage() {
 
         {/* Shortcuts */}
         <section aria-label="Shortcuts" className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <ShortcutGroup title="Learning" links={learningLinks} />
-          <ShortcutGroup
+          <DashboardLinkGroup title="Learning" links={learningLinks} />
+          <DashboardLinkGroup
             title="Events & competitions"
             links={[
               { href: "/events", icon: CalendarDays, label: "Browse events" },
@@ -544,7 +519,7 @@ export default async function DashboardPage() {
               },
             ]}
           />
-          <ShortcutGroup
+          <DashboardLinkGroup
             title="Jobs"
             links={[
               { href: "/jobs", icon: Briefcase, label: "Browse jobs" },
@@ -560,7 +535,7 @@ export default async function DashboardPage() {
               },
             ]}
           />
-          <ShortcutGroup
+          <DashboardLinkGroup
             title="Freelance & more"
             links={[
               { href: "/freelance", icon: Store, label: "Browse freelance" },

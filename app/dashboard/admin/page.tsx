@@ -5,13 +5,72 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getConnectedGoogleEmail } from "@/lib/google/delegatedAuth";
 import { DisconnectDriveButton } from "@/components/certificates/DisconnectDriveButton";
+import {
+  AlertTriangle,
+  Award,
+  BarChart3,
+  BookOpen,
+  Briefcase,
+  CalendarDays,
+  CheckCircle2,
+  Coins,
+  Flag,
+  GraduationCap,
+  HardDrive,
+  IndianRupee,
+  LifeBuoy,
+  Megaphone,
+  Percent,
+  ReceiptText,
+  RotateCcw,
+  ScrollText,
+  Share2,
+  ShieldCheck,
+  Tag,
+  Trophy,
+  UserCheck,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import {
+  BANNER_PRIMARY_BUTTON_CLASS,
+  DashboardBanner,
+  DashboardLinkGroup,
+  DashboardStatCard,
+} from "@/components/dashboard/DashboardShell";
 
-function StatTile({ label, value }: { label: string; value: string }) {
+type QueueItem = { href: string; icon: LucideIcon; label: string; count: number };
+
+/** One review queue: amber with its count when something is waiting, calm when empty. */
+function QueueCard({ href, icon: Icon, label, count }: QueueItem) {
+  const waiting = count > 0;
   return (
-    <div className="rounded border border-gray-200 dark:border-slate-700 p-4">
-      <p className="text-2xl font-semibold">{value}</p>
-      <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{label}</p>
-    </div>
+    <Link
+      href={href}
+      className={`group flex items-center gap-3 rounded-xl border p-4 transition hover:-translate-y-0.5 hover:shadow-md ${
+        waiting
+          ? "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20"
+          : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
+      }`}
+    >
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+          waiting
+            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+            : "bg-slate-100 text-slate-400 dark:bg-slate-700"
+        }`}
+      >
+        <Icon aria-hidden className="h-5 w-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">{label}</span>
+        <span
+          className={`block text-xs ${waiting ? "font-semibold text-amber-800 dark:text-amber-300" : "text-slate-400"}`}
+        >
+          {waiting ? `${count.toLocaleString("en-IN")} waiting` : "All clear"}
+        </span>
+      </span>
+    </Link>
   );
 }
 
@@ -91,168 +150,229 @@ export default async function AdminHomePage({
     Number(competitionRevenue._sum.amount ?? 0) -
     Number(competitionRevenue._sum.creditApplied ?? 0);
 
-  return (
-    <main className="mx-auto max-w-[1200px] px-4 py-16">
-      <h1 className="text-2xl font-semibold">Admin</h1>
-      <p className="mt-2 text-gray-600 dark:text-slate-400">
-        Signed in as <strong>{session.user?.email}</strong>
-      </p>
+  const queues: QueueItem[] = [
+    {
+      href: "/dashboard/admin/recruiters",
+      icon: UserCheck,
+      label: "Recruiters to review",
+      count: pendingRecruiterCount,
+    },
+    { href: "/dashboard/jobs", icon: Briefcase, label: "Jobs to review", count: pendingJobCount },
+    {
+      href: "/dashboard/admin/refund-requests",
+      icon: RotateCcw,
+      label: "Refund requests",
+      count: pendingRefundRequestCount,
+    },
+    {
+      href: "/dashboard/admin/support-tickets",
+      icon: LifeBuoy,
+      label: "Open support tickets",
+      count: openSupportTicketCount,
+    },
+    {
+      href: "/dashboard/admin/freelance-reports",
+      icon: Flag,
+      label: "Freelance reports",
+      count: openFreelanceReportCount,
+    },
+    { href: "/dashboard/colleges", icon: GraduationCap, label: "Colleges to review", count: pendingCollegeCount },
+  ];
+  const waitingTotal = queues.reduce((sum, q) => sum + q.count, 0);
+  const onboardedPercent = studentCount > 0 ? Math.round((onboardedCount / studentCount) * 100) : 0;
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-2 rounded border border-gray-200 dark:border-slate-700 p-3 text-sm">
-        {connectedEmail ? (
-          <>
-            <span className="text-gray-600 dark:text-slate-300">
-              ✓ Google Drive connected as <span className="font-medium">{connectedEmail}</span> — used to
-              store certificates, resumes and profile photos.
+  return (
+    <main className="flex-1 bg-slate-50 dark:bg-slate-950">
+      <div className="mx-auto max-w-[1200px] px-4 py-10 sm:py-14">
+        <DashboardBanner
+          leading={
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-sky-300 ring-4 ring-white/5">
+              <ShieldCheck aria-hidden className="h-8 w-8" />
             </span>
+          }
+          eyebrow="Admin"
+          title="Admin dashboard"
+          subtitle={`Signed in as ${session.user?.email}`}
+          actions={
+            <Link href="/dashboard/analytics" className={BANNER_PRIMARY_BUTTON_CLASS}>
+              <BarChart3 aria-hidden className="h-4 w-4" />
+              Analytics
+            </Link>
+          }
+        />
+
+        {/* Google Drive connection — everything file-based depends on it */}
+        <div
+          className={`mt-6 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
+            connectedEmail
+              ? "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
+              : "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20"
+          }`}
+        >
+          <p className="flex items-start gap-3 text-sm">
+            <span
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                connectedEmail
+                  ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
+                  : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+              }`}
+            >
+              <HardDrive aria-hidden className="h-5 w-5" />
+            </span>
+            {connectedEmail ? (
+              <span className="text-slate-600 dark:text-slate-300">
+                <span className="font-semibold text-slate-900 dark:text-white">Google Drive connected</span> as{" "}
+                <span className="font-medium">{connectedEmail}</span> — used to store certificates, resumes and profile
+                photos.
+              </span>
+            ) : (
+              <span className="text-amber-800 dark:text-amber-300">
+                <span className="font-semibold">No Google Drive account connected</span> — certificate generation,
+                resume uploads and profile photo uploads will all fail until one is connected.
+              </span>
+            )}
+          </p>
+          {connectedEmail ? (
             <DisconnectDriveButton />
-          </>
-        ) : (
-          <>
-            <span className="text-amber-700 dark:text-amber-400">
-              ⚠️ No Google Drive account connected — certificate generation, resume uploads and profile
-              photo uploads will all fail until one is connected.
-            </span>
+          ) : (
             <a
               href={`/api/admin/google-drive/connect?returnTo=${encodeURIComponent("/dashboard/admin")}`}
-              className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-3 py-1.5 text-sm text-white"
+              className="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
             >
               Connect Google Drive
             </a>
-          </>
+          )}
+        </div>
+        {searchParams.driveConnected && (
+          <p className="mt-3 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
+            <CheckCircle2 aria-hidden className="h-4 w-4" />
+            Google Drive connected successfully.
+          </p>
         )}
-      </div>
-      {searchParams.driveConnected && (
-        <p className="mt-3 text-sm text-green-700 dark:text-green-400">✓ Google Drive connected successfully.</p>
-      )}
-      {searchParams.driveError && (
-        <p className="mt-3 text-sm text-red-700 dark:text-red-400">
-          Google Drive connection failed ({searchParams.driveError}). Please try again.
-        </p>
-      )}
+        {searchParams.driveError && (
+          <p className="mt-3 flex items-center gap-2 text-sm text-red-700 dark:text-red-400">
+            <AlertTriangle aria-hidden className="h-4 w-4" />
+            Google Drive connection failed ({searchParams.driveError}). Please try again.
+          </p>
+        )}
 
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatTile label="Students" value={studentCount.toLocaleString("en-IN")} />
-        <StatTile label="Total revenue" value={`₹${totalRevenue.toLocaleString("en-IN")}`} />
-        <StatTile label="Published courses" value={publishedCourseCount.toLocaleString("en-IN")} />
-        <StatTile label="Published events" value={publishedEventCount.toLocaleString("en-IN")} />
-        <StatTile label="Published competitions" value={publishedCompetitionCount.toLocaleString("en-IN")} />
-        <StatTile label="Published jobs" value={publishedJobCount.toLocaleString("en-IN")} />
-        <StatTile label="Job applications" value={jobApplicationCount.toLocaleString("en-IN")} />
-        <StatTile label="Recruiters pending review" value={pendingRecruiterCount.toLocaleString("en-IN")} />
-        <StatTile label="Jobs pending review" value={pendingJobCount.toLocaleString("en-IN")} />
-        <StatTile label="Refund requests pending" value={pendingRefundRequestCount.toLocaleString("en-IN")} />
-        <StatTile label="Support tickets open" value={openSupportTicketCount.toLocaleString("en-IN")} />
-        <StatTile label="Freelance reports open" value={openFreelanceReportCount.toLocaleString("en-IN")} />
-        <StatTile label="Onboarded" value={onboardedCount.toLocaleString("en-IN")} />
-        <StatTile label="Opted into marketing" value={marketingOptInCount.toLocaleString("en-IN")} />
-        <StatTile label="Colleges" value={collegeCount.toLocaleString("en-IN")} />
-        <StatTile label="Pending colleges" value={pendingCollegeCount.toLocaleString("en-IN")} />
-      </div>
+        <section className="mt-8">
+          <div className="mb-4 flex items-baseline justify-between gap-3">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Needs your attention</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {waitingTotal > 0 ? `${waitingTotal.toLocaleString("en-IN")} items waiting` : "Nothing waiting"}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {queues.map((q) => (
+              <QueueCard key={q.href} {...q} />
+            ))}
+          </div>
+        </section>
 
-      <div className="mt-8 flex flex-wrap gap-3">
-        <Link
-          href="/dashboard/analytics"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Analytics
-        </Link>
-        <Link
-          href="/dashboard/courses"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Manage courses
-        </Link>
-        <Link
-          href="/dashboard/events"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Manage events
-        </Link>
-        <Link
-          href="/dashboard/competitions"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Manage competitions
-        </Link>
-        <Link
-          href="/dashboard/jobs"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Manage jobs
-        </Link>
-        <Link
-          href="/dashboard/admin/recruiters"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Manage recruiters
-        </Link>
-        <Link
-          href="/dashboard/admin/refund-requests"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Refund requests
-        </Link>
-        <Link
-          href="/dashboard/admin/support-tickets"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Support tickets
-        </Link>
-        <Link
-          href="/dashboard/admin/freelance-reports"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Freelance reports
-        </Link>
-        <Link
-          href="/dashboard/students"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Students
-        </Link>
-        <Link
-          href="/dashboard/colleges"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Review colleges
-        </Link>
-        <Link
-          href="/dashboard/affiliates"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Manage affiliates
-        </Link>
-        <Link
-          href="/dashboard/admin/instructor-commission"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Instructor commission rates
-        </Link>
-        <Link
-          href="/dashboard/currencies"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Currency rates
-        </Link>
-        <Link
-          href="/dashboard/coupons"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Coupons
-        </Link>
-        <Link
-          href="/dashboard/external-courses"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Recommended courses
-        </Link>
-        <Link
-          href="/dashboard/admin/audit-log"
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
-          Audit log
-        </Link>
+        <section className="mt-8">
+          <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">At a glance</h2>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <DashboardStatCard href="/dashboard/students" icon={Users} value={studentCount} label="Students" />
+            <DashboardStatCard
+              href="/dashboard/analytics"
+              icon={IndianRupee}
+              value={`₹${totalRevenue.toLocaleString("en-IN")}`}
+              label="Total revenue (after credits)"
+            />
+            <DashboardStatCard
+              icon={CheckCircle2}
+              value={`${onboardedPercent}%`}
+              label={`Onboarded · ${onboardedCount.toLocaleString("en-IN")}`}
+            />
+            <DashboardStatCard icon={Megaphone} value={marketingOptInCount} label="Opted into marketing" />
+            <DashboardStatCard
+              href="/dashboard/courses"
+              icon={BookOpen}
+              value={publishedCourseCount}
+              label="Published courses"
+            />
+            <DashboardStatCard
+              href="/dashboard/events"
+              icon={CalendarDays}
+              value={publishedEventCount}
+              label="Published events"
+            />
+            <DashboardStatCard
+              href="/dashboard/competitions"
+              icon={Trophy}
+              value={publishedCompetitionCount}
+              label="Published competitions"
+            />
+            <DashboardStatCard
+              href="/dashboard/jobs"
+              icon={Briefcase}
+              value={publishedJobCount}
+              label={`Published jobs · ${jobApplicationCount.toLocaleString("en-IN")} applications`}
+            />
+          </div>
+          <p className="mt-2 text-xs text-slate-400">{collegeCount.toLocaleString("en-IN")} approved colleges.</p>
+        </section>
+
+        <section aria-label="Admin tools" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <DashboardLinkGroup
+            title="Content"
+            links={[
+              { href: "/dashboard/courses", icon: BookOpen, label: "Courses" },
+              { href: "/dashboard/events", icon: CalendarDays, label: "Events" },
+              { href: "/dashboard/competitions", icon: Trophy, label: "Competitions" },
+              { href: "/dashboard/jobs", icon: Briefcase, label: "Jobs", count: pendingJobCount },
+              { href: "/dashboard/external-courses", icon: Award, label: "Recommended courses" },
+            ]}
+          />
+          <DashboardLinkGroup
+            title="People"
+            links={[
+              { href: "/dashboard/students", icon: Users, label: "Students" },
+              {
+                href: "/dashboard/admin/recruiters",
+                icon: UserCheck,
+                label: "Recruiters",
+                count: pendingRecruiterCount,
+              },
+              { href: "/dashboard/colleges", icon: GraduationCap, label: "Colleges", count: pendingCollegeCount },
+              { href: "/dashboard/affiliates", icon: Share2, label: "Affiliates" },
+            ]}
+          />
+          <DashboardLinkGroup
+            title="Money"
+            links={[
+              {
+                href: "/dashboard/admin/refund-requests",
+                icon: RotateCcw,
+                label: "Refund requests",
+                count: pendingRefundRequestCount,
+              },
+              { href: "/dashboard/coupons", icon: Tag, label: "Coupons" },
+              { href: "/dashboard/admin/instructor-commission", icon: Percent, label: "Instructor commission" },
+              { href: "/dashboard/currencies", icon: Coins, label: "Currency rates" },
+            ]}
+          />
+          <DashboardLinkGroup
+            title="Trust & safety"
+            links={[
+              {
+                href: "/dashboard/admin/support-tickets",
+                icon: LifeBuoy,
+                label: "Support tickets",
+                count: openSupportTicketCount,
+              },
+              {
+                href: "/dashboard/admin/freelance-reports",
+                icon: Flag,
+                label: "Freelance reports",
+                count: openFreelanceReportCount,
+              },
+              { href: "/dashboard/admin/audit-log", icon: ScrollText, label: "Audit log" },
+              { href: "/dashboard/analytics", icon: ReceiptText, label: "Analytics" },
+            ]}
+          />
+        </section>
       </div>
     </main>
   );

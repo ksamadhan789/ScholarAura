@@ -219,3 +219,36 @@ export function DashboardStatCard({
     <div className={className}>{body}</div>
   );
 }
+
+export type DashboardLink = { href: string; icon: LucideIcon; label: string; count?: number };
+
+/** A titled card of icon links — the shortcut blocks at the bottom of each home dashboard. */
+export function DashboardLinkGroup({ title, links }: { title: string; links: DashboardLink[] }) {
+  return (
+    <div className={`${DASHBOARD_CARD_CLASS} p-5`}>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{title}</h3>
+      <ul className="mt-3 space-y-1">
+        {links.map(({ href, icon: Icon, label, count }) => (
+          <li key={href}>
+            <Link
+              href={href}
+              className="group flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-brand-700 dark:text-slate-200 dark:hover:bg-slate-700/50 dark:hover:text-brand-400"
+            >
+              <Icon aria-hidden className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-brand-600" />
+              <span className="flex-1">{label}</span>
+              {count !== undefined && count > 0 && (
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                  {count.toLocaleString("en-IN")}
+                </span>
+              )}
+              <ArrowRight
+                aria-hidden
+                className="h-4 w-4 -translate-x-1 text-slate-300 opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100"
+              />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
