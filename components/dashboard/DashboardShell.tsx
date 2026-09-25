@@ -286,3 +286,11 @@ export const DASHBOARD_INPUT_CLASS =
   "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white";
 
 export const DASHBOARD_LABEL_CLASS = "mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200";
+
+/** Card-style wrapper, header and cell classes for admin data tables. The wrapper scrolls sideways on small screens. */
+export const DASHBOARD_TABLE_WRAPPER_CLASS =
+  "overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800";
+export const DASHBOARD_TABLE_HEAD_CLASS =
+  "bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/40 dark:text-slate-400";
+export const DASHBOARD_TH_CLASS = "whitespace-nowrap px-4 py-3 font-semibold";
+export const DASHBOARD_TR_CLASS = "border-t border-slate-100 align-top dark:border-slate-700";

@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import { DEFAULT_INSTRUCTOR_COMMISSION_RATE_PERCENT } from "@/lib/instructorPayout";
+import {
+  DASHBOARD_INPUT_CLASS,
+  DASHBOARD_LABEL_CLASS,
+  DASHBOARD_CARD_CLASS,
+} from "@/components/dashboard/DashboardShell";
 
 type FoundUser = {
   id: string;
@@ -85,12 +90,12 @@ export function InstructorCommissionManager() {
           placeholder="instructor@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="flex-1 rounded border border-gray-300 dark:border-slate-600 px-3 py-2"
+          className={`${DASHBOARD_INPUT_CLASS} flex-1`}
         />
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-sm text-white disabled:opacity-50"
+          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
         >
           Search
         </button>
@@ -99,34 +104,31 @@ export function InstructorCommissionManager() {
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       {user && (
-        <div className="rounded border border-gray-200 dark:border-slate-700 p-4">
-          <p className="font-medium">
-            {user.name} <span className="text-gray-500 dark:text-slate-400">· {user.email}</span>
+        <div className={`${DASHBOARD_CARD_CLASS} p-5`}>
+          <p className="font-semibold text-slate-900 dark:text-white">
+            {user.name} <span className="text-slate-500 dark:text-slate-400">· {user.email}</span>
           </p>
-          <p className="text-sm text-gray-500 dark:text-slate-400">
-            Currently earns {user.instructorCommissionRatePercent ?? DEFAULT_INSTRUCTOR_COMMISSION_RATE_PERCENT}% of net course revenue
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Currently earns {user.instructorCommissionRatePercent ?? DEFAULT_INSTRUCTOR_COMMISSION_RATE_PERCENT}% of net
+            course revenue
             {user.instructorCommissionRatePercent == null ? " (site default)" : " (custom rate)"}.
           </p>
 
           <label className="mt-4 flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={useCustomRate}
-              onChange={(e) => setUseCustomRate(e.target.checked)}
-            />
+            <input type="checkbox" checked={useCustomRate} onChange={(e) => setUseCustomRate(e.target.checked)} />
             Use a custom commission rate for this instructor
           </label>
 
           {useCustomRate && (
             <div className="mt-2">
-              <label className="mb-1 block text-sm font-medium">Commission rate (%)</label>
+              <label className={DASHBOARD_LABEL_CLASS}>Commission rate (%)</label>
               <input
                 type="number"
                 min="0"
                 max="100"
                 value={rate}
                 onChange={(e) => setRate(e.target.value)}
-                className="w-32 rounded border border-gray-300 dark:border-slate-600 px-3 py-2"
+                className={`${DASHBOARD_INPUT_CLASS} !w-32`}
               />
             </div>
           )}
@@ -134,11 +136,11 @@ export function InstructorCommissionManager() {
           <button
             onClick={handleSave}
             disabled={loading}
-            className="mt-4 rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-sm text-white disabled:opacity-50"
+            className="mt-4 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
           >
             Save
           </button>
-          {message && <p className="mt-2 text-sm text-green-700">{message}</p>}
+          {message && <p className="mt-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">{message}</p>}
         </div>
       )}
     </div>
