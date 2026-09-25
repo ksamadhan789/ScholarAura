@@ -2,6 +2,16 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (admin people & settings polish)
+
+### Changed
+- Students and Audit log: the new page frame, a search box with an icon, and a cleaner card-style table; tick marks are green check icons, and dates/times are shown in India time.
+- Manage affiliates, Currency rates and Instructor commission rates: the new page frame and styled inputs, buttons and result cards.
+- Analytics: a bigger revenue chart with the six-month total, stat cards (new students, referred users, coupon redemptions, discount given), certificate statuses as readable chips ("Available 128"), and ranked Top courses / events / competitions lists showing revenue and count.
+
+### Fixed
+- The Manage affiliates page said "Everyone else earns the default  referral rate" with the number missing — it now shows the actual default rate.
+
 ## 2026-09-25 (admin content pages polish)
 
 ### Changed

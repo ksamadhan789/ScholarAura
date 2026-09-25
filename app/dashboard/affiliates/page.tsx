@@ -1,6 +1,8 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { DEFAULT_REFERRAL_RATE_PERCENT } from "@/lib/referralConstants";
 import { AffiliateManager } from "./AffiliateManager";
 
 export default async function AffiliatesAdminPage() {
@@ -13,14 +15,18 @@ export default async function AffiliatesAdminPage() {
   }
 
   return (
-    <main className="mx-auto max-w-[1050px] px-4 py-16">
-      <h1 className="mb-2 text-2xl font-semibold">Manage affiliates</h1>
-      <p className="mb-8 text-sm text-gray-600 dark:text-slate-400">
-        Search a user by email to approve them as an affiliate with a custom commission
-        rate. Everyone else earns the default {" "}
-        referral rate automatically — no approval needed.
-      </p>
+    <DashboardShell
+      title="Manage affiliates"
+      backHref="/dashboard/admin"
+      backLabel="Admin"
+      description={
+        <>
+          Search a user by email to approve them as an affiliate with a custom commission rate. Everyone else earns the
+          default {DEFAULT_REFERRAL_RATE_PERCENT}% referral rate automatically — no approval needed.
+        </>
+      }
+    >
       <AffiliateManager />
-    </main>
+    </DashboardShell>
   );
 }

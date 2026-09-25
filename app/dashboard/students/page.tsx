@@ -4,17 +4,24 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Pagination, PAGE_SIZE } from "@/components/Pagination";
+import { CheckCircle2, Download, Search, Users } from "lucide-react";
+import {
+  DASHBOARD_INPUT_CLASS,
+  DASHBOARD_SECONDARY_BUTTON_CLASS,
+  DASHBOARD_TABLE_HEAD_CLASS,
+  DASHBOARD_TABLE_WRAPPER_CLASS,
+  DASHBOARD_TH_CLASS,
+  DASHBOARD_TR_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+} from "@/components/dashboard/DashboardShell";
 
 const USER_TYPE_LABELS: Record<string, string> = {
   COLLEGE_STUDENT: "College Student",
   PROFESSIONAL: "Professional",
 };
 
-export default async function StudentsAdminPage({
-  searchParams,
-}: {
-  searchParams: { q?: string; page?: string };
-}) {
+export default async function StudentsAdminPage({ searchParams }: { searchParams: { q?: string; page?: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) {
     redirect("/login");
@@ -40,32 +47,32 @@ export default async function StudentsAdminPage({
 
   const [students, totalCount] = await Promise.all([
     prisma.user.findMany({
-    where,
-    skip: (page - 1) * PAGE_SIZE,
-    take: PAGE_SIZE,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      organization: true,
-      userType: true,
-      fieldOfStudy: true,
-      jobRole: true,
-      consentAcceptedAt: true,
-      marketingOptIn: true,
-      createdAt: true,
-      emailVerified: true,
-      googleId: true,
-      creditBalance: true,
-      _count: {
-        select: {
-          coursePurchases: { where: { status: "SUCCESS" } },
-          eventRegistrations: { where: { status: "CONFIRMED" } },
+      where,
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        organization: true,
+        userType: true,
+        fieldOfStudy: true,
+        jobRole: true,
+        consentAcceptedAt: true,
+        marketingOptIn: true,
+        createdAt: true,
+        emailVerified: true,
+        googleId: true,
+        creditBalance: true,
+        _count: {
+          select: {
+            coursePurchases: { where: { status: "SUCCESS" } },
+            eventRegistrations: { where: { status: "CONFIRMED" } },
+          },
         },
       },
-    },
-    orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "desc" },
     }),
     prisma.user.count({ where }),
   ]);
@@ -80,58 +87,64 @@ export default async function StudentsAdminPage({
   const collegeByName = new Map(colleges.map((c) => [c.name.toLowerCase(), c]));
 
   return (
-    <main className="mx-auto max-w-[1600px] px-4 py-16">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Students</h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
-            {totalCount} student{totalCount === 1 ? "" : "s"}
-            {query ? ` matching "${query}"` : ""}
-          </p>
-        </div>
+    <DashboardShell
+      title="Students"
+      backHref="/dashboard/admin"
+      backLabel="Admin"
+      description={`${totalCount.toLocaleString("en-IN")} student${totalCount === 1 ? "" : "s"}${query ? ` matching "${query}"` : ""}`}
+      actions={
         <a
           href={`/api/admin/students/export${query ? `?q=${encodeURIComponent(query)}` : ""}`}
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+          className={DASHBOARD_SECONDARY_BUTTON_CLASS}
         >
+          <Download aria-hidden className="h-4 w-4" />
           Export CSV
         </a>
-      </div>
-
-      <form className="mb-6">
-        <input
-          type="search"
-          name="q"
-          defaultValue={query}
-          placeholder="Search by name or email"
-          className="w-full max-w-sm rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-        />
+      }
+    >
+      <form className="mb-6" role="search">
+        <label className="relative block max-w-sm">
+          <span className="sr-only">Search students</span>
+          <Search
+            aria-hidden
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            type="search"
+            name="q"
+            defaultValue={query}
+            placeholder="Search by name or email"
+            className={`${DASHBOARD_INPUT_CLASS} pl-9`}
+          />
+        </label>
       </form>
 
       {students.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-slate-400">
-          {query ? "No students match that search." : "No students have signed up yet."}
-        </p>
+        <DashboardEmptyState
+          icon={Users}
+          title={query ? "No students match that search" : "No students have signed up yet"}
+        />
       ) : (
-        <div className="overflow-x-auto rounded border border-gray-200 dark:border-slate-700">
+        <div className={DASHBOARD_TABLE_WRAPPER_CLASS}>
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-800">
+            <thead className={DASHBOARD_TABLE_HEAD_CLASS}>
               <tr>
-                <th className="px-4 py-2.5 font-medium">Name</th>
-                <th className="px-4 py-2.5 font-medium">Email</th>
-                <th className="px-4 py-2.5 font-medium">Phone</th>
-                <th className="px-4 py-2.5 font-medium">College</th>
-                <th className="px-4 py-2.5 font-medium">City</th>
-                <th className="px-4 py-2.5 font-medium">State</th>
-                <th className="px-4 py-2.5 font-medium">University</th>
-                <th className="px-4 py-2.5 font-medium">Type</th>
-                <th className="px-4 py-2.5 font-medium">Field / Role</th>
-                <th className="px-4 py-2.5 font-medium">Signed up</th>
-                <th className="px-4 py-2.5 font-medium">Verified</th>
-                <th className="px-4 py-2.5 font-medium">Method</th>
-                <th className="px-4 py-2.5 font-medium">Consent</th>
-                <th className="px-4 py-2.5 font-medium">Marketing</th>
-                <th className="px-4 py-2.5 font-medium">Enrollments</th>
-                <th className="px-4 py-2.5 font-medium">Credit</th>
+                <th className={DASHBOARD_TH_CLASS}>Name</th>
+                <th className={DASHBOARD_TH_CLASS}>Email</th>
+                <th className={DASHBOARD_TH_CLASS}>Phone</th>
+                <th className={DASHBOARD_TH_CLASS}>College</th>
+                <th className={DASHBOARD_TH_CLASS}>City</th>
+                <th className={DASHBOARD_TH_CLASS}>State</th>
+                <th className={DASHBOARD_TH_CLASS}>University</th>
+                <th className={DASHBOARD_TH_CLASS}>Type</th>
+                <th className={DASHBOARD_TH_CLASS}>Field / Role</th>
+                <th className={DASHBOARD_TH_CLASS}>Signed up</th>
+                <th className={DASHBOARD_TH_CLASS}>Verified</th>
+                <th className={DASHBOARD_TH_CLASS}>Method</th>
+                <th className={DASHBOARD_TH_CLASS}>Consent</th>
+                <th className={DASHBOARD_TH_CLASS}>Marketing</th>
+                <th className={DASHBOARD_TH_CLASS}>Enrollments</th>
+                <th className={DASHBOARD_TH_CLASS}>Credit</th>
               </tr>
             </thead>
             <tbody>
@@ -140,60 +153,54 @@ export default async function StudentsAdminPage({
                   ? collegeByName.get(student.organization.toLowerCase())
                   : undefined;
                 return (
-                <tr key={student.id} className="border-t border-gray-200 dark:border-slate-700">
-                  <td className="px-4 py-2.5">{student.name}</td>
-                  <td className="px-4 py-2.5">
-                    <Link href={`mailto:${student.email}`} className="underline">
-                      {student.email}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                    {student.phone ?? "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                    {student.organization ?? "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                    {college?.city ?? "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                    {college?.state ?? "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                    {college?.university ?? "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                    {student.userType ? USER_TYPE_LABELS[student.userType] ?? student.userType : "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                    {student.fieldOfStudy ?? student.jobRole ?? "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                    {student.createdAt.toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {student.emailVerified ? "✓" : "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                    {student.googleId ? "Google" : "Email/Password"}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {student.consentAcceptedAt ? "✓" : "—"}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {student.marketingOptIn ? "✓" : "—"}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {student._count.coursePurchases + student._count.eventRegistrations}
-                  </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                    ₹{Number(student.creditBalance).toFixed(2)}
-                  </td>
-                </tr>
+                  <tr key={student.id} className={DASHBOARD_TR_CLASS}>
+                    <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900 dark:text-white">
+                      {student.name}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`mailto:${student.email}`}
+                        className="text-brand-600 hover:underline dark:text-brand-400"
+                      >
+                        {student.email}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{student.phone ?? "—"}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{student.organization ?? "—"}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{college?.city ?? "—"}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{college?.state ?? "—"}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{college?.university ?? "—"}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                      {student.userType ? (USER_TYPE_LABELS[student.userType] ?? student.userType) : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                      {student.fieldOfStudy ?? student.jobRole ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                      {student.createdAt.toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        timeZone: "Asia/Kolkata",
+                      })}
+                    </td>
+                    <td className="px-4 py-3">
+                      <YesNo value={!!student.emailVerified} />
+                    </td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                      {student.googleId ? "Google" : "Email/Password"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <YesNo value={!!student.consentAcceptedAt} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <YesNo value={!!student.marketingOptIn} />
+                    </td>
+                    <td className="px-4 py-3">{student._count.coursePurchases + student._count.eventRegistrations}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                      ₹{Number(student.creditBalance).toFixed(2)}
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>
@@ -201,12 +208,17 @@ export default async function StudentsAdminPage({
         </div>
       )}
 
-      <Pagination
-        page={page}
-        totalCount={totalCount}
-        basePath="/dashboard/students"
-        searchParams={{ q: query }}
-      />
-    </main>
+      <Pagination page={page} totalCount={totalCount} basePath="/dashboard/students" searchParams={{ q: query }} />
+    </DashboardShell>
+  );
+}
+
+function YesNo({ value }: { value: boolean }) {
+  return value ? (
+    <CheckCircle2 aria-label="Yes" className="h-4 w-4 text-emerald-500" />
+  ) : (
+    <span aria-label="No" className="text-slate-300 dark:text-slate-600">
+      —
+    </span>
   );
 }

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
@@ -6,6 +5,15 @@ import { prisma } from "@/lib/prisma";
 import { Pagination, PAGE_SIZE } from "@/components/Pagination";
 import { Avatar } from "@/components/Avatar";
 import type { AuditAction } from "@/lib/auditLog";
+import { ScrollText } from "lucide-react";
+import {
+  DASHBOARD_TABLE_HEAD_CLASS,
+  DASHBOARD_TABLE_WRAPPER_CLASS,
+  DASHBOARD_TH_CLASS,
+  DASHBOARD_TR_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+} from "@/components/dashboard/DashboardShell";
 
 const ACTION_LABELS: Record<AuditAction, string> = {
   REFUND_ISSUED: "Refund issued",
@@ -42,11 +50,7 @@ function formatMetadata(metadata: unknown): string | null {
   return entries.map(([key, value]) => `${key}: ${value}`).join(" · ");
 }
 
-export default async function AuditLogPage({
-  searchParams,
-}: {
-  searchParams: { page?: string };
-}) {
+export default async function AuditLogPage({ searchParams }: { searchParams: { page?: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) {
     redirect("/login");
@@ -68,41 +72,39 @@ export default async function AuditLogPage({
   ]);
 
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-16">
-      <Link href="/dashboard/admin" className="text-sm text-gray-500 hover:underline dark:text-slate-400">
-        ← Admin
-      </Link>
-      <h1 className="mt-2 mb-2 text-2xl font-semibold">Audit log</h1>
-      <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
-        A record of admin decisions on refunds and recruiter/job approvals — who did what, and when.
-      </p>
-
+    <DashboardShell
+      title="Audit log"
+      backHref="/dashboard/admin"
+      backLabel="Admin"
+      description="A record of admin decisions — refunds, approvals, coupons, rates and moderation — who did what, and when."
+    >
       {entries.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-slate-400">No admin actions recorded yet.</p>
+        <DashboardEmptyState icon={ScrollText} title="No admin actions recorded yet" />
       ) : (
-        <div className="overflow-x-auto rounded border border-gray-200 dark:border-slate-700">
+        <div className={DASHBOARD_TABLE_WRAPPER_CLASS}>
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-800">
+            <thead className={DASHBOARD_TABLE_HEAD_CLASS}>
               <tr>
-                <th className="px-4 py-2.5 font-medium">When</th>
-                <th className="px-4 py-2.5 font-medium">Admin</th>
-                <th className="px-4 py-2.5 font-medium">Action</th>
-                <th className="px-4 py-2.5 font-medium">Details</th>
+                <th className={DASHBOARD_TH_CLASS}>When</th>
+                <th className={DASHBOARD_TH_CLASS}>Admin</th>
+                <th className={DASHBOARD_TH_CLASS}>Action</th>
+                <th className={DASHBOARD_TH_CLASS}>Details</th>
               </tr>
             </thead>
             <tbody>
               {entries.map((entry) => (
-                <tr key={entry.id} className="border-t border-gray-200 dark:border-slate-700 align-top">
-                  <td className="whitespace-nowrap px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                <tr key={entry.id} className={DASHBOARD_TR_CLASS}>
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-500 dark:text-slate-400">
                     {entry.createdAt.toLocaleString("en-IN", {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
                       hour: "numeric",
                       minute: "2-digit",
+                      timeZone: "Asia/Kolkata",
                     })}
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <Avatar
                         name={entry.actor.name}
@@ -111,17 +113,17 @@ export default async function AuditLogPage({
                       />
                       <div>
                         {entry.actor.name}
-                        <p className="text-xs text-gray-500 dark:text-slate-400">{entry.actor.email}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{entry.actor.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
                     {ACTION_LABELS[entry.action as AuditAction] ?? entry.action}
-                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                    <p className="text-xs font-normal text-slate-500 dark:text-slate-400">
                       {entry.targetType} · {entry.targetId.slice(0, 8)}
                     </p>
                   </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                     {formatMetadata(entry.metadata) ?? "—"}
                   </td>
                 </tr>
@@ -132,6 +134,6 @@ export default async function AuditLogPage({
       )}
 
       <Pagination page={page} totalCount={totalCount} basePath="/dashboard/admin/audit-log" />
-    </main>
+    </DashboardShell>
   );
 }
