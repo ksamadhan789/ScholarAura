@@ -1,16 +1,12 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { QuizBuilderForm } from "@/components/QuizBuilderForm";
 import type { QuizQuestion } from "@/lib/quiz";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
-export default async function LectureQuizPage({
-  params,
-}: {
-  params: { slug: string; videoId: string };
-}) {
+export default async function LectureQuizPage({ params }: { params: { slug: string; videoId: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
@@ -25,19 +21,13 @@ export default async function LectureQuizPage({
   if (!isOwner && !isAdmin) redirect("/dashboard/courses");
 
   return (
-    <main className="mx-auto max-w-[900px] px-4 py-16">
-      <Link
-        href={`/dashboard/courses/${video.course.slug}`}
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← {video.course.title}
-      </Link>
-      <h1 className="mt-2 mb-1 text-2xl font-semibold">Quiz for &ldquo;{video.title}&rdquo;</h1>
-      <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
-        Shown to students on this lecture&rsquo;s page. A passing attempt is required, alongside the
-        course&rsquo;s other quizzes, before a completion certificate is issued.
-      </p>
-
+    <DashboardShell
+      narrow
+      title={`Quiz for “${video.title}”`}
+      backHref={`/dashboard/courses/${video.course.slug}`}
+      backLabel={video.course.title}
+      description="Shown to students on this lecture’s page. A passing attempt is required, alongside the course’s other quizzes, before a completion certificate is issued."
+    >
       <QuizBuilderForm
         endpoint={`/api/courses/${video.course.slug}/videos/${video.id}/quiz`}
         backHref={`/dashboard/courses/${video.course.slug}`}
@@ -48,6 +38,6 @@ export default async function LectureQuizPage({
           questions: (video.quiz?.questions as unknown as QuizQuestion[] | undefined) ?? [],
         }}
       />
-    </main>
+    </DashboardShell>
   );
 }

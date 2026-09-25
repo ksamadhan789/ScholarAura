@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
 
 export function AddVideoForm({ slug }: { slug: string }) {
   const router = useRouter();
@@ -48,20 +49,26 @@ export function AddVideoForm({ slug }: { slug: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded border border-gray-200 dark:border-slate-700 p-4">
-      <h2 className="font-medium">Add a lecture</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800"
+    >
+      <h2 className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
+        <Plus aria-hidden className="h-4 w-4 text-brand-600" />
+        Add a lecture
+      </h2>
       <div>
-        <label className="mb-1 block text-sm font-medium">Title</label>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Title</label>
         <input
           type="text"
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
           Bunny Stream video GUID
         </label>
         <input
@@ -70,14 +77,16 @@ export function AddVideoForm({ slug }: { slug: string }) {
           placeholder="e.g. 3a1f2e4c-..."
           value={videoProviderId}
           onChange={(e) => setVideoProviderId(e.target.value)}
-          className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
         />
-        <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           Upload the video in your Bunny Stream dashboard first, then paste its Video GUID here.
         </p>
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">Duration (minutes)</label>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+          Duration (minutes)
+        </label>
         <input
           type="number"
           min="0"
@@ -85,15 +94,11 @@ export function AddVideoForm({ slug }: { slug: string }) {
           required
           value={durationMinutes}
           onChange={(e) => setDurationMinutes(e.target.value)}
-          className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
         />
       </div>
       <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={isPreview}
-          onChange={(e) => setIsPreview(e.target.checked)}
-        />
+        <input type="checkbox" checked={isPreview} onChange={(e) => setIsPreview(e.target.checked)} />
         Allow free preview (visible without enrolling)
       </label>
 
@@ -102,7 +107,7 @@ export function AddVideoForm({ slug }: { slug: string }) {
       <button
         type="submit"
         disabled={loading}
-        className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-sm text-white disabled:opacity-50"
+        className="self-start rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
       >
         {loading ? "Adding…" : "Add lecture"}
       </button>

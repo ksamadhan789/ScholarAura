@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
@@ -6,6 +5,16 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { RefundButton } from "@/components/RefundButton";
 import { Pagination, PAGE_SIZE } from "@/components/Pagination";
+import {
+  DASHBOARD_SECONDARY_BUTTON_CLASS,
+  DASHBOARD_TABLE_HEAD_CLASS,
+  DASHBOARD_TABLE_WRAPPER_CLASS,
+  DASHBOARD_TH_CLASS,
+  DASHBOARD_TR_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+} from "@/components/dashboard/DashboardShell";
+import { Download, Users } from "lucide-react";
 
 const STATUS_VARIANT = {
   SUCCESS: "success",
@@ -62,36 +71,31 @@ export default async function CourseStudentsPage({
   const completedByUser = new Map(progressCounts.map((p) => [p.userId, p._count._all]));
 
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-16">
-      <Link
-        href={`/dashboard/courses/${course.slug}`}
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← {course.title}
-      </Link>
-      <div className="mt-2 mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Students</h1>
-        <a
-          href={`/api/admin/courses/${course.slug}/students/export`}
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
+    <DashboardShell
+      title="Students"
+      description={course.title}
+      backHref={`/dashboard/courses/${course.slug}`}
+      backLabel={course.title}
+      actions={
+        <a href={`/api/admin/courses/${course.slug}/students/export`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+          <Download aria-hidden className="h-4 w-4" />
           Export CSV
         </a>
-      </div>
-
+      }
+    >
       {purchases.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-slate-400">No one has purchased this course yet.</p>
+        <DashboardEmptyState icon={Users} title="No one has enrolled yet" />
       ) : (
-        <div className="overflow-x-auto rounded border border-gray-200 dark:border-slate-700">
+        <div className={DASHBOARD_TABLE_WRAPPER_CLASS}>
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-800">
+            <thead className={DASHBOARD_TABLE_HEAD_CLASS}>
               <tr>
-                <th className="px-4 py-2.5 font-medium">Name</th>
-                <th className="px-4 py-2.5 font-medium">Email</th>
-                <th className="px-4 py-2.5 font-medium">Purchased</th>
-                <th className="px-4 py-2.5 font-medium">Payment status</th>
-                <th className="px-4 py-2.5 font-medium">Progress</th>
-                {isAdmin && <th className="px-4 py-2.5 font-medium">Actions</th>}
+                <th className={DASHBOARD_TH_CLASS}>Name</th>
+                <th className={DASHBOARD_TH_CLASS}>Email</th>
+                <th className={DASHBOARD_TH_CLASS}>Purchased</th>
+                <th className={DASHBOARD_TH_CLASS}>Payment status</th>
+                <th className={DASHBOARD_TH_CLASS}>Progress</th>
+                {isAdmin && <th className={DASHBOARD_TH_CLASS}>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -99,30 +103,36 @@ export default async function CourseStudentsPage({
                 const completed = completedByUser.get(purchase.userId) ?? 0;
                 const percent = totalVideos > 0 ? Math.round((completed / totalVideos) * 100) : 0;
                 return (
-                  <tr key={purchase.id} className="border-t border-gray-200 dark:border-slate-700">
-                    <td className="px-4 py-2.5">{purchase.user.name}</td>
-                    <td className="px-4 py-2.5">
-                      <a href={`mailto:${purchase.user.email}`} className="underline">
+                  <tr key={purchase.id} className={DASHBOARD_TR_CLASS}>
+                    <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900 dark:text-white">
+                      {purchase.user.name}
+                    </td>
+                    <td className="px-4 py-3">
+                      <a
+                        href={`mailto:${purchase.user.email}`}
+                        className="text-brand-600 hover:underline dark:text-brand-400"
+                      >
                         {purchase.user.email}
                       </a>
                     </td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                       {purchase.purchasedAt.toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
+                        timeZone: "Asia/Kolkata",
                       })}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-4 py-3">
                       <Badge variant={STATUS_VARIANT[purchase.status]}>{purchase.status}</Badge>
                     </td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                       {purchase.status === "SUCCESS" && totalVideos > 0
                         ? `${percent}% (${completed}/${totalVideos})`
                         : "—"}
                     </td>
                     {isAdmin && (
-                      <td className="px-4 py-2.5">
+                      <td className="px-4 py-3">
                         {purchase.status === "SUCCESS" && (
                           <RefundButton refundUrl={`/api/admin/course-purchases/${purchase.id}/refund`} />
                         )}
@@ -137,6 +147,6 @@ export default async function CourseStudentsPage({
       )}
 
       <Pagination page={page} totalCount={totalCount} basePath={`/dashboard/courses/${course.slug}/students`} />
-    </main>
+    </DashboardShell>
   );
 }

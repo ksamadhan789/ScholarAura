@@ -1,15 +1,11 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ResourceManager } from "@/components/ResourceManager";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
-export default async function LectureResourcesPage({
-  params,
-}: {
-  params: { slug: string; videoId: string };
-}) {
+export default async function LectureResourcesPage({ params }: { params: { slug: string; videoId: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) {
     redirect("/login");
@@ -35,15 +31,13 @@ export default async function LectureResourcesPage({
   });
 
   return (
-    <main className="mx-auto max-w-[1050px] px-4 py-16">
-      <Link
-        href={`/dashboard/courses/${video.course.slug}`}
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← {video.title}
-      </Link>
-      <h1 className="mt-2 mb-6 text-2xl font-semibold">Resources — {video.title}</h1>
+    <DashboardShell
+      narrow
+      title={`Resources — ${video.title}`}
+      backHref={`/dashboard/courses/${video.course.slug}`}
+      backLabel={video.course.title}
+    >
       <ResourceManager slug={video.course.slug} videoId={video.id} resources={resources} />
-    </main>
+    </DashboardShell>
   );
 }
