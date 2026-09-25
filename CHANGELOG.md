@@ -9,6 +9,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 - Refer & earn: a navy banner with your reward rate and referral link with a Copy button, stat cards (credit balance, people invited, credit earned all time), side-by-side invited list and credit history, and a leaderboard with gold/silver/bronze rank badges.
 - Saved for later and Job alerts use the new page frame, cards and icons; deleting a job alert asks in-page instead of a pop-up.
 - The save / wishlist buttons across the site use a heart icon (filled red when saved) instead of heart emoji.
+- My freelance listings and Freelance messages use the new page frame: listing cards with Published/Paused tags and Edit / Pause / Delete (asks in-page), a messages inbox with Inbound / You reached out tags, and chat-bubble threads.
 
 ### Fixed
 - Accounts without a referral code (e.g. those created before referral codes existed) saw a broken `?ref=null` referral link — they now get a code the first time they open Refer & earn.

@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Avatar } from "@/components/Avatar";
+import { MessageCircle } from "lucide-react";
+import { Badge } from "@/components/Badge";
+import { DashboardEmptyState, DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default async function FreelanceMessagesPage() {
   const session = await getServerSession(authOptions);
@@ -35,14 +38,15 @@ export default async function FreelanceMessagesPage() {
   });
 
   return (
-    <main className="mx-auto max-w-[1050px] px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">💬 My messages</h1>
-
+    <DashboardShell narrow title="Freelance messages" backHref="/dashboard/freelance" backLabel="My listings">
       {sorted.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">
-          No conversations yet. Message a freelancer from their listing, or wait for someone to
-          reach out about one of yours.
-        </p>
+        <DashboardEmptyState
+          icon={MessageCircle}
+          title="No conversations yet"
+          text="Message a freelancer from their listing, or wait for someone to reach out about one of yours."
+          href="/freelance"
+          cta="Browse freelance"
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {sorted.map((thread) => {
@@ -57,15 +61,13 @@ export default async function FreelanceMessagesPage() {
               <Link
                 key={thread.id}
                 href={`/dashboard/freelance/messages/${thread.id}`}
-                className="block rounded-lg border border-gray-200 dark:border-slate-700 p-4 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:hover:border-brand-700 dark:hover:bg-slate-800"
+                className="block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-brand-300 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-brand-700"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <h2 className="font-medium text-slate-900 dark:text-white">{thread.listing.title}</h2>
-                  <span className="shrink-0 text-xs text-gray-400 dark:text-slate-500">
-                    {isOwner ? "Inbound" : "You reached out"}
-                  </span>
+                  <h2 className="font-semibold text-slate-900 dark:text-white">{thread.listing.title}</h2>
+                  <Badge variant={isOwner ? "brand" : "neutral"}>{isOwner ? "Inbound" : "You reached out"}</Badge>
                 </div>
-                <div className="mt-1 flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400">
+                <div className="mt-1 flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
                   <Avatar
                     name={otherPartyName}
                     src={
@@ -78,15 +80,13 @@ export default async function FreelanceMessagesPage() {
                   with {otherPartyName}
                 </div>
                 {lastMessage && (
-                  <p className="mt-2 truncate text-sm text-gray-600 dark:text-slate-300">
-                    {lastMessage.body}
-                  </p>
+                  <p className="mt-2 truncate text-sm text-slate-600 dark:text-slate-300">{lastMessage.body}</p>
                 )}
               </Link>
             );
           })}
         </div>
       )}
-    </main>
+    </DashboardShell>
   );
 }

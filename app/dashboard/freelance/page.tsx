@@ -4,6 +4,15 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { FreelanceListingActions } from "./FreelanceListingActions";
+import { MessageCircle, Pencil, Plus, Store } from "lucide-react";
+import { Badge } from "@/components/Badge";
+import {
+  DASHBOARD_CARD_CLASS,
+  DASHBOARD_PRIMARY_BUTTON_CLASS,
+  DASHBOARD_SECONDARY_BUTTON_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+} from "@/components/dashboard/DashboardShell";
 
 export default async function MyFreelanceListingsPage() {
   const session = await getServerSession(authOptions);
@@ -17,74 +26,70 @@ export default async function MyFreelanceListingsPage() {
   });
 
   return (
-    <main className="mx-auto max-w-[1200px] px-4 py-16">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">🧰 My freelance listings</h1>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/freelance/messages"
-            className="text-sm text-brand-600 underline dark:text-brand-400"
-          >
-            💬 My messages
+    <DashboardShell
+      title="My freelance listings"
+      description="Your services listed on /freelance — visible to everyone while published."
+      actions={
+        <>
+          <Link href="/dashboard/freelance/messages" className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+            <MessageCircle aria-hidden className="h-4 w-4" />
+            Messages
           </Link>
-          <Link
-            href="/dashboard/freelance/new"
-            className="rounded bg-brand-600 px-4 py-2 text-sm text-white transition-colors hover:bg-brand-700"
-          >
-            + New listing
+          <Link href="/dashboard/freelance/new" className={`${DASHBOARD_PRIMARY_BUTTON_CLASS} py-1.5`}>
+            <Plus aria-hidden className="h-4 w-4" />
+            New listing
           </Link>
-        </div>
-      </div>
-
+        </>
+      }
+    >
       {listings.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">
-          You haven&apos;t posted any freelance services yet.
-        </p>
+        <DashboardEmptyState
+          icon={Store}
+          title="You haven't posted any services yet"
+          text="List what you offer (for example tutoring, design or writing) and people can message you directly."
+          href="/dashboard/freelance/new"
+          cta="Post your services"
+        />
       ) : (
-        <div className="flex flex-col gap-3">
+        <ul className="space-y-3">
           {listings.map((listing) => (
-            <div
+            <li
               key={listing.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-slate-700 p-4"
+              className={`${DASHBOARD_CARD_CLASS} flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between`}
             >
-              <div>
-                <h2 className="font-medium">{listing.title}</h2>
-                <p className="text-sm text-gray-500 dark:text-slate-400">
-                  {listing.category} ·{" "}
-                  {listing.removedByAdminAt ? (
-                    <span className="text-red-600 dark:text-red-400">Removed by admin</span>
-                  ) : listing.isPublished ? (
-                    "Published"
-                  ) : (
-                    "Paused"
-                  )}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col items-end gap-1 text-sm">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
                   <Link
                     href={`/freelance/${listing.slug}`}
-                    className="text-brand-600 underline dark:text-brand-400"
+                    className="font-semibold text-slate-900 hover:text-brand-700 dark:text-white dark:hover:text-brand-400"
                   >
-                    View
+                    {listing.title}
                   </Link>
-                  <Link
-                    href={`/dashboard/freelance/${listing.slug}/edit`}
-                    className="text-brand-600 underline dark:text-brand-400"
-                  >
-                    Edit
-                  </Link>
+                  {listing.removedByAdminAt ? (
+                    <Badge variant="neutral">Removed by admin</Badge>
+                  ) : (
+                    <Badge variant={listing.isPublished ? "success" : "warning"}>
+                      {listing.isPublished ? "Published" : "Paused"}
+                    </Badge>
+                  )}
                 </div>
+                <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{listing.category}</p>
+              </div>
+              <div className="flex flex-wrap items-start gap-2">
+                <Link href={`/dashboard/freelance/${listing.slug}/edit`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+                  <Pencil aria-hidden className="h-4 w-4" />
+                  Edit
+                </Link>
                 <FreelanceListingActions
                   slug={listing.slug}
                   isPublished={listing.isPublished}
                   removedByAdmin={!!listing.removedByAdminAt}
                 />
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }
