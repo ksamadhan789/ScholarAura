@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Avatar } from "@/components/Avatar";
 import { SupportTicketActions } from "./SupportTicketActions";
+import { LifeBuoy, Mail } from "lucide-react";
+import { Badge } from "@/components/Badge";
+import { DASHBOARD_CARD_CLASS, DashboardEmptyState, DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default async function AdminSupportTicketsPage() {
   const session = await getServerSession(authOptions);
@@ -16,50 +19,58 @@ export default async function AdminSupportTicketsPage() {
   });
 
   return (
-    <main className="mx-auto max-w-[1200px] px-4 py-16">
-      <h1 className="mb-2 text-2xl font-semibold">Support tickets</h1>
-      <p className="mb-8 text-sm text-gray-600 dark:text-slate-400">
-        Raised from Aura when it couldn&apos;t answer a question. Replying emails the person back at
-        the address they gave (and notifies them in-app if they have an account).
-      </p>
-
+    <DashboardShell
+      title="Support tickets"
+      backHref="/dashboard/admin"
+      backLabel="Admin"
+      description="Raised from Aura when it couldn't answer a question. Replying emails the person at the address they gave (and notifies them in-app if they have an account)."
+    >
       {tickets.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">No open support tickets.</p>
+        <DashboardEmptyState icon={LifeBuoy} title="No open support tickets" text="You're all caught up." />
       ) : (
-        <div className="flex flex-col gap-3">
+        <ul className="space-y-4">
           {tickets.map((t) => (
-            <div key={t.id} className="rounded border border-gray-200 dark:border-slate-700 p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex gap-3">
-                  <Avatar
-                    name={t.name}
-                    src={t.userId ? `/api/admin/users/${t.userId}/photo` : null}
-                    size={36}
-                  />
-                  <div>
-                    <p className="font-medium">
-                      {t.name} · {t.email}
-                      {!t.userId && (
-                        <span className="ml-1.5 rounded bg-gray-100 px-1.5 py-0.5 text-xs font-normal text-gray-500 dark:bg-slate-800 dark:text-slate-400">
-                          Guest
-                        </span>
-                      )}
-                    </p>
-                    <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
-                      Asked: &ldquo;{t.query}&rdquo;
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{t.message}</p>
-                    <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
-                      Raised {t.createdAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                    </p>
+            <li
+              key={t.id}
+              className={`${DASHBOARD_CARD_CLASS} flex flex-col gap-4 p-5 lg:flex-row lg:items-start lg:justify-between`}
+            >
+              <div className="flex min-w-0 gap-4">
+                <Avatar name={t.name} src={t.userId ? `/api/admin/users/${t.userId}/photo` : null} size={44} />
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold text-slate-900 dark:text-white">{t.name}</p>
+                    {!t.userId && <Badge variant="neutral">Guest</Badge>}
                   </div>
+                  <a
+                    href={`mailto:${t.email}`}
+                    className="mt-0.5 inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-700 dark:text-slate-400 dark:hover:text-brand-400"
+                  >
+                    <Mail aria-hidden className="h-4 w-4" />
+                    {t.email}
+                  </a>
+                  <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Asked Aura</p>
+                  <blockquote className="mt-1 rounded-xl border-l-4 border-brand-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 dark:border-brand-800 dark:bg-slate-900/40 dark:text-slate-300">
+                    {t.query}
+                  </blockquote>
+                  {t.message && (
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-300">{t.message}</p>
+                  )}
+                  <p className="mt-2 text-xs text-slate-400">
+                    Raised{" "}
+                    {t.createdAt.toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      timeZone: "Asia/Kolkata",
+                    })}
+                  </p>
                 </div>
-                <SupportTicketActions ticketId={t.id} />
               </div>
-            </div>
+              <SupportTicketActions ticketId={t.id} />
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }

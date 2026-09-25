@@ -1,19 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Reply } from "lucide-react";
+import { ReasonButton } from "@/components/dashboard/ReasonButton";
+import { DASHBOARD_PRIMARY_BUTTON_CLASS } from "@/components/dashboard/DashboardShell";
 
 export function SupportTicketActions({ ticketId }: { ticketId: string }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function reply() {
-    const adminReply = window.prompt("Your reply (emailed to the person who raised this ticket)?");
-    if (!adminReply || !adminReply.trim()) return;
-
-    setError(null);
-    setLoading(true);
+  async function reply(adminReply: string): Promise<string | null> {
     try {
       const res = await fetch(`/api/admin/support-tickets/${ticketId}`, {
         method: "PATCH",
@@ -22,25 +17,24 @@ export function SupportTicketActions({ ticketId }: { ticketId: string }) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        setError(data?.error ?? "Something went wrong.");
-        return;
+        return data?.error ?? "Something went wrong.";
       }
       router.refresh();
-    } finally {
-      setLoading(false);
+      return null;
+    } catch {
+      return "Couldn't reach the server. Please try again.";
     }
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <button
-        onClick={reply}
-        disabled={loading}
-        className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-      >
-        Reply &amp; resolve
-      </button>
-      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
-    </div>
+    <ReasonButton
+      label="Reply & resolve"
+      icon={<Reply aria-hidden className="h-4 w-4" />}
+      className={`${DASHBOARD_PRIMARY_BUTTON_CLASS} shrink-0 py-1.5`}
+      title="Your reply (emailed to the person who raised this ticket)"
+      placeholder="Hi, thanks for asking…"
+      submitLabel="Send & resolve"
+      onSubmit={reply}
+    />
   );
 }

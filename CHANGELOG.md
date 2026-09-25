@@ -2,6 +2,15 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (admin review queues polish)
+
+### Changed
+- Admin review pages — Recruiter accounts, Refund requests, Support tickets, Reported freelance listings and Colleges — use the new page frame with a back-to-Admin link, clear cards (company initial, contact email as a mail link, website, amounts, quoted reasons/questions) and green Approve / quiet Reject buttons with icons.
+- Recruiter accounts has Pending / Approved / Rejected / All tabs (Pending first) and shows the reason a recruiter was rejected.
+- Refund requests show the item type and link, amount, how many days after payment the request came in, and how long it has been waiting, with a link to the refund policy.
+- The browser pop-ups for rejection reasons, support replies and "are you sure?" checks are replaced by small in-page boxes (`components/dashboard/ReasonButton.tsx`: `ReasonButton`, `ConfirmButton`).
+- Pagination buttons got the new look.
+
 ## 2026-09-25 (admin dashboard polish)
 
 ### Changed

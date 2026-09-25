@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CollegeModerationActions } from "./CollegeModerationActions";
+import { GraduationCap } from "lucide-react";
+import { DASHBOARD_CARD_CLASS, DashboardEmptyState, DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default async function CollegesAdminPage() {
   const session = await getServerSession(authOptions);
@@ -19,35 +21,39 @@ export default async function CollegesAdminPage() {
   });
 
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-16">
-      <h1 className="text-2xl font-semibold">Colleges awaiting review</h1>
-      <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
-        {pendingColleges.length} college{pendingColleges.length === 1 ? "" : "s"} pending approval.
-        Approved colleges start showing up in the onboarding autocomplete immediately.
-      </p>
-
+    <DashboardShell
+      title="Colleges awaiting review"
+      backHref="/dashboard/admin"
+      backLabel="Admin"
+      description={`${pendingColleges.length} college${pendingColleges.length === 1 ? "" : "s"} pending. Approved colleges show up in the onboarding autocomplete immediately.`}
+    >
       {pendingColleges.length === 0 ? (
-        <p className="mt-6 text-sm text-gray-500 dark:text-slate-400">Nothing to review right now.</p>
+        <DashboardEmptyState icon={GraduationCap} title="Nothing to review right now" />
       ) : (
-        <div className="mt-6 flex flex-col gap-3">
+        <ul className="space-y-3">
           {pendingColleges.map((college) => (
-            <div
+            <li
               key={college.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-200 dark:border-slate-700 p-4"
+              className={`${DASHBOARD_CARD_CLASS} flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between`}
             >
-              <div>
-                <p className="font-medium">{college.name}</p>
-                <p className="text-sm text-gray-500 dark:text-slate-400">
-                  {[college.city, college.state].filter(Boolean).join(", ") || "—"}
-                  {college.university ? ` · ${college.university}` : ""}
-                  {college.collegeType ? ` · ${college.collegeType}` : ""}
-                </p>
+              <div className="flex min-w-0 gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
+                  <GraduationCap aria-hidden className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-900 dark:text-white">{college.name}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {[college.city, college.state].filter(Boolean).join(", ") || "Location not given"}
+                    {college.university ? ` · ${college.university}` : ""}
+                    {college.collegeType ? ` · ${college.collegeType}` : ""}
+                  </p>
+                </div>
               </div>
               <CollegeModerationActions id={college.id} />
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }
