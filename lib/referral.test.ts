@@ -81,6 +81,16 @@ describe("computeCreditApplication", () => {
     });
   });
 
+  it("never applies a negative balance (a referral clawback debt)", async () => {
+    prismaMock.user.findUnique.mockResolvedValue(
+      makeUser({ creditBalance: -60 as unknown as User["creditBalance"] })
+    );
+    await expect(computeCreditApplication("user-1", 300)).resolves.toEqual({
+      creditApplied: 0,
+      amountDue: 300,
+    });
+  });
+
   it("applies nothing when the user has no credit", async () => {
     prismaMock.user.findUnique.mockResolvedValue(null);
     await expect(computeCreditApplication("user-1", 300)).resolves.toEqual({
@@ -216,5 +226,15 @@ describe("settleReferralCredit", () => {
     });
 
     expect(prismaMock.user.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("canonicalMailbox", () => {
+  it("treats +tags and Gmail dots as the same inbox", async () => {
+    const { canonicalMailbox } = await import("@/lib/referral");
+    expect(canonicalMailbox("Priya.Sharma+2@gmail.com")).toBe("priyasharma@gmail.com");
+    expect(canonicalMailbox("priyasharma@googlemail.com")).toBe("priyasharma@gmail.com");
+    expect(canonicalMailbox("a.b+x@college.edu")).toBe("a.b@college.edu");
+    expect(canonicalMailbox("a.b@college.edu")).not.toBe(canonicalMailbox("ab@college.edu"));
   });
 });

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { generateReferralCode } from "@/lib/referral";
+import { canonicalMailbox, generateReferralCode } from "@/lib/referral";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { checkRateLimit, REGISTER_ATTEMPT_LIMIT, REGISTER_WINDOW_MS } from "@/lib/rateLimit";
 import { isEmailVerificationRequired, sendVerificationEmail } from "@/lib/emailVerification";
@@ -72,7 +72,10 @@ export async function POST(request: Request) {
     let referredById: string | undefined;
     if (ref) {
       const referrer = await prisma.user.findUnique({ where: { referralCode: ref } });
-      referredById = referrer?.id;
+      // Referring your own second inbox would pay you a reward on your own purchases.
+      if (referrer && canonicalMailbox(referrer.email) !== canonicalMailbox(email)) {
+        referredById = referrer.id;
+      }
     }
 
     const user = await prisma.user.create({

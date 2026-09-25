@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadStudentIdCard, downloadStudentIdCard, deleteStudentIdCard } from "@/lib/studentIdCardStorage";
-import { downloadBlobBytes, deleteBlob } from "@/lib/blobUpload";
+import { downloadBlobBytes, deleteBlob, isOwnStagedBlob } from "@/lib/blobUpload";
 import {
   ALLOWED_UPLOAD_TYPES_LABEL,
   MAX_UPLOAD_BYTES,
@@ -53,6 +53,9 @@ export async function POST(request: Request) {
   if (!blobUrl) {
     return NextResponse.json({ error: "Please attach your ID card" }, { status: 400 });
   }
+  if (!isOwnStagedBlob(blobUrl, session.user.id)) {
+    return NextResponse.json({ error: "Invalid upload. Please try again." }, { status: 400 });
+  }
   if (!isAllowedUploadType(mimeType)) {
     return NextResponse.json(
       { error: `Your ID card must be one of: ${ALLOWED_UPLOAD_TYPES_LABEL}` },
@@ -93,10 +96,6 @@ export async function POST(request: Request) {
       data: { idCardFileId, idCardFileName: fileName, idCardContentType: mimeType },
     });
 
-    await deleteBlob(blobUrl).catch((err) =>
-      console.error(`Failed to delete staged blob ${blobUrl}:`, err)
-    );
-
     if (existing?.idCardFileId) {
       await deleteStudentIdCard(existing.idCardFileId).catch((err) =>
         console.error(`Failed to delete replaced ID card ${existing.idCardFileId}:`, err)
@@ -107,6 +106,9 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("Student ID card upload failed:", err);
     return NextResponse.json({ error: "Couldn't upload your ID card. Please try again." }, { status: 500 });
+  } finally {
+    // The staged copy is never needed again, whether Drive accepted it or not.
+    await deleteBlob(blobUrl).catch((err) => console.error(`Failed to delete staged blob ${blobUrl}:`, err));
   }
 }
 

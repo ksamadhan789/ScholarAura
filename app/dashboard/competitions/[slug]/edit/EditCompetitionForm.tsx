@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PeopleEditor } from "@/components/PeopleEditor";
 import type { EventPerson } from "@/lib/eventPeople";
+import { RegenerateWebhookSecretButton } from "@/components/RegenerateWebhookSecretButton";
 
 type FormState = {
   title: string;
@@ -409,6 +410,7 @@ export function EditCompetitionForm({
                 onClick={(e) => e.currentTarget.select()}
                 className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 font-mono text-xs dark:bg-slate-800 dark:text-white"
               />
+              <RegenerateWebhookSecretButton endpoint={`/api/competitions/${slug}/webhook-secret`} />
               <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                 Unique to this competition — paste it as the <code>WEBHOOK_SECRET</code> script property
                 in the Apps Script bound to this competition&rsquo;s response sheet. Each competition has

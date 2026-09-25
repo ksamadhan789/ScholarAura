@@ -73,16 +73,14 @@ async function reverseCreditAndReferral(
   const reward = Math.round(cashPaid * (ratePercent / 100) * 100) / 100;
   if (reward <= 0) return;
 
-  const clawedBack = await tx.user.updateMany({
-    where: { id: referrer.id, creditBalance: { gte: reward } },
+  // Always taken back, even if the referrer already spent it — their balance
+  // may go negative (a debt paid off by future rewards, and never usable at
+  // checkout). Skipping the clawback used to let a referral reward on a
+  // purchase that was later refunded be kept for free.
+  await tx.user.update({
+    where: { id: referrer.id },
     data: { creditBalance: { decrement: reward } },
   });
-  if (clawedBack.count === 0) {
-    console.error(
-      `Could not claw back referral reward of ${reward} from referrer ${referrer.id} — balance already spent (refund: ${description})`
-    );
-    return;
-  }
   await tx.creditTransaction.create({
     data: {
       userId: referrer.id,

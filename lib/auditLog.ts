@@ -25,7 +25,8 @@ export type AuditAction =
   | "SUPPORT_TICKET_RESOLVED"
   | "FREELANCE_REPORT_DISMISSED"
   | "FREELANCE_LISTING_REMOVED"
-  | "FREELANCE_LISTING_RESTORED";
+  | "FREELANCE_LISTING_RESTORED"
+  | "WEBHOOK_SECRET_REGENERATED";
 
 export type AuditTargetType =
   | "CoursePurchase"
@@ -42,7 +43,9 @@ export type AuditTargetType =
   | "CourseBundle"
   | "SupportTicket"
   | "FreelanceReport"
-  | "FreelanceListing";
+  | "FreelanceListing"
+  | "Event"
+  | "Competition";
 
 /**
  * Best-effort, like the email/notification side effects it sits alongside —

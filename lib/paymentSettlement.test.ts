@@ -86,6 +86,7 @@ describe("settleCoursePurchase", () => {
     prismaMock.coursePurchase.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.user.findUnique.mockResolvedValue({ id: "buyer-1", referredById: null } as never);
     prismaMock.coupon.findUnique.mockResolvedValue({ maxRedemptions: null } as never);
+    prismaMock.coupon.updateMany.mockResolvedValue({ count: 1 });
     prismaMock.coursePurchase.findUniqueOrThrow.mockResolvedValue({ id: "p1", status: "SUCCESS" } as never);
 
     await settleCoursePurchase("p1", "pay_1");
@@ -94,7 +95,7 @@ describe("settleCoursePurchase", () => {
       where: { id: "p1", status: "PENDING" },
       data: { status: "SUCCESS", razorpayPaymentId: "pay_1" },
     });
-    expect(prismaMock.coupon.update).toHaveBeenCalledWith({
+    expect(prismaMock.coupon.updateMany).toHaveBeenCalledWith({
       where: { id: "coupon-1" },
       data: { redemptionCount: { increment: 1 } },
     });
@@ -118,7 +119,7 @@ describe("settleCoursePurchase", () => {
 
     await settleCoursePurchase("p1", "pay_1");
 
-    expect(prismaMock.coupon.update).not.toHaveBeenCalled();
+    expect(prismaMock.coupon.updateMany).not.toHaveBeenCalled();
     expect(prismaMock.creditTransaction.create).not.toHaveBeenCalled();
   });
 });
@@ -288,7 +289,7 @@ describe("settleCompetitionEntry", () => {
 
     await settleCompetitionEntry("e1", "pay_1");
 
-    expect(prismaMock.coupon.update).not.toHaveBeenCalled();
+    expect(prismaMock.coupon.updateMany).not.toHaveBeenCalled();
     expect(sendCompetitionEntryConfirmationEmail).not.toHaveBeenCalled();
   });
 });

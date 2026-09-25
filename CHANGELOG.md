@@ -2,6 +2,20 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (security follow-ups)
+
+### Security
+- Coupons: "one per person" and redemption limits are now enforced when the payment is confirmed, not only at checkout — several checkouts opened at once with the same code can no longer all get the discount (the extra payments are refunded automatically with an explanation).
+- New certificates get an unguessable number (`CERT-2026-000124-7K3QX9M2`) so nobody can step through every certificate on the public verify page; existing certificates keep their numbers.
+- Temporary uploads (student ID cards, competition entry files) are tied to the person who uploaded them, rate-limited, always deleted after use, and anything left over is cleaned up daily.
+- Deleting an account now also deletes the resumes attached to that person's job applications.
+- Login: repeated wrong passwords from one connection no longer lock the real owner out everywhere, and an unknown email takes as long to reject as a wrong password.
+- Referrals: a referral reward is always taken back when the purchase is refunded (even if already spent), and referring your own second inbox (e.g. `name+2@gmail.com`) earns nothing.
+- Currencies with 0 or 3 decimal places (e.g. JPY, KWD) can't be added or used at checkout — they would have been charged the wrong amount.
+
+### Added
+- "Regenerate secret" button for an event's/competition's Google Form attendance webhook (Edit → Certificate section), audit-logged.
+
 ## 2026-09-25 (security review)
 
 ### Security

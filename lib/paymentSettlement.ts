@@ -3,7 +3,7 @@ import { eventCalendarEmailLinks } from "@/lib/eventCalendar";
 import { SITE_URL } from "@/lib/siteUrl";
 import { settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { createRefund } from "@/lib/razorpay";
-import { claimCouponRedemption } from "@/lib/coupon";
+import { claimCouponRedemption, CouponUnavailableError } from "@/lib/coupon";
 import { withEnrollmentNumber } from "@/lib/enrollment";
 import { withEnrollmentNumber as withCompetitionEnrollmentNumber } from "@/lib/competitionEnrollment";
 import { sendEventRegistrationConfirmationEmail, sendCompetitionEntryConfirmationEmail } from "@/lib/email";
@@ -18,7 +18,7 @@ import { leaveEventWaitlist } from "@/lib/waitlist";
  * credit that was never deducted).
  */
 export class PaymentNotHonoredError extends Error {
-  constructor(readonly reason: "EVENT_FULL" | "CREDIT_UNAVAILABLE" | "NOT_SETTLED") {
+  constructor(readonly reason: "EVENT_FULL" | "CREDIT_UNAVAILABLE" | "COUPON_UNAVAILABLE" | "NOT_SETTLED") {
     super(reason);
   }
 }
@@ -36,6 +36,8 @@ export function paymentNotHonoredMessage(err: PaymentNotHonoredError): string {
       return "Your payment went through but the event filled up in the meantime, so it has been refunded automatically. Refunds reach your account in 5–7 working days.";
     case "CREDIT_UNAVAILABLE":
       return "Your credit balance was already used on another purchase, so this payment has been refunded automatically. Please check out again. Refunds reach your account in 5–7 working days.";
+    case "COUPON_UNAVAILABLE":
+      return "The coupon you used was already used up (or you'd used it on another purchase), so this payment has been refunded automatically. Please check out again. Refunds reach your account in 5–7 working days.";
     default:
       return "This payment can't be completed. If money left your account, please contact support.";
   }
@@ -49,6 +51,19 @@ async function settleReferralCreditOrThrow(
     await settleReferralCredit(tx, args);
   } catch (err) {
     if (err instanceof InsufficientCreditError) throw new PaymentNotHonoredError("CREDIT_UNAVAILABLE");
+    throw err;
+  }
+}
+
+async function claimCouponOrThrow(
+  tx: Parameters<typeof claimCouponRedemption>[0],
+  couponId: string | null,
+  redeemer: Parameters<typeof claimCouponRedemption>[2]
+) {
+  try {
+    await claimCouponRedemption(tx, couponId, redeemer);
+  } catch (err) {
+    if (err instanceof CouponUnavailableError) throw new PaymentNotHonoredError("COUPON_UNAVAILABLE");
     throw err;
   }
 }
@@ -100,7 +115,7 @@ export async function settleCoursePurchase(purchaseId: string, paymentId: string
         creditApplied: Number(purchase.creditApplied),
         description: `Course: ${course.title}`,
       });
-      await claimCouponRedemption(tx, purchase.couponId);
+      await claimCouponOrThrow(tx, purchase.couponId, { userId: purchase.userId, courseId: purchase.courseId });
       // A purchased course no longer needs to be "saved for later".
       await tx.courseWishlist.deleteMany({
         where: { userId: purchase.userId, courseId: purchase.courseId },
@@ -168,7 +183,7 @@ export async function settleEventRegistration(registrationId: string, paymentId:
             creditApplied: Number(registration.creditApplied),
             description: `Event: ${event.title}`,
           });
-          await claimCouponRedemption(tx, registration.couponId);
+          await claimCouponOrThrow(tx, registration.couponId, { userId: registration.userId, eventId: registration.eventId });
           // A registered event no longer needs to be "saved for later".
           await tx.eventWishlist.deleteMany({
             where: { userId: registration.userId, eventId: event.id },
@@ -244,7 +259,7 @@ export async function settleCompetitionEntry(entryId: string, paymentId: string)
             creditApplied: Number(entry.creditApplied),
             description: `Competition: ${competition.title}`,
           });
-          await claimCouponRedemption(tx, entry.couponId);
+          await claimCouponOrThrow(tx, entry.couponId, { userId: entry.userId, competitionId: entry.competitionId });
           // An entered competition no longer needs to be "saved for later".
           await tx.competitionWishlist.deleteMany({
             where: { userId: entry.userId, competitionId: competition.id },

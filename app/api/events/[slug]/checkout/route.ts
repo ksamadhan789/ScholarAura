@@ -202,7 +202,7 @@ export async function POST(
                   creditApplied,
                   description: `Event: ${event.title}`,
                 });
-                await claimCouponRedemption(tx, couponId);
+                await claimCouponRedemption(tx, couponId, { userId: session.user.id, eventId: event.id });
               }
 
               const settled = await tx.eventRegistration.findUniqueOrThrow({
@@ -297,6 +297,9 @@ export async function POST(
         { error: "Your credit balance changed. Please retry checkout." },
         { status: 409 }
       );
+    }
+    if (err instanceof CouponError) {
+      return NextResponse.json({ error: err.message }, { status: 409 });
     }
     console.error("Event checkout failed:", err);
     if (payCurrency !== "INR") {

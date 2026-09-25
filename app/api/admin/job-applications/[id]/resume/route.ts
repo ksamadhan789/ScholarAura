@@ -23,6 +23,10 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
 
+  if (!application.resumeFileId) {
+    return NextResponse.json({ error: "This applicant deleted their account, so their resume was removed." }, { status: 404 });
+  }
+
   try {
     const bytes = await downloadResume(application.resumeFileId);
     return new NextResponse(bytes, {

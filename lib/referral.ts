@@ -33,6 +33,19 @@ export function getReferralRatePercent(user: {
   return DEFAULT_REFERRAL_RATE_PERCENT;
 }
 
+/**
+ * Mailbox identity for spotting a referral to yourself: lowercase, drop any
+ * "+tag", and for Gmail ignore dots — user+2@gmail.com and u.ser@gmail.com
+ * reach the same inbox as user@gmail.com.
+ */
+export function canonicalMailbox(email: string): string {
+  const [rawLocal, rawDomain = ""] = email.trim().toLowerCase().split("@");
+  const domain = rawDomain === "googlemail.com" ? "gmail.com" : rawDomain;
+  let local = rawLocal.split("+")[0];
+  if (domain === "gmail.com") local = local.replace(/\./g, "");
+  return `${local}@${domain}`;
+}
+
 export class InsufficientCreditError extends Error {
   constructor() {
     super("INSUFFICIENT_CREDIT");
@@ -41,7 +54,8 @@ export class InsufficientCreditError extends Error {
 
 export async function computeCreditApplication(userId: string, price: number) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  const balance = Number(user?.creditBalance ?? 0);
+  // Can be negative after a referral clawback (lib/refund.ts) — never apply that.
+  const balance = Math.max(0, Number(user?.creditBalance ?? 0));
   const creditApplied = Math.min(balance, price);
   const amountDue = Math.round((price - creditApplied) * 100) / 100;
   return { creditApplied, amountDue };
