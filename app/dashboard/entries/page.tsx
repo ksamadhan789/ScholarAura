@@ -7,6 +7,16 @@ import { issueCompetitionCertificateIfEligible } from "@/lib/certificate";
 import { buildGoogleFormUrl } from "@/lib/competitionEnrollment";
 import { Badge } from "@/components/Badge";
 import { RequestRefundButton } from "@/components/RequestRefundButton";
+import { Award, ClipboardList, Clock, Receipt, Trophy, Upload } from "lucide-react";
+import {
+  DASHBOARD_CARD_CLASS,
+  DASHBOARD_PRIMARY_BUTTON_CLASS,
+  DASHBOARD_SECONDARY_BUTTON_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+  DashboardTabs,
+  DateTile,
+} from "@/components/dashboard/DashboardShell";
 
 const CERT_STATUS_LABEL: Record<string, string> = {
   ELIGIBLE: "Processing",
@@ -21,7 +31,7 @@ const CERT_STATUS_VARIANT: Record<string, "success" | "warning" | "brand" | "neu
   REVOKED: "neutral",
 };
 
-export default async function MyCompetitionsPage() {
+export default async function MyCompetitionsPage({ searchParams }: { searchParams: { tab?: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) {
     redirect("/login");
@@ -39,7 +49,7 @@ export default async function MyCompetitionsPage() {
   const issuanceResults = await Promise.allSettled(
     entries
       .filter((e) => e.competition.endDate < new Date())
-      .map((e) => issueCompetitionCertificateIfEligible(session.user.id, e.competitionId))
+      .map((e) => issueCompetitionCertificateIfEligible(session.user.id, e.competitionId)),
   );
   for (const result of issuanceResults) {
     if (result.status === "rejected") {
@@ -61,100 +71,170 @@ export default async function MyCompetitionsPage() {
   });
   const pendingEntryIds = new Set(pendingRequests.map((r) => r.competitionEntryId));
 
+  const now = new Date();
+  const active = entries.filter((e) => e.competition.endDate >= now);
+  const past = entries.filter((e) => e.competition.endDate < now).reverse();
+  const tab = searchParams.tab === "past" ? "past" : "active";
+  const visible = tab === "past" ? past : active;
+
   return (
-    <main className="mx-auto max-w-[1200px] px-4 py-16">
-      <h1 className="mb-8 text-2xl font-semibold">🏆 My competitions</h1>
-
-      {entries.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">
-          You haven&apos;t entered any competitions yet — plenty to explore!{" "}
-          <Link href="/competitions" className="underline">
-            Browse competitions 🏆
+    <DashboardShell
+      title="My competitions"
+      description={
+        entries.length > 0
+          ? `${active.length} active · ${past.length} past`
+          : "Competitions you enter show up here, with your submission details and certificates."
+      }
+      actions={
+        entries.length > 0 && (
+          <Link href="/competitions" className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+            <Trophy aria-hidden className="h-4 w-4" />
+            Browse competitions
           </Link>
-        </p>
+        )
+      }
+    >
+      {entries.length === 0 ? (
+        <DashboardEmptyState
+          icon={Trophy}
+          title="You haven't entered a competition yet"
+          text="Test your skills against other students and professionals."
+          href="/competitions"
+          cta="Browse competitions"
+        />
       ) : (
-        <div className="flex flex-col gap-3">
-          {entries.map((e) => {
-            const { competition } = e;
-            const googleFormUrl =
-              !e.formSubmitted && e.enrollmentNumber
-                ? buildGoogleFormUrl(competition, {
-                    name: e.certificateName ?? session.user.name ?? "",
-                    email: session.user.email ?? "",
-                    enrollmentNumber: e.enrollmentNumber,
-                  })
-                : null;
-            const cert = certByCompetitionId.get(competition.id);
-            const certReady = cert && (cert.status === "AVAILABLE" || cert.status === "GENERATED");
+        <>
+          <DashboardTabs
+            active={tab}
+            tabs={[
+              { key: "active", label: "Active", count: active.length, href: "/dashboard/entries" },
+              { key: "past", label: "Past", count: past.length, href: "/dashboard/entries?tab=past" },
+            ]}
+          />
 
-            return (
-              <div
-                key={competition.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded border border-gray-200 dark:border-slate-700 p-4 hover:border-gray-400"
-              >
-                <Link href={`/competitions/${competition.slug}`}>
-                  <h2 className="font-medium">{competition.title}</h2>
-                  <p className="text-sm text-gray-500 dark:text-slate-400">
-                    Submit by{" "}
-                    {competition.submissionDeadline.toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
-                  {e.enrollmentNumber && (
-                    <p className="mt-1 font-mono text-xs text-gray-400 dark:text-slate-500">
-                      {e.enrollmentNumber}
-                    </p>
-                  )}
-                </Link>
-                <div className="flex flex-wrap items-center gap-2">
-                  <a
-                    href={`/api/receipts/competition/${e.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                  >
-                    🧾 Receipt
-                  </a>
-                  {e.formSubmitted && <Badge variant="success">Form submitted</Badge>}
-                  {googleFormUrl && (
-                    <a
-                      href={googleFormUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                    >
-                      📝 Complete Google Form
-                    </a>
-                  )}
-                  {certReady ? (
-                    <Link
-                      href="/dashboard/certificates"
-                      className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                    >
-                      🎓 Certificate
-                    </Link>
-                  ) : (
-                    cert && (
-                      <Badge variant={CERT_STATUS_VARIANT[cert.status] ?? "neutral"}>
-                        🎓 {CERT_STATUS_LABEL[cert.status] ?? cert.status}
-                      </Badge>
-                    )
-                  )}
-                  {Number(e.amount) > 0 && (
-                    <RequestRefundButton
-                      kind="competition"
-                      itemId={e.id}
-                      isPending={pendingEntryIds.has(e.id)}
-                    />
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+          {visible.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-slate-300 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-600 dark:text-slate-400">
+              {tab === "past" ? "No past competitions yet." : "No active competitions right now."}
+            </p>
+          ) : (
+            <ul className="space-y-4">
+              {visible.map((e) => {
+                const { competition } = e;
+                const googleFormUrl =
+                  !e.formSubmitted && e.enrollmentNumber
+                    ? buildGoogleFormUrl(competition, {
+                        name: e.certificateName ?? session.user.name ?? "",
+                        email: session.user.email ?? "",
+                        enrollmentNumber: e.enrollmentNumber,
+                      })
+                    : null;
+                const cert = certByCompetitionId.get(competition.id);
+                const certReady = cert && (cert.status === "AVAILABLE" || cert.status === "GENERATED");
+                const submissionsOpen = competition.submissionDeadline >= now;
+                const isPast = competition.endDate < now;
+
+                return (
+                  <li key={competition.id} className={`${DASHBOARD_CARD_CLASS} p-5`}>
+                    <div className="flex gap-4">
+                      <DateTile date={competition.submissionDeadline} muted={!submissionsOpen} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {e.rank && e.rank <= 3 && (
+                            <Badge variant="warning">
+                              {e.rank === 1 ? "1st place" : e.rank === 2 ? "2nd place" : "3rd place"}
+                            </Badge>
+                          )}
+                          {!isPast && (
+                            <Badge variant={submissionsOpen ? "success" : "neutral"}>
+                              {submissionsOpen ? "Submissions open" : "Submissions closed"}
+                            </Badge>
+                          )}
+                          {e.formSubmitted && <Badge variant="success">Form submitted</Badge>}
+                        </div>
+                        <Link
+                          href={`/competitions/${competition.slug}`}
+                          className="mt-1.5 block font-semibold leading-snug text-slate-900 hover:text-brand-700 dark:text-white dark:hover:text-brand-400"
+                        >
+                          {competition.title}
+                        </Link>
+                        <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                          <Clock aria-hidden className="h-4 w-4" />
+                          Submit by{" "}
+                          {competition.submissionDeadline.toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            timeZone: "Asia/Kolkata",
+                          })}
+                        </p>
+                        {e.enrollmentNumber && (
+                          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                            Enrolment no.{" "}
+                            <span className="font-mono text-slate-700 dark:text-slate-300">{e.enrollmentNumber}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {googleFormUrl && (
+                      <div className="mt-4 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm sm:flex-row sm:items-center sm:justify-between dark:border-amber-800 dark:bg-amber-900/20">
+                        <p className="flex items-center gap-2 text-amber-900 dark:text-amber-200">
+                          <ClipboardList aria-hidden className="h-4 w-4 shrink-0" />
+                          One step left: complete the organiser&rsquo;s registration form.
+                        </p>
+                        <a
+                          href={googleFormUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`${DASHBOARD_PRIMARY_BUTTON_CLASS} shrink-0 py-1.5`}
+                        >
+                          Complete form
+                        </a>
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4 dark:border-slate-700">
+                      {submissionsOpen && (
+                        <Link
+                          href={`/competitions/${competition.slug}#submission`}
+                          className={`${DASHBOARD_PRIMARY_BUTTON_CLASS} py-1.5`}
+                        >
+                          <Upload aria-hidden className="h-4 w-4" />
+                          Your submission
+                        </Link>
+                      )}
+                      {certReady ? (
+                        <Link href="/dashboard/certificates" className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+                          <Award aria-hidden className="h-4 w-4 text-amber-500" />
+                          Certificate
+                        </Link>
+                      ) : (
+                        cert && (
+                          <Badge variant={CERT_STATUS_VARIANT[cert.status] ?? "neutral"}>
+                            Certificate {(CERT_STATUS_LABEL[cert.status] ?? cert.status).toLowerCase()}
+                          </Badge>
+                        )
+                      )}
+                      <a
+                        href={`/api/receipts/competition/${e.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={DASHBOARD_SECONDARY_BUTTON_CLASS}
+                      >
+                        <Receipt aria-hidden className="h-4 w-4" />
+                        Receipt
+                      </a>
+                      {Number(e.amount) > 0 && (
+                        <RequestRefundButton kind="competition" itemId={e.id} isPending={pendingEntryIds.has(e.id)} />
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </>
       )}
-    </main>
+    </DashboardShell>
   );
 }

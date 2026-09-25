@@ -4,12 +4,9 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MessageThread } from "@/components/freelance/MessageThread";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
-export default async function FreelanceThreadPage({
-  params,
-}: {
-  params: { threadId: string };
-}) {
+export default async function FreelanceThreadPage({ params }: { params: { threadId: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
@@ -36,19 +33,23 @@ export default async function FreelanceThreadPage({
   const otherParty = isInitiator ? thread.listing.postedByUser.name : thread.initiator.name;
 
   return (
-    <main className="mx-auto max-w-[1050px] px-4 py-16">
-      <Link
-        href="/dashboard/freelance/messages"
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← My messages
-      </Link>
-      <h1 className="mt-2 text-2xl font-semibold">
-        <Link href={`/freelance/${thread.listing.slug}`} className="hover:underline">
-          {thread.listing.title}
-        </Link>
-      </h1>
-      <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">with {otherParty}</p>
+    <DashboardShell
+      narrow
+      title={thread.listing.title}
+      description={
+        <>
+          with {otherParty} ·{" "}
+          <Link
+            href={`/freelance/${thread.listing.slug}`}
+            className="font-medium text-brand-600 hover:underline dark:text-brand-400"
+          >
+            View listing
+          </Link>
+        </>
+      }
+      backHref="/dashboard/freelance/messages"
+      backLabel="Messages"
+    >
       <MessageThread
         threadId={thread.id}
         currentUserId={session.user.id}
@@ -61,6 +62,6 @@ export default async function FreelanceThreadPage({
           createdAt: m.createdAt.toISOString(),
         }))}
       />
-    </main>
+    </DashboardShell>
   );
 }
