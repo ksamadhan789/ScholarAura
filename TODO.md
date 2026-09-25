@@ -49,7 +49,6 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Placement-guarantee course tier (pair a course with a job outcome)
 - Bundles / learning paths — removed 2026-09-07; revisit only if there's a specific need (see CHANGELOG)
 - Homepage trust signals (stats bar, partner logos) once real numbers exist
-- Reconnect Google sign-in: the Google Cloud OAuth client was deleted and must be recreated (config task, not code — see CHANGELOG 2026-09-06 note)
 - Upgrade Aura to a real LLM-backed chatbot (deliberately kept as canned FAQ + search for now — needs an `ANTHROPIC_API_KEY` and has ongoing per-message cost)
 
 ## Known Issues to Revisit

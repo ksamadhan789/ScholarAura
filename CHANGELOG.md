@@ -2,6 +2,12 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25
+
+### Fixed
+- Google sign-in works again in production. The deleted Google Cloud OAuth client was recreated (config only, no code): new client in the ScholarAura Google Cloud project, consent screen published, keys updated in Vercel.
+- `www.scholaraura.com` showed Hostinger's parked-domain page (whose robots.txt blocks everything), so Google reported the www home page as "blocked by robots.txt". The `www` DNS record in Hostinger now points at Vercel, and Vercel permanently redirects `www` to `scholaraura.com` (DNS/config only, no code). Sitemap submitted in Google Search Console.
+
 ## 2026-09-24
 
 ### Added
