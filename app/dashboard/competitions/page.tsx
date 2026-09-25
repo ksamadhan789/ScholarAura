@@ -4,14 +4,20 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
+import { Award, Pencil, Plus, Trophy, Users } from "lucide-react";
+import {
+  DASHBOARD_CARD_CLASS,
+  DASHBOARD_PRIMARY_BUTTON_CLASS,
+  DASHBOARD_SECONDARY_BUTTON_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+  DashboardTabs,
+  DateTile,
+} from "@/components/dashboard/DashboardShell";
 import { CompetitionPublishToggle } from "./CompetitionPublishToggle";
 import { CompetitionArchiveToggle } from "./CompetitionArchiveToggle";
 
-export default async function ManageCompetitionsPage({
-  searchParams,
-}: {
-  searchParams: { tab?: string };
-}) {
+export default async function ManageCompetitionsPage({ searchParams }: { searchParams: { tab?: string } }) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -33,103 +39,99 @@ export default async function ManageCompetitionsPage({
     prisma.competition.count({ where: { isArchived: true } }),
   ]);
 
-  return (
-    <main className="mx-auto max-w-[1200px] px-4 py-16">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Manage competitions</h1>
-        <Link
-          href="/dashboard/competitions/new"
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-sm text-white"
-        >
-          + New competition
-        </Link>
-      </div>
+  const now = new Date();
 
-      <div className="mb-6 flex gap-2">
-        <Link
-          href="/dashboard/competitions"
-          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-            !showArchived
-              ? "bg-brand-600 text-white"
-              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-          }`}
-        >
-          Active ({activeCount})
+  return (
+    <DashboardShell
+      title="Manage competitions"
+      backHref="/dashboard/admin"
+      backLabel="Admin"
+      description="Soonest deadline first. Entry counts include completed entries only."
+      actions={
+        <Link href="/dashboard/competitions/new" className={`${DASHBOARD_PRIMARY_BUTTON_CLASS} py-1.5`}>
+          <Plus aria-hidden className="h-4 w-4" />
+          New competition
         </Link>
-        <Link
-          href="/dashboard/competitions?tab=archived"
-          className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-            showArchived
-              ? "bg-brand-600 text-white"
-              : "border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-          }`}
-        >
-          Archived ({archivedCount})
-        </Link>
-      </div>
+      }
+    >
+      <DashboardTabs
+        active={showArchived ? "archived" : "active"}
+        tabs={[
+          { key: "active", label: "Active", count: activeCount, href: "/dashboard/competitions" },
+          { key: "archived", label: "Archived", count: archivedCount, href: "/dashboard/competitions?tab=archived" },
+        ]}
+      />
 
       {competitions.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">
-          {showArchived ? "No archived competitions." : "No competitions created yet."}
-        </p>
+        <DashboardEmptyState
+          icon={Trophy}
+          title={showArchived ? "No archived competitions" : "No competitions created yet"}
+          href={showArchived ? undefined : "/dashboard/competitions/new"}
+          cta={showArchived ? undefined : "Create a competition"}
+        />
       ) : (
-        <div className="flex flex-col gap-3">
-          {competitions.map((c) => (
-            <div
-              key={c.id}
-              className="flex items-center justify-between rounded border border-gray-200 dark:border-slate-700 p-4"
-            >
-              <div>
-                <Link href={`/competitions/${c.slug}`} className="font-medium hover:underline">
-                  {c.title}
-                </Link>
-                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-                  Submit by{" "}
-                  {c.submissionDeadline.toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </p>
-                <div className="mt-1 flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
-                  <Badge variant={c.isPublished ? "success" : "warning"}>
-                    {c.isPublished ? "Published" : "Draft"}
-                  </Badge>
-                  <span>{c._count.entries} entries</span>
+        <ul className="space-y-4">
+          {competitions.map((c) => {
+            const closed = c.submissionDeadline < now;
+            return (
+              <li key={c.id} className={`${DASHBOARD_CARD_CLASS} p-5`}>
+                <div className="flex gap-4">
+                  <DateTile date={c.submissionDeadline} muted={closed} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge variant={c.isPublished ? "success" : "warning"}>
+                        {c.isPublished ? "Published" : "Draft"}
+                      </Badge>
+                      {closed && <Badge variant="neutral">Submissions closed</Badge>}
+                    </div>
+                    <Link
+                      href={`/competitions/${c.slug}`}
+                      className="mt-1.5 block font-semibold leading-snug text-slate-900 hover:text-brand-700 dark:text-white dark:hover:text-brand-400"
+                    >
+                      {c.title}
+                    </Link>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                      Submit by{" "}
+                      {c.submissionDeadline.toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        timeZone: "Asia/Kolkata",
+                      })}{" "}
+                      · {c._count.entries} {c._count.entries === 1 ? "entry" : "entries"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/dashboard/competitions/${c.slug}/edit`}
-                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                >
-                  Edit
-                </Link>
-                <Link
-                  href={`/dashboard/competitions/${c.slug}/entries`}
-                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                >
-                  Entries
-                </Link>
-                <Link
-                  href={`/dashboard/competitions/${c.slug}/winners`}
-                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                >
-                  🏆 Winners
-                </Link>
-                <Link
-                  href={`/dashboard/competitions/${c.slug}/certificates`}
-                  className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm"
-                >
-                  Certificates
-                </Link>
-                <CompetitionPublishToggle slug={c.slug} isPublished={c.isPublished} />
-                <CompetitionArchiveToggle slug={c.slug} isArchived={c.isArchived} />
-              </div>
-            </div>
-          ))}
-        </div>
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4 dark:border-slate-700">
+                  <Link href={`/dashboard/competitions/${c.slug}/edit`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+                    <Pencil aria-hidden className="h-4 w-4" />
+                    Edit
+                  </Link>
+                  <Link href={`/dashboard/competitions/${c.slug}/entries`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+                    <Users aria-hidden className="h-4 w-4" />
+                    Entries
+                  </Link>
+                  <Link href={`/dashboard/competitions/${c.slug}/winners`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+                    <Trophy aria-hidden className="h-4 w-4 text-amber-500" />
+                    Winners
+                  </Link>
+                  <Link
+                    href={`/dashboard/competitions/${c.slug}/certificates`}
+                    className={DASHBOARD_SECONDARY_BUTTON_CLASS}
+                  >
+                    <Award aria-hidden className="h-4 w-4" />
+                    Certificates
+                  </Link>
+                  <span className="ml-auto flex flex-wrap gap-1">
+                    <CompetitionPublishToggle slug={c.slug} isPublished={c.isPublished} />
+                    <CompetitionArchiveToggle slug={c.slug} isArchived={c.isArchived} />
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }

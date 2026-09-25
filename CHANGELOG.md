@@ -2,6 +2,14 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (admin content pages polish)
+
+### Changed
+- Manage jobs: All / Pending review / Live / Not published / Rejected tabs with counts, jobs waiting for review listed first and outlined in amber, company, location and "Posted N days ago", who posted it, the rejection reason, and an applicants button with the count. Approve & publish / Reject (with an in-page reason box) for pending jobs.
+- Manage events and Manage competitions: date tiles, Published/Draft and Ended/Submissions-closed tags, a seats-filled bar with waitlist count for events, entry counts for competitions, and Edit / Registrations or Entries / Winners / Certificates buttons with icons.
+- Recommended courses and Coupons use the new page frame; the coupon form has proper inputs and the coupon table a cleaner look; deleting a coupon asks in-page instead of a pop-up.
+- All publish / archive toggles in admin lists got icons (a green Publish, a quiet Unpublish/Archive).
+
 ## 2026-09-25 (admin review queues polish)
 
 ### Changed

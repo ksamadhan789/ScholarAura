@@ -260,3 +260,29 @@ export const DASHBOARD_APPROVE_BUTTON_CLASS =
 /** Quiet red-on-hover "reject" action for admin review queues. */
 export const DASHBOARD_REJECT_BUTTON_CLASS =
   "inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-red-800 dark:hover:bg-red-900/20 dark:hover:text-red-400";
+
+/** Month + day tile (in IST) used on event and competition rows. `muted` greys it out for past dates. */
+export function DateTile({ date, muted = false }: { date: Date; muted?: boolean }) {
+  return (
+    <span
+      className={`flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl ${
+        muted
+          ? "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300"
+          : "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+      }`}
+    >
+      <span className="text-[10px] font-semibold uppercase leading-none">
+        {date.toLocaleDateString("en-IN", { month: "short", timeZone: "Asia/Kolkata" })}
+      </span>
+      <span className="text-xl font-bold leading-tight">
+        {date.toLocaleDateString("en-IN", { day: "numeric", timeZone: "Asia/Kolkata" })}
+      </span>
+    </span>
+  );
+}
+
+/** Text input / select look for dashboard forms. */
+export const DASHBOARD_INPUT_CLASS =
+  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white";
+
+export const DASHBOARD_LABEL_CLASS = "mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200";
