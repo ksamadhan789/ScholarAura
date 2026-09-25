@@ -25,39 +25,16 @@ import {
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Avatar } from "@/components/Avatar";
+import {
+  BANNER_PRIMARY_BUTTON_CLASS,
+  BANNER_SECONDARY_BUTTON_CLASS,
+  DashboardBanner,
+  DashboardStatCard,
+} from "@/components/dashboard/DashboardShell";
 import { formatDateRange } from "@/lib/eventLabels";
 import { firstNameOf, istGreeting, pickContinueLearning, summarizeCourseProgress } from "@/lib/dashboardSummary";
 
 const CARD_CLASS = "rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800";
-
-function StatCard({
-  href,
-  icon: Icon,
-  value,
-  label,
-}: {
-  href: string;
-  icon: LucideIcon;
-  value: number;
-  label: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`${CARD_CLASS} group flex flex-col gap-3 p-4 transition sm:flex-row sm:items-center sm:gap-4 hover:-translate-y-0.5 hover:shadow-md`}
-    >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
-        <Icon aria-hidden className="h-5 w-5" />
-      </span>
-      <span className="min-w-0">
-        <span className="block text-2xl font-bold tabular-nums text-slate-900 dark:text-white">
-          {value.toLocaleString("en-IN")}
-        </span>
-        <span className="block text-sm leading-snug text-slate-500 dark:text-slate-400">{label}</span>
-      </span>
-    </Link>
-  );
-}
 
 function SectionHeader({ title, href, linkLabel }: { title: string; href: string; linkLabel: string }) {
   return (
@@ -273,63 +250,64 @@ export default async function DashboardPage() {
   return (
     <main className="flex-1 bg-slate-50 dark:bg-slate-950">
       <div className="mx-auto max-w-[1200px] px-4 py-10 sm:py-14">
-        {/* Welcome banner */}
-        <section className="relative overflow-hidden rounded-3xl bg-navy-900 p-6 text-white sm:p-8">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-40"
-            style={{
-              backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.18) 1px, transparent 0)",
-              backgroundSize: "26px 26px",
-            }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-500/40 blur-3xl"
-          />
-          <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <span className="rounded-full ring-4 ring-white/10">
-                <Avatar name={displayName} src={user?.photoFileId ? "/api/account/photo" : null} size={64} />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-sky-300">{istGreeting(now)}</p>
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                  Welcome back, {firstNameOf(displayName)}
-                </h1>
-                <p className="mt-1 text-sm sm:truncate text-slate-300">{profileDetails}</p>
-              </div>
-            </div>
-            <div className="flex shrink-0 flex-wrap gap-2">
+        <DashboardBanner
+          leading={
+            <span className="rounded-full ring-4 ring-white/10">
+              <Avatar name={displayName} src={user?.photoFileId ? "/api/account/photo" : null} size={64} />
+            </span>
+          }
+          eyebrow={istGreeting(now)}
+          title={`Welcome back, ${firstNameOf(displayName)}`}
+          subtitle={profileDetails}
+          actions={
+            <>
               {user?.publicProfileEnabled && (
                 <Link
                   href={`/portfolio/${userId}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                  className={BANNER_SECONDARY_BUTTON_CLASS}
                 >
                   <UserRound aria-hidden className="h-4 w-4" />
                   View profile
                   <ExternalLink aria-hidden className="h-3.5 w-3.5 opacity-70" />
                 </Link>
               )}
-              <Link
-                href="/dashboard/profile"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-navy-900 transition-colors hover:bg-slate-100"
-              >
+              {isInstructor && (
+                <Link href="/dashboard/courses" className={BANNER_SECONDARY_BUTTON_CLASS}>
+                  <Presentation aria-hidden className="h-4 w-4" />
+                  My courses
+                </Link>
+              )}
+              <Link href="/dashboard/profile" className={BANNER_PRIMARY_BUTTON_CLASS}>
                 <Pencil aria-hidden className="h-4 w-4" />
                 Edit profile
               </Link>
-            </div>
-          </div>
-        </section>
+            </>
+          }
+        />
 
         {/* Stats — the user's own real counts, zeros included */}
         <section aria-label="Your activity" className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard href="/dashboard/learning" icon={GraduationCap} value={purchases.length} label="Courses enrolled" />
-          <StatCard href="/dashboard/registrations" icon={CalendarDays} value={upcomingCount} label="Upcoming events" />
-          <StatCard href="/dashboard/certificates" icon={Award} value={certificateCount} label="Certificates earned" />
-          <StatCard
+          <DashboardStatCard
+            href="/dashboard/learning"
+            icon={GraduationCap}
+            value={purchases.length}
+            label="Courses enrolled"
+          />
+          <DashboardStatCard
+            href="/dashboard/registrations"
+            icon={CalendarDays}
+            value={upcomingCount}
+            label="Upcoming events"
+          />
+          <DashboardStatCard
+            href="/dashboard/certificates"
+            icon={Award}
+            value={certificateCount}
+            label="Certificates earned"
+          />
+          <DashboardStatCard
             href="/dashboard/job-applications"
             icon={Briefcase}
             value={applicationCount}

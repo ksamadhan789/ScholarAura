@@ -17,13 +17,18 @@ export function istGreeting(date: Date = new Date()): string {
   return "Good evening";
 }
 
-/** First word of a display name, or the part before "@" when all we have is an email. */
+/** First word of a display name (skipping a title like "Dr."), or the part before "@" when all we have is an email. */
 export function firstNameOf(nameOrEmail: string): string {
   const trimmed = nameOrEmail.trim();
   if (!trimmed) return "there";
   if (!trimmed.includes(" ") && trimmed.includes("@")) return trimmed.split("@")[0];
-  return trimmed.split(/\s+/)[0];
+  const words = trimmed.split(/\s+/);
+  // "Dr. Meera Iyer" → "Meera", not "Dr." — unless the title is all there is.
+  const first = words.find((w) => !HONORIFICS.has(w.toLowerCase().replace(/\.$/, "")));
+  return first ?? words[0];
 }
+
+const HONORIFICS = new Set(["dr", "prof", "mr", "mrs", "ms", "miss", "shri", "smt"]);
 
 export type CourseProgressSummary = {
   completed: number;

@@ -25,6 +25,12 @@ describe("firstNameOf", () => {
     expect(firstNameOf("  Priya Anil Sharma ")).toBe("Priya");
   });
 
+  it("skips titles like Dr. and Prof.", () => {
+    expect(firstNameOf("Dr. Meera Iyer")).toBe("Meera");
+    expect(firstNameOf("prof Anil Kumar")).toBe("Anil");
+    expect(firstNameOf("Dr.")).toBe("Dr.");
+  });
+
   it("falls back to the email's local part", () => {
     expect(firstNameOf("rahul.k@example.com")).toBe("rahul.k");
     expect(firstNameOf("")).toBe("there");
