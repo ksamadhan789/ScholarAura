@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { HomeBannerCarousel, type BannerItem } from "@/components/HomeBannerCarousel";
 import { HomeCategoryCarousel, type HomeCategoryItem } from "@/components/HomeCategoryCarousel";
@@ -16,6 +18,7 @@ import { pickTrustStats } from "@/lib/trustSignals";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  const session = await getServerSession(authOptions);
   const now = new Date();
   const [courses, events, competitions, categoryStats, trustCounts, testimonials] = await Promise.all([
     prisma.course.findMany({
@@ -81,6 +84,15 @@ export default async function HomePage() {
     })),
   ];
 
+  const upcoming = events.find((e) => e.startDate > now);
+  const nextEvent = upcoming
+    ? {
+        title: upcoming.title,
+        href: `/events/${upcoming.slug}`,
+        dateLabel: new Date(upcoming.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" }),
+      }
+    : null;
+
   const heroStats = {
     courses: categoryStats.courses,
     events: events.length,
@@ -90,7 +102,7 @@ export default async function HomePage() {
 
   return (
     <main className="flex flex-1 flex-col">
-      <HomeHero stats={heroStats} />
+      <HomeHero stats={heroStats} nextEvent={nextEvent} isLoggedIn={!!session} />
 
       <HomeTrustPoints />
 
