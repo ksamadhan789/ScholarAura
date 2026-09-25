@@ -9,6 +9,21 @@ import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOption
 import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
 import { Avatar } from "@/components/Avatar";
 import { ImageCropModal } from "@/components/ImageCropModal";
+import {
+  AlertTriangle,
+  Briefcase,
+  Camera,
+  CheckCircle2,
+  Eye,
+  FileText,
+  GraduationCap,
+  IdCard,
+  RefreshCw,
+  Trash2,
+  Upload,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 
 type Initial = {
   name: string;
@@ -29,29 +44,72 @@ type Initial = {
   idCardFileName: string | null;
 };
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  id,
+  icon: Icon,
+  title,
+  description,
+  children,
+}: {
+  id: string;
+  icon: LucideIcon;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <h2 className="mb-4 font-semibold text-slate-900 dark:text-white">{title}</h2>
+    <section
+      id={id}
+      className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800"
+    >
+      <div className="mb-5 flex items-start gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
+          <Icon aria-hidden className="h-5 w-5" />
+        </span>
+        <div>
+          <h2 className="font-semibold text-slate-900 dark:text-white">{title}</h2>
+          {description && <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{description}</p>}
+        </div>
+      </div>
       <div className="flex flex-col gap-4">{children}</div>
-    </div>
+    </section>
   );
 }
 
 function Field({ label, optional, children }: { label: string; optional?: boolean; children: React.ReactNode }) {
   return (
-    <div>
-      <label className="mb-1 block text-sm font-medium">
-        {label}{" "}
-        {optional && <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>}
-      </label>
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+        {label} {optional && <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>}
+      </span>
       {children}
-    </div>
+    </label>
   );
 }
 
 const inputClass =
-  "w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white";
+  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white";
+
+const secondaryButtonClass =
+  "inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700";
+
+const removeButtonClass =
+  "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400";
+
+/** A saved file shown as a chip: icon, name, then its actions. */
+function FileRow({ icon: Icon, name, children }: { icon: LucideIcon; name: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center dark:border-slate-700 dark:bg-slate-900/40">
+      <span className="flex min-w-0 flex-1 items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-brand-600 shadow-sm dark:bg-slate-800 dark:text-brand-400">
+          <Icon aria-hidden className="h-5 w-5" />
+        </span>
+        <span className="truncate text-sm font-medium text-slate-800 dark:text-slate-200">{name}</span>
+      </span>
+      <span className="flex flex-wrap gap-2">{children}</span>
+    </div>
+  );
+}
 
 export function EditProfileForm({ initial }: { initial: Initial }) {
   const router = useRouter();
@@ -212,7 +270,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
     // drops a request body over its own platform limit first.
     if (file.size > MAX_UPLOAD_BYTES) {
       setIdCardError(
-        `That file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — your ID card must be under ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB. Try a lower-resolution photo or scan.`
+        `That file is ${(file.size / (1024 * 1024)).toFixed(1)}MB — your ID card must be under ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB. Try a lower-resolution photo or scan.`,
       );
       return;
     }
@@ -323,12 +381,15 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Section title="Profile photo">
-        <div className="flex flex-wrap items-center gap-4">
-          <Avatar name={initial.name} src={photoSrc} size={128} />
+      <Section id="photo" icon={Camera} title="Profile photo" description="Shown on your dashboard and public profile.">
+        <div className="flex flex-wrap items-center gap-5">
+          <span className="rounded-full ring-4 ring-slate-100 dark:ring-slate-700">
+            <Avatar name={initial.name} src={photoSrc} size={112} />
+          </span>
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap gap-2">
-              <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
+              <label className={secondaryButtonClass}>
+                <Upload aria-hidden className="h-4 w-4" />
                 {photoUploading ? "Uploading…" : hasPhoto ? "Replace photo" : "Upload photo"}
                 <input
                   type="file"
@@ -343,8 +404,9 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                   type="button"
                   onClick={handlePhotoRemove}
                   disabled={photoUploading}
-                  className="rounded border border-red-300 px-3 py-1.5 text-xs text-red-600 disabled:opacity-50 dark:border-red-800 dark:text-red-400"
+                  className={removeButtonClass}
                 >
+                  <Trash2 aria-hidden className="h-4 w-4" />
                   Remove
                 </button>
               )}
@@ -366,7 +428,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <Section title="Personal details">
+        <Section id="personal" icon={UserRound} title="Personal details">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="First name">
               <input
@@ -396,16 +458,16 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
             />
           </Field>
           <Field label="Mobile number" optional>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className={inputClass}
-            />
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
           </Field>
         </Section>
 
-        <Section title="Academic / professional details">
+        <Section
+          id="academic"
+          icon={GraduationCap}
+          title="Academic / professional details"
+          description="Helps us suggest the right courses, events and jobs."
+        >
           <Field label={showFieldOfStudy ? "College / university" : "Organization"} optional>
             <input
               type="text"
@@ -416,11 +478,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
           </Field>
           {showFieldOfStudy && (
             <Field label="Field of study" optional>
-              <select
-                value={fieldOfStudy}
-                onChange={(e) => setFieldOfStudy(e.target.value)}
-                className={inputClass}
-              >
+              <select value={fieldOfStudy} onChange={(e) => setFieldOfStudy(e.target.value)} className={inputClass}>
                 <option value="">Select a field</option>
                 {FIELD_OF_STUDY_OPTIONS.map((f) => (
                   <option key={f} value={f}>
@@ -453,7 +511,12 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
           </Field>
         </Section>
 
-        <Section title="Career profile">
+        <Section
+          id="career"
+          icon={Briefcase}
+          title="Career profile"
+          description="Recruiters see this when you apply for a job."
+        >
           <Field label="LinkedIn URL" optional>
             <input
               type="url"
@@ -484,31 +547,48 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
           </Field>
         </Section>
 
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        {success && <p className="text-sm text-green-600 dark:text-green-400">✅ Profile updated.</p>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-fit rounded bg-brand-600 px-5 py-2.5 text-sm text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
-        >
-          {loading ? "Saving…" : "Save changes"}
-        </button>
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-slate-700 dark:bg-slate-800">
+          <div className="text-sm" aria-live="polite">
+            {error ? (
+              <p className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                <AlertTriangle aria-hidden className="h-4 w-4 shrink-0" />
+                {error}
+              </p>
+            ) : success ? (
+              <p className="flex items-center gap-2 font-medium text-emerald-700 dark:text-emerald-400">
+                <CheckCircle2 aria-hidden className="h-4 w-4 shrink-0" />
+                Profile updated.
+              </p>
+            ) : (
+              <p className="text-slate-500 dark:text-slate-400">
+                Your photo, resume and ID card save as soon as you upload them.
+              </p>
+            )}
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="shrink-0 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
+          >
+            {loading ? "Saving…" : "Save changes"}
+          </button>
+        </div>
       </form>
 
-      <Section title="Resume">
+      <Section
+        id="resume"
+        icon={FileText}
+        title="Resume"
+        description="Ready to attach to job applications and to share on your public profile."
+      >
         {resumeName ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm text-slate-700 dark:text-slate-300">📄 {resumeName}</p>
-            <a
-              href="/api/account/resume"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600"
-            >
+          <FileRow icon={FileText} name={resumeName}>
+            <a href="/api/account/resume" target="_blank" rel="noopener noreferrer" className={secondaryButtonClass}>
+              <Eye aria-hidden className="h-4 w-4" />
               View
             </a>
-            <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
+            <label className={secondaryButtonClass}>
+              <RefreshCw aria-hidden className="h-4 w-4" />
               {resumeUploading ? "Uploading…" : "Replace"}
               <input
                 type="file"
@@ -518,23 +598,16 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                 className="hidden"
               />
             </label>
-            <button
-              type="button"
-              onClick={handleResumeRemove}
-              disabled={resumeUploading}
-              className="rounded border border-red-300 px-3 py-1.5 text-xs text-red-600 disabled:opacity-50 dark:border-red-800 dark:text-red-400"
-            >
+            <button type="button" onClick={handleResumeRemove} disabled={resumeUploading} className={removeButtonClass}>
+              <Trash2 aria-hidden className="h-4 w-4" />
               Remove
             </button>
-          </div>
+          </FileRow>
         ) : (
           <div>
-            <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">
-              Upload a PDF resume once here, so it's ready to attach to job applications and share on
-              your public profile.
-            </p>
-            <label className="inline-block w-fit cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm dark:border-slate-600">
-              {resumeUploading ? "Uploading…" : "Upload resume (PDF, max 4MB)"}
+            <label className={secondaryButtonClass}>
+              <Upload aria-hidden className="h-4 w-4" />
+              {resumeUploading ? "Uploading…" : "Upload resume"}
               <input
                 type="file"
                 accept="application/pdf"
@@ -543,24 +616,26 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                 className="hidden"
               />
             </label>
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">PDF, up to 4MB.</p>
           </div>
         )}
         {resumeError && <p className="text-sm text-red-600 dark:text-red-400">{resumeError}</p>}
       </Section>
 
-      <Section title="Student ID card">
+      <Section
+        id="id-card"
+        icon={IdCard}
+        title="Student ID card"
+        description="Saved once, so it's ready whenever a competition asks for it."
+      >
         {idCardFileName ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-sm text-slate-700 dark:text-slate-300">🪪 {idCardFileName}</p>
-            <a
-              href="/api/account/id-card"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600"
-            >
+          <FileRow icon={IdCard} name={idCardFileName}>
+            <a href="/api/account/id-card" target="_blank" rel="noopener noreferrer" className={secondaryButtonClass}>
+              <Eye aria-hidden className="h-4 w-4" />
               View
             </a>
-            <label className="cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-xs dark:border-slate-600">
+            <label className={secondaryButtonClass}>
+              <RefreshCw aria-hidden className="h-4 w-4" />
               {idCardUploading ? `Uploading… ${idCardProgress}%` : "Replace"}
               <input
                 type="file"
@@ -570,25 +645,16 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                 className="hidden"
               />
             </label>
-            <button
-              type="button"
-              onClick={handleIdCardRemove}
-              disabled={idCardUploading}
-              className="rounded border border-red-300 px-3 py-1.5 text-xs text-red-600 disabled:opacity-50 dark:border-red-800 dark:text-red-400"
-            >
+            <button type="button" onClick={handleIdCardRemove} disabled={idCardUploading} className={removeButtonClass}>
+              <Trash2 aria-hidden className="h-4 w-4" />
               Remove
             </button>
-          </div>
+          </FileRow>
         ) : (
           <div>
-            <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">
-              Upload a photo or scan of your student ID card once here, so it's ready whenever a
-              competition needs it — no more pasting a Drive link for every entry.
-            </p>
-            <label className="inline-block w-fit cursor-pointer rounded border border-gray-300 px-3 py-1.5 text-sm dark:border-slate-600">
-              {idCardUploading
-                ? `Uploading… ${idCardProgress}%`
-                : `Upload ID card (image or PDF, max ${MAX_UPLOAD_BYTES / (1024 * 1024)}MB)`}
+            <label className={secondaryButtonClass}>
+              <Upload aria-hidden className="h-4 w-4" />
+              {idCardUploading ? `Uploading… ${idCardProgress}%` : "Upload ID card"}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,application/pdf"
@@ -597,23 +663,29 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                 className="hidden"
               />
             </label>
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              A photo or scan (JPEG, PNG, WebP or PDF), up to {MAX_UPLOAD_BYTES / (1024 * 1024)}MB.
+            </p>
           </div>
         )}
         {idCardError && <p className="text-sm text-red-600 dark:text-red-400">{idCardError}</p>}
       </Section>
 
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-5 dark:border-red-900 dark:bg-red-950/20">
-        <h2 className="mb-1 font-semibold text-red-900 dark:text-red-300">Danger zone</h2>
+      <div className="rounded-2xl border border-red-200 bg-red-50/60 p-5 sm:p-6 dark:border-red-900 dark:bg-red-950/20">
+        <h2 className="mb-1 flex items-center gap-2 font-semibold text-red-900 dark:text-red-300">
+          <AlertTriangle aria-hidden className="h-4 w-4" />
+          Delete account
+        </h2>
         {!showDeleteConfirm ? (
           <>
             <p className="mb-3 text-sm text-red-700 dark:text-red-400">
-              Deleting your account disables your login and removes your personal details. Your course,
-              event and competition history stays on record, same as any platform.
+              Deleting your account disables your login and removes your personal details. Your course, event and
+              competition history stays on record, same as any platform.
             </p>
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="rounded border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-100 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
+              className="rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 dark:border-red-800 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/30"
             >
               Delete my account
             </button>
@@ -621,8 +693,8 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
         ) : (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-red-700 dark:text-red-400">
-              This can&rsquo;t be undone from your side. You&rsquo;ll be signed out immediately and won&rsquo;t
-              be able to log back in with this email.
+              This can&rsquo;t be undone from your side. You&rsquo;ll be signed out immediately and won&rsquo;t be able
+              to log back in with this email.
             </p>
             <div>
               <label className="mb-1 block text-sm font-medium text-red-900 dark:text-red-300">
@@ -633,7 +705,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                 value={deleteReason}
                 onChange={(e) => setDeleteReason(e.target.value)}
                 disabled={deleting}
-                className="w-full rounded border border-red-300 px-3 py-2 text-sm dark:border-red-800 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-lg border border-red-300 bg-white px-3 py-2 text-sm dark:border-red-800 dark:bg-slate-800 dark:text-white"
               />
             </div>
             <div>
@@ -645,7 +717,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 disabled={deleting}
-                className="w-full max-w-xs rounded border border-red-300 px-3 py-2 text-sm dark:border-red-800 dark:bg-slate-800 dark:text-white"
+                className="w-full max-w-xs rounded-lg border border-red-300 bg-white px-3 py-2 text-sm dark:border-red-800 dark:bg-slate-800 dark:text-white"
               />
             </div>
             {deleteError && <p className="text-sm text-red-600 dark:text-red-400">{deleteError}</p>}
@@ -654,7 +726,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={deleting || deleteConfirmText !== "DELETE"}
-                className="rounded bg-red-600 px-4 py-2 text-sm text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
               >
                 {deleting ? "Deleting…" : "Permanently delete my account"}
               </button>
@@ -667,7 +739,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
                   setDeleteError(null);
                 }}
                 disabled={deleting}
-                className="rounded border border-gray-300 px-4 py-2 text-sm dark:border-slate-600"
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
               >
                 Cancel
               </button>
