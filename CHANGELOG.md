@@ -2,6 +2,15 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (applicant pages polish)
+
+### Changed
+- Applicants page (recruiter and admin — now one shared `components/jobs/ApplicantsBoard.tsx`): To review / Shortlisted / Hired / Not selected tabs with counts; each applicant card shows photo, name, a "New" tag for this week's applications, their field or job role and college/organisation, email (click to write), applied date, expertise and achievements from their profile, and the cover note as a quote. View resume / Message / LinkedIn buttons, and a colour-coded status picker. View listing and Export CSV sit at the top.
+- Job message threads (recruiter, admin and applicant side) use chat bubbles in a card with a Send button, in the new page frame.
+
+### Fixed
+- The recruiter's message page now uses the same access rule as the applicants list (`isActiveJobOwner`), so a recruiter whose account is no longer approved can't open applicant threads from it either.
+
 ## 2026-09-25 (recruiter & instructor dashboards polish)
 
 ### Changed

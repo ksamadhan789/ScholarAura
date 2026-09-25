@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MessageThread } from "@/components/jobs/MessageThread";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { isActiveJobOwner } from "@/lib/jobOwnership";
 
 export default async function RecruiterApplicationMessagesPage({
   params,
@@ -18,10 +19,12 @@ export default async function RecruiterApplicationMessagesPage({
     where: { id: params.applicationId },
     include: { job: true, user: { select: { name: true } } },
   });
+  // Same ownership rule as the applicants list: a recruiter whose account is
+  // no longer approved loses access to their applicants' threads too.
   if (
     !application ||
     application.job.slug !== params.slug ||
-    application.job.postedByUserId !== session.user.id
+    !(await isActiveJobOwner(session.user.id, application.job))
   ) {
     notFound();
   }
@@ -33,14 +36,13 @@ export default async function RecruiterApplicationMessagesPage({
   });
 
   return (
-    <main className="mx-auto max-w-[1050px] px-4 py-16">
-      <Link
-        href={`/dashboard/recruiter/jobs/${params.slug}/applicants`}
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← Applicants
-      </Link>
-      <h1 className="mt-2 mb-6 text-2xl font-semibold">Messages with {application.user.name}</h1>
+    <DashboardShell
+      narrow
+      backHref={`/dashboard/recruiter/jobs/${params.slug}/applicants`}
+      backLabel="Applicants"
+      title={`Messages with ${application.user.name}`}
+      description={`About ${application.job.title}`}
+    >
       <MessageThread
         applicationId={application.id}
         currentUserId={session.user.id}
@@ -53,6 +55,6 @@ export default async function RecruiterApplicationMessagesPage({
           createdAt: m.createdAt.toISOString(),
         }))}
       />
-    </main>
+    </DashboardShell>
   );
 }
