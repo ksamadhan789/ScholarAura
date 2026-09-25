@@ -2,6 +2,12 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (My learning polish)
+
+### Changed
+- My learning (`/dashboard/learning`) is now a grid of course cards: the course image, category, instructor, a progress bar with "2 of 5 lectures · 40%", how much watching time is left, a green "Completed" tag, and one clear Start / Continue / Review course button that opens the next unfinished lecture. All / In progress / Completed tabs filter the list. Finished courses with a certificate link to it; Receipt and Request refund sit underneath as quieter buttons.
+- New shared frame for the learner's own pages (`components/dashboard/DashboardShell.tsx`: back-to-dashboard link, title, summary, tabs, empty state); the Request refund button got the new look too.
+
 ## 2026-09-25 (dashboard polish)
 
 ### Changed

@@ -65,3 +65,9 @@ export function pickContinueLearning<T extends { progress: CourseProgressSummary
   const notStarted = open.filter((c) => c.progress.completed === 0);
   return [...started, ...notStarted].slice(0, limit);
 }
+
+/** A course length for display: 4,380 seconds → "1h 13m", 900 → "15 min", under a minute → "1 min". */
+export function formatLength(seconds: number): string {
+  const minutes = Math.max(1, Math.round(seconds / 60));
+  return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes} min`;
+}
