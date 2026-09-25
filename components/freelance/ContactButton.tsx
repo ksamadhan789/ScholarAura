@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { MessageCircle } from "lucide-react";
 
 export function ContactButton({ slug, firstName }: { slug: string; firstName: string }) {
   const router = useRouter();
@@ -36,8 +37,9 @@ export function ContactButton({ slug, firstName }: { slug: string; firstName: st
         type="button"
         onClick={handleClick}
         disabled={loading}
-        className="inline-block rounded bg-brand-600 px-4 py-2 text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-3 font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
       >
+        <MessageCircle aria-hidden className="h-4 w-4" />
         {loading ? "…" : `Message ${firstName}`}
       </button>
       {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}

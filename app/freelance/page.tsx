@@ -1,3 +1,4 @@
+import { ArrowRight, Plus } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
@@ -86,9 +87,15 @@ function ListingCard({
         </div>
       )}
       <div className="mt-auto pt-4">
-        <p className="border-t border-slate-100 pt-3 font-bold text-slate-900 dark:border-slate-700 dark:text-white">
-          {listing.rate ?? <span className="font-normal text-slate-500 dark:text-slate-400">Rate on request</span>}
-        </p>
+        <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-3 dark:border-slate-700">
+          <p className="min-w-0 truncate font-bold text-slate-900 dark:text-white">
+            {listing.rate ?? <span className="font-normal text-slate-500 dark:text-slate-400">Rate on request</span>}
+          </p>
+          <ArrowRight
+            aria-hidden
+            className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-brand-600 dark:text-slate-600 dark:group-hover:text-brand-400"
+          />
+        </div>
       </div>
     </Link>
   );
@@ -138,9 +145,10 @@ export default async function FreelancePage({
         action={
           <Link
             href="/dashboard/freelance/new"
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700"
           >
-            + Post your services
+            <Plus aria-hidden className="h-4 w-4" />
+            Post your services
           </Link>
         }
       />

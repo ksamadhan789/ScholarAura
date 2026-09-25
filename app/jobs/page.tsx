@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPE_TABS, formatJobDate } from "@/lib/jobLabels";
-import { Briefcase, Clock, IndianRupee, MapPin } from "lucide-react";
+import { EMPLOYMENT_TYPE_LABELS, EMPLOYMENT_TYPE_TABS, closingSoonLabel, formatPostedAgo, isNewJob } from "@/lib/jobLabels";
+import { ArrowRight, Clock, IndianRupee, MapPin } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { SaveButton } from "@/components/SaveButton";
 import {
@@ -48,12 +48,14 @@ function JobCard({
     durationMonths: number | null;
     featuredUntil: Date | null;
     createdAt: Date;
+    applicationDeadline: Date | null;
   };
   isSaved: boolean | null;
 }) {
   const isInternship = job.employmentType === "INTERNSHIP";
   const isFeatured = Boolean(job.featuredUntil && job.featuredUntil > new Date());
   const pay = isInternship ? job.stipendRange : job.salaryRange;
+  const closing = closingSoonLabel(job.applicationDeadline);
   return (
     <div className="relative">
       {isSaved !== null && (
@@ -77,14 +79,21 @@ function JobCard({
             className="h-12 w-12 shrink-0 rounded-lg border border-slate-100 bg-white object-contain p-1 dark:border-slate-700"
           />
         ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 dark:bg-slate-700 dark:text-brand-400">
-            <Briefcase aria-hidden className="h-6 w-6" />
+          // No logo: the company's initial, so each employer reads as itself
+          // rather than a row of identical briefcases.
+          <div
+            aria-hidden
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-sky-500 text-lg font-bold text-white"
+          >
+            {job.companyName.trim().charAt(0).toUpperCase() || "?"}
           </div>
         )}
         <div className="min-w-0 flex-1 pr-8">
           <div className="flex flex-wrap items-center gap-1.5">
             {isFeatured && <Badge variant="warning">Featured</Badge>}
             <Badge variant="brand">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</Badge>
+            {isNewJob(job.createdAt) && <Badge variant="success">New</Badge>}
+            {closing && <Badge variant="warning">{closing}</Badge>}
           </div>
           <h3 className="mt-1.5 font-semibold text-slate-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400">
             {job.title}
@@ -108,8 +117,12 @@ function JobCard({
               </li>
             )}
           </ul>
-          <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">Posted {formatJobDate(job.createdAt)}</p>
+          <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">{formatPostedAgo(job.createdAt)}</p>
         </div>
+        <ArrowRight
+          aria-hidden
+          className="mt-1 hidden h-5 w-5 shrink-0 self-center text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-brand-600 sm:block dark:text-slate-600 dark:group-hover:text-brand-400"
+        />
       </Link>
     </div>
   );
