@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { downloadCourseResource } from "@/lib/courseResourceStorage";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 export async function GET(
   _request: Request,
@@ -44,7 +45,7 @@ export async function GET(
     return new NextResponse(bytes, {
       headers: {
         "Content-Type": resource.mimeType,
-        "Content-Disposition": `attachment; filename="${resource.fileName}"`,
+        "Content-Disposition": contentDisposition("attachment", resource.fileName),
       },
     });
   } catch (err) {

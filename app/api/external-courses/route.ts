@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { httpUrl } from "@/lib/safeUrl";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -8,7 +9,7 @@ const createSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   provider: z.string().min(1, "Provider is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  url: z.string().url("Enter a valid URL"),
+  url: httpUrl(),
   category: z.string().min(1, "Category is required"),
 });
 

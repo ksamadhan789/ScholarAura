@@ -52,18 +52,34 @@ export function gradeQuiz(
   answers: QuizAnswers,
   passingPercent: number
 ): { scorePercent: number; passed: boolean; correctCount: number; totalCount: number } {
-  let correctCount = 0;
-  for (const question of questions) {
-    const correctIds = new Set(question.options.filter((o) => o.isCorrect).map((o) => o.id));
-    const selectedIds = new Set(answers[question.id] ?? []);
-    const isCorrect =
-      correctIds.size === selectedIds.size && [...correctIds].every((id) => selectedIds.has(id));
-    if (isCorrect) correctCount++;
-  }
-
+  const correctCount = correctQuestionIds(questions, answers).length;
   const totalCount = questions.length;
   const scorePercent = totalCount === 0 ? 0 : Math.round((correctCount / totalCount) * 100);
   return { scorePercent, passed: scorePercent >= passingPercent, correctCount, totalCount };
+}
+
+/** IDs of the questions the student answered exactly right. */
+export function correctQuestionIds(questions: QuizQuestion[], answers: QuizAnswers): string[] {
+  return questions
+    .filter((question) => {
+      const correctIds = new Set(question.options.filter((o) => o.isCorrect).map((o) => o.id));
+      const selectedIds = new Set(answers[question.id] ?? []);
+      return correctIds.size === selectedIds.size && [...correctIds].every((id) => selectedIds.has(id));
+    })
+    .map((q) => q.id);
+}
+
+/**
+ * What a student sees after submitting. The answer key is only revealed once
+ * they've passed — returning it after a failed attempt let anyone submit a
+ * blank quiz, read the answers, and pass (and get the certificate) on the
+ * next try. A failed attempt just says which questions were wrong.
+ */
+export function buildQuizReview(questions: QuizQuestion[], answers: QuizAnswers, passed: boolean) {
+  return {
+    questions: passed ? questions : stripAnswerKey(questions),
+    correctQuestionIds: correctQuestionIds(questions, answers),
+  };
 }
 
 export type QuizQuestionForStudent = {

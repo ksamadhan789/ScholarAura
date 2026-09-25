@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
-import { settleCompetitionEntry } from "@/lib/paymentSettlement";
+import { settleCompetitionEntry, PaymentNotHonoredError, paymentNotHonoredMessage } from "@/lib/paymentSettlement";
 import { buildGoogleFormUrl } from "@/lib/competitionEnrollment";
 
 const verifySchema = z.object({
@@ -53,7 +53,15 @@ export async function POST(
   // Idempotent — also called by the Razorpay webhook, so a replayed/duplicate
   // verification (the signature doesn't expire) can't re-settle referral
   // credit a second time for the same entry.
-  const updated = await settleCompetitionEntry(entry.id, razorpay_payment_id);
+  let updated;
+  try {
+    updated = await settleCompetitionEntry(entry.id, razorpay_payment_id);
+  } catch (err) {
+    if (err instanceof PaymentNotHonoredError) {
+      return NextResponse.json({ error: paymentNotHonoredMessage(err) }, { status: 409 });
+    }
+    throw err;
+  }
   const googleFormUrl =
     updated && updated.enrollmentNumber
       ? buildGoogleFormUrl(competition, {

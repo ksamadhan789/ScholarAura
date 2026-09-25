@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notify";
+import { isActiveJobOwner } from "@/lib/jobOwnership";
 
 const sendMessageSchema = z.object({
   body: z.string().trim().min(1, "Message can't be empty").max(2000, "Message is too long"),
@@ -24,7 +25,7 @@ async function authorize(applicationId: string) {
   }
 
   const isApplicant = session.user.id === application.userId;
-  const isRecruiter = session.user.id === application.job.postedByUserId;
+  const isRecruiter = await isActiveJobOwner(session.user.id, application.job);
   const isAdmin = session.user.role === "ADMIN";
   if (!isApplicant && !isRecruiter && !isAdmin) {
     return { error: NextResponse.json({ error: "Not allowed" }, { status: 403 }) };

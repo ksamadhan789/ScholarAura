@@ -26,19 +26,6 @@ export async function POST(request: Request) {
 
   const { email, turnstileToken } = parsed.data;
 
-  // Keyed by the target email, not the caller — bounds how many reset
-  // emails one victim's inbox can be bombed with, regardless of how many
-  // different IPs the requests come from. Still returns the same generic
-  // message so this can't be used to enumerate accounts.
-  const withinResetLimit = await checkRateLimit(
-    `forgot-password:${email.trim().toLowerCase()}`,
-    FORGOT_PASSWORD_ATTEMPT_LIMIT,
-    FORGOT_PASSWORD_WINDOW_MS
-  );
-  if (!withinResetLimit) {
-    return NextResponse.json({ message: GENERIC_MESSAGE });
-  }
-
   if (process.env.TURNSTILE_SECRET_KEY) {
     if (!turnstileToken) {
       return NextResponse.json(
@@ -54,6 +41,21 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+  }
+
+  // Checked after the bot challenge, so junk requests without a solved
+  // challenge can't burn a victim's allowance and block their resets.
+  // Keyed by the target email, not the caller — bounds how many reset
+  // emails one victim's inbox can be bombed with, regardless of how many
+  // different IPs the requests come from. Still returns the same generic
+  // message so this can't be used to enumerate accounts.
+  const withinResetLimit = await checkRateLimit(
+    `forgot-password:${email.trim().toLowerCase()}`,
+    FORGOT_PASSWORD_ATTEMPT_LIMIT,
+    FORGOT_PASSWORD_WINDOW_MS
+  );
+  if (!withinResetLimit) {
+    return NextResponse.json({ message: GENERIC_MESSAGE });
   }
 
   const user = await prisma.user.findUnique({ where: { email } });

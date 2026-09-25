@@ -4,6 +4,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { httpUrl } from "@/lib/safeUrl";
 
 const profileSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required"),
@@ -14,7 +15,7 @@ const profileSchema = z.object({
   fieldOfStudy: z.string().trim().max(100).optional().or(z.literal("")),
   jobRole: z.string().trim().max(100).optional().or(z.literal("")),
   expertise: z.string().trim().max(200).optional().or(z.literal("")),
-  linkedinUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
+  linkedinUrl: z.union([httpUrl(), z.literal("")]).optional(),
   bio: z.string().trim().max(500, "Bio must be under 500 characters").optional().or(z.literal("")),
   achievements: z.array(z.string().trim().min(1)).max(10).optional(),
 });

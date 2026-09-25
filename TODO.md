@@ -52,6 +52,17 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 
 ## Known Issues to Revisit
 
+- Security review follow-ups (2026-09-25, not yet fixed — lower risk or need a product decision):
+  - Rotate every event/competition `webhookSecret` (they were exposed by the public API until 2026-09-25) and update each Apps Script — needs a "regenerate secret" button first.
+  - Coupons: "one per person" and max-redemption limits are only checked at checkout, so several checkouts opened at once can reuse a code — enforce at settlement.
+  - Referrals: self-referral via a second account; referral rewards kept if the purchase is refunded after the reward was spent.
+  - Certificate numbers are sequential (`CERT-2026-000123`), so all public certificates can be enumerated; the certificate photo ignores `publicProfileEnabled`.
+  - Staged Vercel Blob uploads aren't tied to the uploader and aren't cleaned up if the Drive upload fails (add per-user path prefix + cleanup cron).
+  - Account deletion leaves competition entry files and job-application resumes in Drive.
+  - No Content-Security-Policy yet (needs report-only rollout because of Razorpay/Google/Turnstile/Bunny).
+  - Sign-up reveals whether an email already has an account; login lockout is per email (someone can lock a victim out for 5 minutes at a time).
+  - Currencies with 3 decimal places (KWD/BHD/OMR) would be charged 10× too little if ever added to exchange rates.
+
 - (Fixed 2026-09-24) Schema changes without migration files — see the catch-up migration note in PROJECT_STATE.md "Do Not Change".
 
 - Jobs posted before 2026-09-24 whose location didn't name a recognizable city still have no structured `city` and use the loose location-text match — an admin/recruiter can fix one by setting City on its edit form

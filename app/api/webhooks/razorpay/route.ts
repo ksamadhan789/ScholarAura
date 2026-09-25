@@ -5,7 +5,7 @@ import {
   settleCoursePurchase,
   settleEventRegistration,
   settleCompetitionEntry,
-  EventFullError,
+  PaymentNotHonoredError,
 } from "@/lib/paymentSettlement";
 import { settleJobBoost } from "@/lib/jobBoost";
 
@@ -59,19 +59,7 @@ export async function POST(request: Request) {
       where: { razorpayOrderId: orderId },
     });
     if (eventRegistration) {
-      try {
-        await settleEventRegistration(eventRegistration.id, paymentId);
-      } catch (err) {
-        if (err instanceof EventFullError) {
-          // Payment captured but the event filled up in the meantime — this
-          // needs a human to issue a refund, not something we can resolve here.
-          console.error(
-            `Razorpay webhook: payment ${paymentId} captured for order ${orderId} but event is full — registration ${eventRegistration.id} needs a manual refund.`
-          );
-          return NextResponse.json({ received: true });
-        }
-        throw err;
-      }
+      await settleEventRegistration(eventRegistration.id, paymentId);
       return NextResponse.json({ received: true });
     }
 
@@ -96,6 +84,13 @@ export async function POST(request: Request) {
     console.warn(`Razorpay webhook: no purchase/registration/entry found for order ${orderId}`);
     return NextResponse.json({ received: true });
   } catch (err) {
+    if (err instanceof PaymentNotHonoredError) {
+      // Event full / credit already spent (payment refunded automatically), or
+      // a late delivery for a purchase that was already refunded — nothing
+      // more to do, and retrying wouldn't change that.
+      console.warn(`Razorpay webhook: payment ${paymentId} for order ${orderId} not settled (${err.reason})`);
+      return NextResponse.json({ received: true });
+    }
     console.error("Razorpay webhook settlement failed:", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }

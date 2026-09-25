@@ -9,7 +9,9 @@ type Result = {
   passed: boolean;
   correctCount: number;
   totalCount: number;
-  questions: QuizQuestion[];
+  // The answer key (isCorrect) is only included once the quiz is passed.
+  questions: (QuizQuestion | QuizQuestionForStudent)[];
+  correctQuestionIds: string[];
 };
 
 export function QuizTaker({
@@ -88,16 +90,38 @@ export function QuizTaker({
         <div className="flex flex-col gap-4">
           {result.questions.map((question) => {
             const selected = new Set(answers[question.id] ?? []);
+            const answeredCorrectly = result.correctQuestionIds.includes(question.id);
             return (
               <div
                 key={question.id}
                 className="rounded border border-gray-200 dark:border-slate-700 p-3 text-sm"
               >
                 <p className="font-medium">{question.prompt}</p>
+                {!result.passed && (
+                  <p
+                    className={`mt-1 text-xs font-semibold ${
+                      answeredCorrectly ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"
+                    }`}
+                  >
+                    {answeredCorrectly ? "✓ Correct" : "✗ Incorrect"}
+                  </p>
+                )}
                 <div className="mt-2 flex flex-col gap-1">
                   {question.options.map((option) => {
                     const wasSelected = selected.has(option.id);
-                    const isCorrect = option.isCorrect;
+                    // Only present after a pass — a failed attempt never reveals the answers.
+                    const isCorrect = "isCorrect" in option ? option.isCorrect : undefined;
+                    if (isCorrect === undefined) {
+                      return (
+                        <p
+                          key={option.id}
+                          className={wasSelected ? "font-medium" : "text-gray-500 dark:text-slate-400"}
+                        >
+                          {wasSelected ? "•" : "·"} {option.text}
+                          {wasSelected ? " (your answer)" : ""}
+                        </p>
+                      );
+                    }
                     return (
                       <p
                         key={option.id}

@@ -138,6 +138,10 @@ model User {
   publicProfileEnabled Boolean @default(false)
   deactivatedAt  DateTime?
   deletionReason String?
+  // Bumped to sign the user out everywhere (password reset, Google linking
+  // that evicts an unverified password, account deletion) — lib/auth.ts
+  // drops any session token carrying an older value.
+  sessionVersion Int       @default(0)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

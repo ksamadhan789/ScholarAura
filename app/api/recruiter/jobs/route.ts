@@ -5,11 +5,12 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canonicalCityName } from "@/lib/cityAliases";
 import { slugify } from "@/lib/slugify";
+import { httpUrl } from "@/lib/safeUrl";
 
 const createJobSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   companyName: z.string().min(1, "Company name is required"),
-  companyLogoUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
+  companyLogoUrl: z.union([httpUrl(), z.literal("")]).optional(),
   location: z.string().min(1, "Location is required"),
   city: z.string().trim().max(100).optional(),
   isRemote: z.boolean().optional(),

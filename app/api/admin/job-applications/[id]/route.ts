@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notify";
 import { logAdminAction } from "@/lib/auditLog";
+import { isActiveJobOwner } from "@/lib/jobOwnership";
 
 const STATUS_LABEL: Record<string, string> = {
   APPLIED: "Applied",
@@ -51,7 +52,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (!application) {
     return NextResponse.json({ error: "Application not found" }, { status: 404 });
   }
-  if (session.user.role !== "ADMIN" && session.user.id !== application.job.postedByUserId) {
+  if (session.user.role !== "ADMIN" && !(await isActiveJobOwner(session.user.id, application.job))) {
     return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
 

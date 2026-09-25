@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { gradeQuiz, type QuizQuestion } from "@/lib/quiz";
+import { gradeQuiz, buildQuizReview, type QuizQuestion } from "@/lib/quiz";
 import { issueCourseCertificateIfEligible } from "@/lib/certificate";
 
 const submitSchema = z.object({
@@ -64,5 +64,8 @@ export async function POST(
     );
   }
 
-  return NextResponse.json({ ...result, questions });
+  return NextResponse.json({
+    ...result,
+    ...buildQuizReview(questions, parsed.data.answers, result.passed),
+  });
 }

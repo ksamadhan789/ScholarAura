@@ -38,7 +38,9 @@ export function verifyRazorpaySignature({
     .update(`${orderId}|${paymentId}`)
     .digest("hex");
 
-  return expected === signature;
+  const expectedBuf = Buffer.from(expected);
+  const signatureBuf = Buffer.from(signature);
+  return expectedBuf.length === signatureBuf.length && crypto.timingSafeEqual(expectedBuf, signatureBuf);
 }
 
 /**

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 // Uses OpenStreetMap's Nominatim — free and keyless, unlike Google Maps'
 // geocoding API, so there's nothing new to sign up for or configure. Its
@@ -23,6 +24,13 @@ export async function GET(request: Request) {
 
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     return NextResponse.json({ error: "Invalid coordinates" }, { status: 400 });
+  }
+
+  // Nominatim allows ~1 request/second per app; without a limit anyone could
+  // proxy unlimited lookups through us and get our User-Agent banned.
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!(await checkRateLimit(`reverse-geocode:${ip}`, 10, 60 * 1000))) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   try {

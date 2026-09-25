@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { downloadResume } from "@/lib/jobResumeStorage";
+import { isActiveJobOwner } from "@/lib/jobOwnership";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
@@ -17,7 +19,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
   if (!application) {
     return NextResponse.json({ error: "Application not found" }, { status: 404 });
   }
-  if (session.user.role !== "ADMIN" && session.user.id !== application.job.postedByUserId) {
+  if (session.user.role !== "ADMIN" && !(await isActiveJobOwner(session.user.id, application.job))) {
     return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
 
@@ -26,7 +28,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     return new NextResponse(bytes, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${application.resumeName}"`,
+        "Content-Disposition": contentDisposition("inline", application.resumeName),
       },
     });
   } catch (err) {

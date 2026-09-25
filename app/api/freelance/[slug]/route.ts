@@ -4,6 +4,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { httpUrl } from "@/lib/safeUrl";
 
 const updateListingSchema = z
   .object({
@@ -13,7 +14,7 @@ const updateListingSchema = z
     skills: z.array(z.string().trim().min(1)).max(10).nullable().optional(),
     rate: z.string().trim().nullable().optional(),
     portfolioUrl: z
-      .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
+      .union([httpUrl(), z.literal("")])
       .nullable()
       .optional(),
     contactEmail: z.string().trim().email().optional(),

@@ -90,7 +90,8 @@ export function EnrollButton({
           body: JSON.stringify(response),
         });
         if (!verifyRes.ok) {
-          setError("Payment succeeded but we couldn't confirm it. Contact support.");
+          const data = await verifyRes.json().catch(() => null);
+          setError(data?.error ?? "Payment succeeded but we couldn't confirm it. Contact support.");
           return;
         }
         router.push("/dashboard/learning");

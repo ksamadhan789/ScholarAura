@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notifyInterestedStudents } from "@/lib/interestNotify";
+import { httpUrl } from "@/lib/safeUrl";
 
 const updateCourseSchema = z
   .object({
@@ -13,11 +14,11 @@ const updateCourseSchema = z
     category: z.string().trim().min(1).optional(),
     price: z.coerce.number().min(0).optional(),
     certificateLogoUrl: z
-      .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
+      .union([httpUrl(), z.literal("")])
       .nullable()
       .optional(),
     thumbnailUrl: z
-      .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
+      .union([httpUrl(), z.literal("")])
       .nullable()
       .optional(),
   })
@@ -36,6 +37,13 @@ export async function GET(
 
   if (!course) {
     return NextResponse.json({ error: "Course not found" }, { status: 404 });
+  }
+  // Drafts are only visible to their instructor and admins, same as the page.
+  if (!course.isPublished) {
+    const session = await getServerSession(authOptions);
+    if (session?.user.role !== "ADMIN" && session?.user.id !== course.instructorId) {
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    }
   }
 
   return NextResponse.json(course);

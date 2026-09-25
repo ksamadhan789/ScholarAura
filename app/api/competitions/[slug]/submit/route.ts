@@ -11,15 +11,7 @@ import {
   isAllowedUploadType,
   matchesMagicBytes,
 } from "@/lib/uploadValidation";
-
-function isValidUrl(value: string): boolean {
-  try {
-    new URL(value);
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { isHttpUrl } from "@/lib/safeUrl";
 
 export async function POST(
   request: Request,
@@ -69,7 +61,7 @@ export async function POST(
   const mimeType = typeof payload.mimeType === "string" ? payload.mimeType : "";
   const hasNewFile = !!blobUrl;
 
-  if (submissionUrl && !isValidUrl(submissionUrl)) {
+  if (submissionUrl && !isHttpUrl(submissionUrl)) {
     return NextResponse.json({ error: "Enter a valid URL" }, { status: 400 });
   }
   const willHaveFile = hasNewFile || (!!entry.submissionFileId && !removeFile);

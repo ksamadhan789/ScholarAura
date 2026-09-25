@@ -2,6 +2,25 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (security review)
+
+### Security
+- Full code review by four reviewers (sign-in & accounts, payments, access control, uploads & injection); fixes:
+- **Critical:** a refunded course/event/competition purchase could be turned back into a paid one by replaying the original payment confirmation (or by a late Razorpay webhook) — settlement now only ever moves a purchase out of "pending".
+- **High:** the same referral credit could be spent on several purchases opened at once (and a refund then created credit from nothing) — a payment whose credit is no longer available is now refunded automatically instead of honored. The same automatic refund now covers a paid event that filled up during payment (previously "needs manual refund").
+- **High:** a deleted account's existing sign-in kept working for up to 30 days (including admin/recruiter access) — sessions now end on account deletion, on password reset (all devices), and when Google linking removes a squatter's password. New `users.sessionVersion` column (migration `20260925100000_user_session_version`).
+- **High:** the public events/competitions API returned paid events' joining links, the attendance-form webhook secrets and Google Form/Sheet ids, and showed drafts — now stripped and draft-gated.
+- Quiz answers were returned after any attempt (submit blank → read answers → pass → certificate) — now only after passing; a failed attempt shows which questions were wrong.
+- A recruiter rejected by admin kept access to applicants' resumes, photos, emails and messages — revoked.
+- Seat counts on free events can no longer be pushed up (fill the event) or down (overbook) by rapid repeated clicks.
+- Blocked `javascript:` links in every user-supplied URL field; security headers (no framing, nosniff, referrer policy); Google Drive "Connect" flow protected against a forged callback; certificate logo fetch re-checks every redirect hop; password-reset rate limit counted only after the bot check; recruiter sign-up rate-limited; reverse-geocode proxy rate-limited; Razorpay signature compare is constant-time; CSV export formula guard covers tab/CR; draft courses hidden from the course API.
+
+### Fixed
+- Downloading a resume, ID card, entry file or course resource whose filename had Hindi characters, emoji or a macOS screenshot name returned an error — now works.
+- Receipt PDFs subtracted the coupon discount twice from the net amount.
+- Signing in from a "log in to apply / create alert" link now returns you to that page instead of always the dashboard.
+- A course payment that couldn't be confirmed now shows the real reason instead of a generic message.
+
 ## 2026-09-25
 
 ### Added

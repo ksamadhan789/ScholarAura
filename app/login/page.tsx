@@ -5,8 +5,15 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { GoogleOneTap } from "@/components/GoogleOneTap";
 import { VerifyEmailPrompt } from "@/components/auth/VerifyEmailPrompt";
+import { safeCallbackPath } from "@/lib/safeRedirect";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+/** Where to land after signing in — the page that sent them here, if it's ours. */
+function afterSignInPath(): string {
+  if (typeof window === "undefined") return "/dashboard";
+  return safeCallbackPath(new URLSearchParams(window.location.search).get("callbackUrl"), window.location.origin);
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -41,7 +48,7 @@ export default function LoginPage() {
 
       // Full page load, not router.push: the router may hold a cached
       // "redirect to /login" for dashboard URLs prefetched while signed out.
-      window.location.assign("/dashboard");
+      window.location.assign(afterSignInPath());
     } catch {
       setError("Couldn't reach the server. Please try again.");
     } finally {
@@ -58,7 +65,7 @@ export default function LoginPage() {
         backgroundSize: "28px 28px, 100% 100%",
       }}
     >
-      {GOOGLE_CLIENT_ID && <GoogleOneTap clientId={GOOGLE_CLIENT_ID} />}
+      {GOOGLE_CLIENT_ID && <GoogleOneTap clientId={GOOGLE_CLIENT_ID} callbackPath={afterSignInPath} />}
 
       <div className="mx-auto grid w-full max-w-[1600px] gap-10 px-4 py-16 lg:grid-cols-2 lg:items-center lg:py-24">
         <div className="text-center lg:text-left">
@@ -80,7 +87,7 @@ export default function LoginPage() {
             </h2>
 
             <button
-              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              onClick={() => signIn("google", { callbackUrl: afterSignInPath() })}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded border border-slate-300 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               <svg viewBox="0 0 48 48" className="h-4 w-4" aria-hidden>

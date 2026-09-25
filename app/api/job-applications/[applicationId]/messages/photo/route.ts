@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { downloadProfilePhoto } from "@/lib/profilePhotoStorage";
+import { isActiveJobOwner } from "@/lib/jobOwnership";
 
 // Serves either party's photo within a specific message thread — same
 // participant check as the thread itself (applicant, the job's recruiter, or
@@ -26,7 +27,7 @@ export async function GET(
   }
 
   const isApplicant = session.user.id === application.userId;
-  const isRecruiter = session.user.id === application.job.postedByUserId;
+  const isRecruiter = await isActiveJobOwner(session.user.id, application.job);
   const isAdmin = session.user.role === "ADMIN";
   if (!isApplicant && !isRecruiter && !isAdmin) {
     return NextResponse.json({ error: "Not allowed" }, { status: 403 });
