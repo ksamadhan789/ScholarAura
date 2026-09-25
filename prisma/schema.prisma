@@ -180,6 +180,7 @@ model User {
   jobWishlist         JobWishlist[]
   sentJobMessages     JobMessage[]
   jobBoosts           JobBoost[]
+  recruiterSubscriptions RecruiterSubscription[]
   freelanceListings   FreelanceListing[]
   freelanceThreadsStarted FreelanceThread[] @relation("FreelanceThreadInitiator")
   sentFreelanceMessages   FreelanceMessage[] @relation("FreelanceMessageSender")
@@ -914,6 +915,37 @@ model Job {
 // (rather than fields bolted onto Job) so a future recruiter subscription
 // tier — e.g. "N boosts included" or "always featured" — can layer on top
 // without reshaping this model.
+// A recruiter's paid Pro plan (lib/recruiterPlan.ts). Paid upfront for one
+// period and renewed by hand — never auto-charged. Buying again while a plan
+// is active starts the new period when the current one ends. Free recruiters
+// have no row; "Pro" means a SUCCESS row whose window covers now.
+enum RecruiterPlanPeriod {
+  MONTHLY
+  YEARLY
+}
+
+model RecruiterSubscription {
+  id                String              @id @default(uuid())
+  userId            String
+  user              User                @relation(fields: [userId], references: [id])
+  period            RecruiterPlanPeriod
+  razorpayOrderId   String?             @unique
+  razorpayPaymentId String?
+  amount            Decimal             @db.Decimal(10, 2)
+  currency          String              @default("INR")
+  chargedAmount     Decimal?            @db.Decimal(10, 2)
+  status            PaymentStatus       @default(PENDING)
+  // Set at settlement: from now, or from the end of the plan already running.
+  startsAt          DateTime?
+  endsAt            DateTime?
+  // The "your plan ends soon" email (daily cron) — sent once per row.
+  reminderSentAt    DateTime?
+  createdAt         DateTime            @default(now())
+
+  @@index([userId, status])
+  @@map("recruiter_subscriptions")
+}
+
 model JobBoost {
   id                String        @id @default(uuid())
   jobId             String

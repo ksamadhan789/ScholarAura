@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canonicalCityName } from "@/lib/cityAliases";
 import { httpUrl } from "@/lib/safeUrl";
+import { countsTowardLiveLimit, getRecruiterPlanStatus, liveJobLimitMessage } from "@/lib/recruiterPlan";
 
 const updateJobSchema = z
   .object({
@@ -83,6 +84,16 @@ export async function PATCH(request: Request, { params }: { params: { slug: stri
 
   const { isPublished, ...content } = parsed.data;
   const isContentEdit = Object.values(content).some((v) => v !== undefined);
+
+  // Both an edit (which sends the job back into review) and publishing can
+  // turn a job that wasn't using a live slot into one that is.
+  const becomesCounted = isContentEdit || isPublished === true;
+  if (becomesCounted && !countsTowardLiveLimit(job)) {
+    const plan = await getRecruiterPlanStatus(session.user.id);
+    if (plan.liveJobCount >= plan.liveJobLimit) {
+      return NextResponse.json({ error: liveJobLimitMessage(plan), code: "LIVE_JOB_LIMIT" }, { status: 403 });
+    }
+  }
 
   if (isContentEdit) {
     const updated = await prisma.job.update({

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import {
   Briefcase,
   CalendarClock,
+  CreditCard,
   ExternalLink,
   Globe,
   Hourglass,
@@ -31,6 +32,7 @@ import {
   DashboardStatCard,
 } from "@/components/dashboard/DashboardShell";
 import { RecruiterJobPublishToggle } from "./RecruiterJobPublishToggle";
+import { getRecruiterPlanStatus } from "@/lib/recruiterPlan";
 
 const APPROVAL_BADGE_VARIANT: Record<string, "success" | "warning" | "neutral"> = {
   APPROVED: "success",
@@ -147,6 +149,7 @@ export default async function RecruiterHomePage() {
   const totalApplicants = applicationCounts.reduce((sum, a) => sum + a._count._all, 0);
   const newApplicants = newApplicationCounts.reduce((sum, a) => sum + a._count._all, 0);
   const liveCount = jobs.filter((j) => j.approvalStatus === "APPROVED" && j.isPublished).length;
+  const plan = await getRecruiterPlanStatus(session.user.id, now);
 
   const details = [recruiterProfile.designation, recruiterProfile.companyWebsite?.replace(/^https?:\/\//, "")]
     .filter(Boolean)
@@ -179,6 +182,47 @@ export default async function RecruiterHomePage() {
           <DashboardStatCard icon={Users} value={totalApplicants} label="Total applicants" />
           <DashboardStatCard icon={Sparkles} value={newApplicants} label="New this week" />
           <DashboardStatCard icon={UserCheck} value={shortlistedCount} label="Shortlisted or hired" />
+        </section>
+
+        <section
+          className={`mt-6 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
+            plan.liveJobCount >= plan.liveJobLimit
+              ? "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20"
+              : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
+          }`}
+        >
+          <div className="flex items-center gap-3 text-sm">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
+              <CreditCard aria-hidden className="h-5 w-5" />
+            </span>
+            <p className="text-slate-600 dark:text-slate-300">
+              <span className="font-semibold text-slate-900 dark:text-white">
+                {plan.plan === "PRO" ? "Pro plan" : "Free plan"}
+              </span>
+              {plan.plan === "PRO" && plan.proUntil && (
+                <>
+                  {" "}
+                  until{" "}
+                  {plan.proUntil.toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                    timeZone: "Asia/Kolkata",
+                  })}
+                </>
+              )}{" "}
+              · {plan.liveJobCount} of {plan.liveJobLimit} live jobs used
+              {plan.plan === "PRO" && plan.includedBoostsLeft > 0 && <> · 1 free Boost available</>}
+              {plan.liveJobCount >= plan.liveJobLimit && (
+                <span className="block text-amber-800 dark:text-amber-300">
+                  You&apos;re at your limit — pause a job{plan.plan === "FREE" ? " or upgrade" : ""} to post another.
+                </span>
+              )}
+            </p>
+          </div>
+          <Link href="/dashboard/recruiter/plan" className={`${DASHBOARD_SECONDARY_BUTTON_CLASS} shrink-0`}>
+            <Sparkles aria-hidden className="h-4 w-4 text-amber-500" />
+            {plan.plan === "PRO" ? "Manage plan" : "Upgrade to Pro"}
+          </Link>
         </section>
 
         <section className="mt-8">

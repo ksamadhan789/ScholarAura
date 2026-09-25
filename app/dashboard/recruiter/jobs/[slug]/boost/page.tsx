@@ -7,6 +7,9 @@ import { prisma } from "@/lib/prisma";
 import { JOB_BOOST_PRICE_INR, JOB_BOOST_DURATION_DAYS } from "@/lib/jobBoost";
 import { formatJobDate } from "@/lib/jobLabels";
 import { BoostJobButton } from "@/components/jobs/BoostJobButton";
+import Link from "next/link";
+import { UseIncludedBoostButton } from "@/components/recruiter/UseIncludedBoostButton";
+import { getRecruiterPlanStatus } from "@/lib/recruiterPlan";
 
 export default async function RecruiterBoostJobPage({ params }: { params: { slug: string } }) {
   const session = await getServerSession(authOptions);
@@ -17,7 +20,10 @@ export default async function RecruiterBoostJobPage({ params }: { params: { slug
   if (!job || job.postedByUserId !== session.user.id) notFound();
 
   const isFeatured = Boolean(job.featuredUntil && job.featuredUntil > new Date());
-  const rates = await prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } });
+  const [rates, plan] = await Promise.all([
+    prisma.exchangeRate.findMany({ orderBy: { currencyCode: "asc" } }),
+    getRecruiterPlanStatus(session.user.id),
+  ]);
   const serializedRates = rates.map((r) => ({
     currencyCode: r.currencyCode,
     symbol: r.symbol,
@@ -45,6 +51,26 @@ export default async function RecruiterBoostJobPage({ params }: { params: { slug
         </p>
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800">
+          {plan.includedBoostsLeft > 0 && (
+            <div className="mb-5 border-b border-slate-100 pb-5 dark:border-slate-700">
+              <p className="mb-3 text-sm text-slate-600 dark:text-slate-300">
+                Your Pro plan includes a free Boost this period.
+              </p>
+              <UseIncludedBoostButton slug={job.slug} />
+              <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">Or pay for an extra Boost:</p>
+            </div>
+          )}
+          {plan.plan === "FREE" && (
+            <p className="mb-4 text-sm text-slate-600 dark:text-slate-300">
+              Pro includes 1 free Boost every 30 days.{" "}
+              <Link
+                href="/dashboard/recruiter/plan"
+                className="font-medium text-brand-600 hover:underline dark:text-brand-400"
+              >
+                See plans
+              </Link>
+            </p>
+          )}
           <BoostJobButton
             slug={job.slug}
             priceInr={JOB_BOOST_PRICE_INR}

@@ -45,13 +45,14 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 
 ## Planned / Ideas (not started, not committed to)
 
-- Recruiter subscription plan (monthly/annual — build on top of the existing JobBoost model)
 - Placement-guarantee course tier (pair a course with a job outcome)
 - Bundles / learning paths — removed 2026-09-07; revisit only if there's a specific need (see CHANGELOG)
 - Upgrade Aura to a real LLM-backed chatbot (deliberately kept as canned FAQ + search for now — needs an `ANTHROPIC_API_KEY` and has ongoing per-message cost)
 
 ## Known Issues to Revisit
 
+- Recruiter plans (2026-09-25): the refund policy (/refund-policy) doesn't mention Pro plan payments (or job Boosts). Decide the terms (e.g. refundable within N days if unused, or non-refundable) and add them there — the plan page deliberately makes no refund promise until then. There's no admin refund button for plan payments yet either; refund from the Razorpay dashboard and mark the row REFUNDED if ever needed.
+- Recruiter plans: the Pro checkout is the same Razorpay flow as Boosts but hasn't been through a live payment yet — make one real ₹499 purchase after launch (then refund it from Razorpay if it was a test).
 - Security review follow-ups still open (2026-09-25):
   - Content-Security-Policy is in report-only for its host allowlist (baseline already enforced). After a few days of real traffic, check Vercel logs for `[csp] blocked` lines: add any legitimate host to `lib/contentSecurityPolicy.mjs`, then set `CSP_ENFORCE=true` in Vercel (Production) and redeploy. Test a real checkout, Google sign-in and a lecture video afterwards.
   - Rotate the event/competition webhook secrets with the new "Regenerate secret" button (Edit event/competition → Certificate section), then paste each new one into its Apps Script — only needed for events/competitions that actually use the Google Form attendance script.

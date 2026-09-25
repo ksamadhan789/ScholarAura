@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { canonicalCityName } from "@/lib/cityAliases";
 import { slugify } from "@/lib/slugify";
 import { httpUrl } from "@/lib/safeUrl";
+import { getRecruiterPlanStatus, liveJobLimitMessage } from "@/lib/recruiterPlan";
 
 const createJobSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -72,6 +73,12 @@ export async function POST(request: Request) {
       );
     }
     const d = parsed.data;
+
+    // A new job goes into review and then live, so it needs a free slot now.
+    const plan = await getRecruiterPlanStatus(session.user.id);
+    if (plan.liveJobCount >= plan.liveJobLimit) {
+      return NextResponse.json({ error: liveJobLimitMessage(plan), code: "LIVE_JOB_LIMIT" }, { status: 403 });
+    }
 
     const baseSlug = slugify(`${d.title}-${d.companyName}`);
     let slug = baseSlug;
