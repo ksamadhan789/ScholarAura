@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight, ChevronLeft, type LucideIcon } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronLeft, type LucideIcon } from "lucide-react";
 
 /** White card look shared by the learner dashboard pages. */
 export const DASHBOARD_CARD_CLASS =
@@ -294,3 +294,14 @@ export const DASHBOARD_TABLE_HEAD_CLASS =
   "bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/40 dark:text-slate-400";
 export const DASHBOARD_TH_CLASS = "whitespace-nowrap px-4 py-3 font-semibold";
 export const DASHBOARD_TR_CLASS = "border-t border-slate-100 align-top dark:border-slate-700";
+
+/** Table cell yes/no: a green tick, or a faint dash. */
+export function YesNo({ value }: { value: boolean }) {
+  return value ? (
+    <CheckCircle2 aria-label="Yes" className="h-4 w-4 text-emerald-500" />
+  ) : (
+    <span aria-label="No" className="text-slate-300 dark:text-slate-600">
+      —
+    </span>
+  );
+}

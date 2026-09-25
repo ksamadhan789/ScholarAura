@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
@@ -7,6 +6,16 @@ import { Badge } from "@/components/Badge";
 import { RefundButton } from "@/components/RefundButton";
 import { RankInput } from "./RankInput";
 import { Pagination, PAGE_SIZE } from "@/components/Pagination";
+import {
+  DASHBOARD_SECONDARY_BUTTON_CLASS,
+  DASHBOARD_TABLE_HEAD_CLASS,
+  DASHBOARD_TABLE_WRAPPER_CLASS,
+  DASHBOARD_TH_CLASS,
+  DASHBOARD_TR_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+} from "@/components/dashboard/DashboardShell";
+import { Download, FolderDown, IdCard, Link as LinkIcon, Paperclip, Users } from "lucide-react";
 
 const STATUS_VARIANT = {
   SUCCESS: "success",
@@ -52,92 +61,96 @@ export default async function CompetitionEntriesPage({
   ]);
 
   return (
-    <main className="mx-auto max-w-[1600px] px-4 py-16">
-      <Link
-        href="/dashboard/competitions"
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← Manage competitions
-      </Link>
-      <div className="mt-2 mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{competition.title} — Entries</h1>
-        <div className="flex gap-2">
+    <DashboardShell
+      title="Entries"
+      description={competition.title}
+      backHref="/dashboard/competitions"
+      backLabel="Competitions"
+      actions={
+        <>
           {entryFileCount > 0 && (
             <a
               href={`/api/admin/competitions/${competition.slug}/entries/bulk-zip`}
-              className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+              className={DASHBOARD_SECONDARY_BUTTON_CLASS}
             >
-              Download entry files (ZIP)
+              <FolderDown aria-hidden className="h-4 w-4" />
+              Entry files (ZIP)
             </a>
           )}
           <a
             href={`/api/admin/competitions/${competition.slug}/entries/export`}
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
+            className={DASHBOARD_SECONDARY_BUTTON_CLASS}
           >
+            <Download aria-hidden className="h-4 w-4" />
             Export CSV
           </a>
-        </div>
-      </div>
-
+        </>
+      }
+    >
       {entries.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-slate-400">
-          No one has entered this competition yet.
-        </p>
+        <DashboardEmptyState icon={Users} title="No one has entered this competition yet" />
       ) : (
-        <div className="overflow-x-auto rounded border border-gray-200 dark:border-slate-700">
+        <div className={DASHBOARD_TABLE_WRAPPER_CLASS}>
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-800">
+            <thead className={DASHBOARD_TABLE_HEAD_CLASS}>
               <tr>
-                <th className="px-4 py-2.5 font-medium">Name</th>
-                <th className="px-4 py-2.5 font-medium">Email</th>
-                <th className="px-4 py-2.5 font-medium">Team</th>
-                <th className="px-4 py-2.5 font-medium">Payment</th>
-                <th className="px-4 py-2.5 font-medium">ID Card</th>
-                <th className="px-4 py-2.5 font-medium">Submission</th>
-                <th className="px-4 py-2.5 font-medium">Rank</th>
-                <th className="px-4 py-2.5 font-medium">Actions</th>
+                <th className={DASHBOARD_TH_CLASS}>Name</th>
+                <th className={DASHBOARD_TH_CLASS}>Email</th>
+                <th className={DASHBOARD_TH_CLASS}>Team</th>
+                <th className={DASHBOARD_TH_CLASS}>Payment</th>
+                <th className={DASHBOARD_TH_CLASS}>ID Card</th>
+                <th className={DASHBOARD_TH_CLASS}>Submission</th>
+                <th className={DASHBOARD_TH_CLASS}>Rank</th>
+                <th className={DASHBOARD_TH_CLASS}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {entries.map((entry) => (
-                <tr key={entry.id} className="border-t border-gray-200 dark:border-slate-700">
-                  <td className="px-4 py-2.5">{entry.user.name}</td>
-                  <td className="px-4 py-2.5">
-                    <a href={`mailto:${entry.user.email}`} className="underline">
+                <tr key={entry.id} className={DASHBOARD_TR_CLASS}>
+                  <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900 dark:text-white">
+                    {entry.user.name}
+                  </td>
+                  <td className="px-4 py-3">
+                    <a
+                      href={`mailto:${entry.user.email}`}
+                      className="text-brand-600 hover:underline dark:text-brand-400"
+                    >
                       {entry.user.email}
                     </a>
                   </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                     {entry.teamName ?? "—"}
                     {entry.teammates && <p className="mt-1 text-xs">{entry.teammates}</p>}
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3">
                     <Badge variant={STATUS_VARIANT[entry.status]}>{entry.status}</Badge>
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3">
                     {entry.user.idCardFileId ? (
                       <a
                         href={`/api/admin/users/${entry.userId}/id-card`}
                         target="_blank"
                         rel="noreferrer"
-                        className="underline"
+                        className="text-brand-600 hover:underline dark:text-brand-400"
                       >
-                        🪪 View
+                        <IdCard aria-hidden className="mr-1 inline h-4 w-4" />
+                        View
                       </a>
                     ) : (
-                      <span className="text-gray-500 dark:text-slate-400">—</span>
+                      <span className="text-slate-500 dark:text-slate-400">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3">
                     <div className="flex flex-col gap-1">
                       {entry.submissionFileId && (
                         <a
                           href={`/api/admin/competitions/${competition.slug}/entries/${entry.id}/file`}
                           target="_blank"
                           rel="noreferrer"
-                          className="underline"
+                          className="text-brand-600 hover:underline dark:text-brand-400"
                         >
-                          📎 {entry.submissionFileName}
+                          <Paperclip aria-hidden className="mr-1 inline h-4 w-4" />
+                          {entry.submissionFileName}
                         </a>
                       )}
                       {entry.submissionUrl && (
@@ -145,20 +158,21 @@ export default async function CompetitionEntriesPage({
                           href={entry.submissionUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="underline"
+                          className="text-brand-600 hover:underline dark:text-brand-400"
                         >
-                          🔗 Link
+                          <LinkIcon aria-hidden className="mr-1 inline h-4 w-4" />
+                          Link
                         </a>
                       )}
                       {!entry.submissionFileId && !entry.submissionUrl && (
-                        <span className="text-gray-500 dark:text-slate-400">—</span>
+                        <span className="text-slate-500 dark:text-slate-400">—</span>
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3">
                     <RankInput entryId={entry.id} initialRank={entry.rank} />
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3">
                     {entry.status === "SUCCESS" && (
                       <RefundButton refundUrl={`/api/admin/competition-entries/${entry.id}/refund`} />
                     )}
@@ -170,7 +184,11 @@ export default async function CompetitionEntriesPage({
         </div>
       )}
 
-      <Pagination page={page} totalCount={totalCount} basePath={`/dashboard/competitions/${competition.slug}/entries`} />
-    </main>
+      <Pagination
+        page={page}
+        totalCount={totalCount}
+        basePath={`/dashboard/competitions/${competition.slug}/entries`}
+      />
+    </DashboardShell>
   );
 }

@@ -2,6 +2,13 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (event & competition admin sub-pages polish)
+
+### Changed
+- Event Registrations, event and competition Certificates, competition Entries and Winners pages use the new page frame with a back link, the item's title under the heading, and Export CSV / ZIP / Sync attendance buttons at the top. Tables have the new card look with green tick icons instead of ✓, and icons instead of emoji for ID cards, files and links.
+- The Google Drive connection notice is now one shared card (`components/certificates/DriveStatusCard.tsx`) on the admin dashboard and both certificates pages.
+- Certificate stat tiles, the Generate / Revoke / Refund / Sync / bulk buttons, the rank input and the winner picker got the new style; the winner picker shows gold/silver/bronze numbered badges instead of medal emoji.
+
 ## 2026-09-25 (create & edit forms polish)
 
 ### Changed

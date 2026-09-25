@@ -30,11 +30,11 @@ export function SyncAttendanceButton({ syncUrl }: { syncUrl: string }) {
       <button
         onClick={run}
         disabled={loading}
-        className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-sm disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
       >
         {loading ? "Syncing…" : "Sync attendance"}
       </button>
-      {message && <span className="max-w-xs text-right text-xs text-gray-500 dark:text-slate-400">{message}</span>}
+      {message && <span className="max-w-xs text-right text-xs text-slate-500 dark:text-slate-400">{message}</span>}
     </div>
   );
 }

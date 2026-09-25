@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
@@ -6,6 +5,16 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { RefundButton } from "@/components/RefundButton";
 import { Pagination, PAGE_SIZE } from "@/components/Pagination";
+import {
+  DASHBOARD_SECONDARY_BUTTON_CLASS,
+  DASHBOARD_TABLE_HEAD_CLASS,
+  DASHBOARD_TABLE_WRAPPER_CLASS,
+  DASHBOARD_TH_CLASS,
+  DASHBOARD_TR_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+} from "@/components/dashboard/DashboardShell";
+import { Download, Users } from "lucide-react";
 
 const STATUS_VARIANT = {
   CONFIRMED: "success",
@@ -49,54 +58,58 @@ export default async function EventStudentsPage({
   ]);
 
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-16">
-      <Link href="/dashboard/events" className="text-sm text-gray-500 hover:underline dark:text-slate-400">
-        ← Manage events
-      </Link>
-      <div className="mt-2 mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{event.title} — Registrations</h1>
-        <a
-          href={`/api/admin/events/${event.slug}/students/export`}
-          className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-        >
+    <DashboardShell
+      title="Registrations"
+      description={event.title}
+      backHref="/dashboard/events"
+      backLabel="Events"
+      actions={
+        <a href={`/api/admin/events/${event.slug}/students/export`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+          <Download aria-hidden className="h-4 w-4" />
           Export CSV
         </a>
-      </div>
-
+      }
+    >
       {registrations.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-slate-400">No one has registered for this event yet.</p>
+        <DashboardEmptyState icon={Users} title="No one has registered for this event yet" />
       ) : (
-        <div className="overflow-x-auto rounded border border-gray-200 dark:border-slate-700">
+        <div className={DASHBOARD_TABLE_WRAPPER_CLASS}>
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-800">
+            <thead className={DASHBOARD_TABLE_HEAD_CLASS}>
               <tr>
-                <th className="px-4 py-2.5 font-medium">Name</th>
-                <th className="px-4 py-2.5 font-medium">Email</th>
-                <th className="px-4 py-2.5 font-medium">Registered</th>
-                <th className="px-4 py-2.5 font-medium">Payment status</th>
-                <th className="px-4 py-2.5 font-medium">Actions</th>
+                <th className={DASHBOARD_TH_CLASS}>Name</th>
+                <th className={DASHBOARD_TH_CLASS}>Email</th>
+                <th className={DASHBOARD_TH_CLASS}>Registered</th>
+                <th className={DASHBOARD_TH_CLASS}>Payment status</th>
+                <th className={DASHBOARD_TH_CLASS}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {registrations.map((registration) => (
-                <tr key={registration.id} className="border-t border-gray-200 dark:border-slate-700">
-                  <td className="px-4 py-2.5">{registration.user.name}</td>
-                  <td className="px-4 py-2.5">
-                    <a href={`mailto:${registration.user.email}`} className="underline">
+                <tr key={registration.id} className={DASHBOARD_TR_CLASS}>
+                  <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900 dark:text-white">
+                    {registration.user.name}
+                  </td>
+                  <td className="px-4 py-3">
+                    <a
+                      href={`mailto:${registration.user.email}`}
+                      className="text-brand-600 hover:underline dark:text-brand-400"
+                    >
                       {registration.user.email}
                     </a>
                   </td>
-                  <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                     {registration.registeredAt.toLocaleDateString("en-IN", {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
+                      timeZone: "Asia/Kolkata",
                     })}
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3">
                     <Badge variant={STATUS_VARIANT[registration.status]}>{registration.status}</Badge>
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3">
                     {registration.status === "CONFIRMED" && (
                       <RefundButton refundUrl={`/api/admin/event-registrations/${registration.id}/refund`} />
                     )}
@@ -109,6 +122,6 @@ export default async function EventStudentsPage({
       )}
 
       <Pagination page={page} totalCount={totalCount} basePath={`/dashboard/events/${event.slug}/students`} />
-    </main>
+    </DashboardShell>
   );
 }

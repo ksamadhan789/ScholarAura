@@ -40,7 +40,7 @@ export function RankInput({
       disabled={loading}
       onChange={(e) => setValue(e.target.value)}
       onBlur={save}
-      className="w-16 rounded border border-gray-300 dark:border-slate-600 px-2 py-1 text-sm dark:bg-slate-800 dark:text-white disabled:opacity-50"
+      className="w-16 rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white disabled:opacity-50"
     />
   );
 }
