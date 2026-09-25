@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { ShareButtons } from "@/components/ShareButtons";
 import { SITE_URL } from "@/lib/siteUrl";
-import { CalendarDays, Clock, FileText, MapPin, Users } from "lucide-react";
+import { CalendarDays, Clock, FileText, GraduationCap, MapPin, Palette, Target, Trophy, Users } from "lucide-react";
 import { ActionCard, ActionStatus, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
@@ -19,6 +19,7 @@ import { PrizeCards } from "@/components/PrizeCards";
 import { formatDateTime, getDeadlineUrgency } from "@/lib/eventLabels";
 import { parseThemeTopic } from "@/lib/competitionCopy";
 import type { EventPerson } from "@/lib/eventPeople";
+import { CheckoutAssurance } from "@/components/detail/CheckoutAssurance";
 
 export async function generateMetadata({
   params,
@@ -152,7 +153,8 @@ export default async function CompetitionDetailPage({
           <>
             <a
               href="#register"
-              className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50"
+              // Desktop only — on phones the register card sits right below the hero.
+              className="hidden rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50 lg:inline-block"
             >
               {isEntered ? "Your entry ↓" : "Register now ↓"}
             </a>
@@ -214,7 +216,10 @@ export default async function CompetitionDetailPage({
             }
           >
             {!session ? (
-              <a href="/login" className={ACTION_PRIMARY_CLASS}>
+              <a
+                href={`/login?callbackUrl=${encodeURIComponent(`/competitions/${competition.slug}`)}`}
+                className={ACTION_PRIMARY_CLASS}
+              >
                 Log in to enter
               </a>
             ) : isEntered ? (
@@ -251,6 +256,7 @@ export default async function CompetitionDetailPage({
                 />
               </>
             )}
+            {session && Number(competition.fee) > 0 && !isEntered && !deadlinePassed && <CheckoutAssurance />}
           </ActionCard>
         }
       >
@@ -260,10 +266,10 @@ export default async function CompetitionDetailPage({
               <p className="mt-4 text-gray-700 dark:text-slate-300">{themeTopic.lead}</p>
             )}
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <InfoCard icon="🎯" title="Competition Theme">
+              <InfoCard icon={Target} title="Competition Theme">
                 <p>{themeTopic.theme}</p>
               </InfoCard>
-              <InfoCard icon="🖌️" title="Poster Topic">
+              <InfoCard icon={Palette} title="Poster Topic">
                 <p>{themeTopic.topic}</p>
               </InfoCard>
             </div>
@@ -295,7 +301,7 @@ export default async function CompetitionDetailPage({
 
         {competition.eligibility && (
           <div className="mt-4">
-            <InfoCard icon="🎓" title="Who can participate?" tone="success">
+            <InfoCard icon={GraduationCap} title="Who can participate?" tone="success">
               <p>{competition.eligibility}</p>
             </InfoCard>
           </div>
@@ -303,7 +309,7 @@ export default async function CompetitionDetailPage({
 
         {winners.length > 0 && (
           <div className="mt-6">
-            <InfoCard icon="🏆" title="Winners" tone="amber">
+            <InfoCard icon={Trophy} title="Winners" tone="amber">
               {winners.map((winner) => (
                 <div key={winner.id} className="flex items-center justify-between">
                   <span>

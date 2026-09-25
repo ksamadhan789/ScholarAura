@@ -1,3 +1,5 @@
+import type { LucideIcon } from "lucide-react";
+
 const TONE_STYLES = {
   default: {
     card: "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800",
@@ -23,20 +25,17 @@ export function InfoCard({
   tone = "default",
   children,
 }: {
-  icon?: string;
+  icon?: LucideIcon;
   title: string;
   tone?: keyof typeof TONE_STYLES;
   children: React.ReactNode;
 }) {
   const styles = TONE_STYLES[tone];
+  const Icon = icon;
   return (
     <div className={`rounded-2xl border p-5 text-sm shadow-sm ${styles.card}`}>
-      <p className={`font-semibold ${styles.title}`}>
-        {icon && (
-          <span aria-hidden className="mr-1.5">
-            {icon}
-          </span>
-        )}
+      <p className={`flex items-center gap-2 font-semibold ${styles.title}`}>
+        {Icon && <Icon aria-hidden className="h-4 w-4 shrink-0" />}
         {title}
       </p>
       <div className={`mt-2 flex flex-col gap-1.5 ${styles.body}`}>{children}</div>

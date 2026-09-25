@@ -108,7 +108,7 @@ export function ReviewSection({
 
   return (
     <div className="mt-10">
-      <h2 className="mb-3 text-lg font-medium">Reviews</h2>
+      <h2 className="mb-3 text-xl font-bold text-slate-900 dark:text-white">Reviews</h2>
 
       {count > 0 ? (
         <div className="mb-6 flex items-center gap-3">

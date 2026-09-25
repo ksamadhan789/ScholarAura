@@ -1,7 +1,9 @@
+import { Medal } from "lucide-react";
+
 const RANKS = [
-  { key: "first" as const, medal: "🥇", label: "First Prize", accent: "border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20" },
-  { key: "second" as const, medal: "🥈", label: "Second Prize", accent: "border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800" },
-  { key: "third" as const, medal: "🥉", label: "Third Prize", accent: "border-orange-300 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20" },
+  { key: "first" as const, medalClass: "text-amber-500", label: "First Prize", accent: "border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20" },
+  { key: "second" as const, medalClass: "text-slate-400", label: "Second Prize", accent: "border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800" },
+  { key: "third" as const, medalClass: "text-orange-500", label: "Third Prize", accent: "border-orange-300 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20" },
 ];
 
 /** Three visually distinct prize cards — only ranks with a real value render. Reused by competitions and events, which share the same prizeFirst/Second/Third + prizeDescription shape. */
@@ -31,9 +33,7 @@ export function PrizeCards({
               key={rank.key}
               className={`rounded-2xl border p-5 text-center shadow-sm ${rank.accent}`}
             >
-              <span aria-hidden className="text-3xl">
-                {rank.medal}
-              </span>
+              <Medal aria-hidden className={`mx-auto h-8 w-8 ${rank.medalClass}`} />
               <p className="mt-2 text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 {rank.label}
               </p>

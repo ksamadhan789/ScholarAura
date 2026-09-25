@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import { Check, Link2, Mail, Share2 } from "lucide-react";
 import { buildShareLinks, type ShareTarget } from "@/lib/shareLinks";
 
-// Brand-coloured text chips rather than logos — lucide-react ships no brand
-// icons, and a label can't render wrong.
-const TARGETS: { key: Exclude<ShareTarget, "email">; label: string; className: string }[] = [
-  { key: "whatsapp", label: "WhatsApp", className: "bg-[#25D366] text-white hover:bg-[#1ebe5b]" },
-  { key: "linkedin", label: "LinkedIn", className: "bg-[#0A66C2] text-white hover:bg-[#0957a5]" },
-  { key: "x", label: "X", className: "bg-black text-white hover:bg-slate-800 dark:bg-slate-950" },
-  { key: "facebook", label: "Facebook", className: "bg-[#1877F2] text-white hover:bg-[#0f66d9]" },
+// Quiet, uniform outline chips with a small brand-coloured dot — a row of
+// solid brand colours shouted louder than the page's own call to action.
+// Text labels rather than logos: lucide-react ships no brand icons.
+const TARGETS: { key: Exclude<ShareTarget, "email">; label: string; dot: string }[] = [
+  { key: "whatsapp", label: "WhatsApp", dot: "bg-[#25D366]" },
+  { key: "linkedin", label: "LinkedIn", dot: "bg-[#0A66C2]" },
+  { key: "x", label: "X", dot: "bg-slate-900 dark:bg-white" },
+  { key: "facebook", label: "Facebook", dot: "bg-[#1877F2]" },
 ];
 
 /**
@@ -45,14 +46,15 @@ export function ShareButtons({ url, title, label = "Share" }: { url: string; tit
     }
   }
 
-  const chip = "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors";
+  const chip =
+    "inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700";
 
   return (
     <div>
       <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</p>
       <div className="flex flex-wrap gap-1.5">
         {canNativeShare && (
-          <button type="button" onClick={nativeShare} className={`${chip} bg-brand-600 text-white hover:bg-brand-700`}>
+          <button type="button" onClick={nativeShare} className={chip}>
             <Share2 aria-hidden className="h-3.5 w-3.5" />
             Share
           </button>
@@ -63,15 +65,16 @@ export function ShareButtons({ url, title, label = "Share" }: { url: string; tit
             href={links[t.key]}
             target="_blank"
             rel="noopener noreferrer"
-            className={`${chip} ${t.className}`}
+            className={chip}
             aria-label={`Share on ${t.label}`}
           >
+            <span aria-hidden className={`h-2 w-2 rounded-full ${t.dot}`} />
             {t.label}
           </a>
         ))}
         <a
           href={links.email}
-          className={`${chip} bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600`}
+          className={chip}
           aria-label="Share by email"
         >
           <Mail aria-hidden className="h-3.5 w-3.5" />
@@ -80,7 +83,7 @@ export function ShareButtons({ url, title, label = "Share" }: { url: string; tit
         <button
           type="button"
           onClick={copyLink}
-          className={`${chip} bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600`}
+          className={chip}
         >
           {copied ? <Check aria-hidden className="h-3.5 w-3.5" /> : <Link2 aria-hidden className="h-3.5 w-3.5" />}
           {copied ? "Copied!" : "Copy link"}

@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { HomeBannerCarousel, type BannerItem } from "@/components/HomeBannerCarousel";
 import { HomeCategoryCarousel, type HomeCategoryItem } from "@/components/HomeCategoryCarousel";
-import { COURSE_CATEGORY_ICONS } from "@/lib/courseCategories";
 import { EVENT_TYPE_LABELS } from "@/lib/eventLabels";
 import { HOME_CATEGORIES } from "@/lib/homeCategories";
 import { getHomeCategoryStats } from "@/lib/homeCategoryStats";
@@ -52,7 +51,7 @@ export default async function HomePage() {
       subtitle: c.category,
       priceLabel: Number(c.price) === 0 ? "Free" : `₹${c.price}`,
       thumbnailUrl: c.thumbnailUrl,
-      icon: COURSE_CATEGORY_ICONS[c.category] ?? "📘",
+      kind: "course" as const,
     })),
     ...events.slice(0, 2).map((e) => ({
       key: `event-${e.id}`,
@@ -65,7 +64,7 @@ export default async function HomePage() {
       }),
       priceLabel: Number(e.fee) === 0 ? "Free" : `₹${e.fee}`,
       thumbnailUrl: e.thumbnailUrl,
-      icon: "🎉",
+      kind: "event" as const,
     })),
     ...competitions.slice(0, 2).map((c) => ({
       key: `competition-${c.id}`,
@@ -78,7 +77,7 @@ export default async function HomePage() {
       })}`,
       priceLabel: Number(c.fee) === 0 ? "Free" : `₹${c.fee}`,
       thumbnailUrl: c.thumbnailUrl,
-      icon: "🏆",
+      kind: "competition" as const,
     })),
   ];
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ShareButtons } from "@/components/ShareButtons";
 import { SITE_URL } from "@/lib/siteUrl";
 import { buildJobPostingSchema, serializeJsonLd } from "@/lib/jobPostingSchema";
-import { Briefcase, Building2, CalendarDays, Clock, MapPin } from "lucide-react";
+import { Briefcase, Building2, CalendarDays, ClipboardList, Clock, MapPin } from "lucide-react";
 import { ActionCard, ActionStatus, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -222,7 +222,7 @@ export default async function JobDetailPage({ params }: { params: { slug: string
 
         {job.requirements && (
           <div className="mt-6">
-            <InfoCard icon="📋" title="Requirements">
+            <InfoCard icon={ClipboardList} title="Requirements">
               <div className="whitespace-pre-wrap">{job.requirements}</div>
             </InfoCard>
           </div>

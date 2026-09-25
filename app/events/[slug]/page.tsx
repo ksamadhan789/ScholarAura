@@ -3,7 +3,7 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { AddToCalendar } from "@/components/events/AddToCalendar";
 import { eventToCalendar } from "@/lib/eventCalendar";
 import { SITE_URL } from "@/lib/siteUrl";
-import { CalendarDays, Clock, FileText, MapPin, Monitor, Users } from "lucide-react";
+import { CalendarDays, Clock, FileText, GraduationCap, MapPin, Monitor, Users } from "lucide-react";
 import { ActionCard, ActionStatus, ACTION_PRIMARY_CLASS, DetailColumns } from "@/components/detail/DetailLayout";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
@@ -28,6 +28,7 @@ import { InfoCard } from "@/components/InfoCard";
 import { DateCards } from "@/components/DateCards";
 import { PrizeCards } from "@/components/PrizeCards";
 import type { EventPerson } from "@/lib/eventPeople";
+import { CheckoutAssurance } from "@/components/detail/CheckoutAssurance";
 
 export async function generateMetadata({
   params,
@@ -150,7 +151,8 @@ export default async function EventDetailPage({
           <>
             <a
               href="#register"
-              className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50"
+              // Desktop only — on phones the register card sits right below the hero.
+              className="hidden rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 shadow-sm transition-colors hover:bg-brand-50 lg:inline-block"
             >
               {isRegistered ? "Your registration ↓" : "Register now ↓"}
             </a>
@@ -215,7 +217,10 @@ export default async function EventDetailPage({
             }
           >
             {!session ? (
-              <a href="/login" className={ACTION_PRIMARY_CLASS}>
+              <a
+                href={`/login?callbackUrl=${encodeURIComponent(`/events/${event.slug}`)}`}
+                className={ACTION_PRIMARY_CLASS}
+              >
                 Log in to register
               </a>
             ) : isRegistered ? (
@@ -245,6 +250,7 @@ export default async function EventDetailPage({
                 />
               </>
             )}
+            {session && Number(event.fee) > 0 && !isRegistered && <CheckoutAssurance refundNote="Full refund if you cancel at least 7 days before the event." />}
           </ActionCard>
         }
       >
@@ -269,7 +275,7 @@ export default async function EventDetailPage({
 
         {event.eligibility && (
           <div className="mt-4">
-            <InfoCard icon="🎓" title="Who can participate?" tone="success">
+            <InfoCard icon={GraduationCap} title="Who can participate?" tone="success">
               <p>{event.eligibility}</p>
             </InfoCard>
           </div>
