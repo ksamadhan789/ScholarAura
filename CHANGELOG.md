@@ -2,6 +2,12 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (homepage polish)
+
+### Changed
+- Homepage hero: "Get started free" and "Explore courses" buttons for signed-out visitors, and on desktop a sample-certificate illustration (clearly labelled "Sample", placeholder text only) with an "Anyone can verify it" badge and a link to the next real upcoming event. The small live-count tiles ("2 courses") now only appear once a count reaches 10, as a compact row under the quick links.
+- The featured carousel got a proper section heading ("Happening on ScholarAura") and the same page width as the other sections.
+
 ## 2026-09-25 (design polish)
 
 ### Changed

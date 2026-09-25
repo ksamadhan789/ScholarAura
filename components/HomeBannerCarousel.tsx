@@ -30,10 +30,11 @@ export function HomeBannerCarousel({ items }: { items: BannerItem[] }) {
   const track = [...items, ...items];
 
   return (
-    <section className="border-b border-slate-200 bg-slate-50 py-6 dark:border-slate-700 dark:bg-slate-900/40">
-      <div className="mx-auto max-w-[1600px] px-4">
-        <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">
-          Featured on ScholarAura
+    <section className="border-y border-slate-200 bg-slate-50 py-12 dark:border-slate-700 dark:bg-slate-900/40">
+      <div className="mx-auto max-w-[1200px] px-4">
+        <p className="text-sm font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">Featured</p>
+        <h2 className="mb-5 mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          Happening on ScholarAura
         </h2>
 
         <div className="relative overflow-hidden rounded-xl">
