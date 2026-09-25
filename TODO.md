@@ -18,6 +18,7 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 - Amazon-style location bar (site-wide city filter)
 - Coupons, refund requests, notifications, audit log, multi-currency display
 - Persistent project memory files (PROJECT_STATE.md, TODO.md, CHANGELOG.md)
+- Claude Code setup: CLAUDE.md that auto-loads the memory files, plus a cloud-session hook that installs dependencies (2026-09-25)
 - Amazon-style search bar with category dropdown; two-row Amazon-style header with dark category strip
 - Alumni Meet event type; Internships header tab
 - Freelance gig marketplace (post/browse/manage own service listings)

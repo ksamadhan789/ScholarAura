@@ -88,7 +88,8 @@ Compact project memory. Read this first at the start of every task. Keep it shor
 
 ## Working Workflow
 
-- Develop on the branch the session assigns (currently `claude/sleepy-hawking-gwbjlq`), open a PR to `master`, merge (squash) once CI is green.
+- Develop on the branch the session assigns, open a PR to `master`, merge (squash) once CI is green.
+- Claude Code setup: `CLAUDE.md` (auto-loaded each session; imports this file and TODO.md) and `.claude/settings.json`, whose SessionStart hook `.claude/hooks/session-start.sh` runs `npm install` in cloud sessions only. `npm run lint` is unusable (ESLint was never configured); `tsc` + Vitest are the checks, same as CI.
 - Before shipping: `npx tsc --noEmit`, `npx vitest run`, `npx next build`.
 - After a schema change: `npx prisma generate`.
 
