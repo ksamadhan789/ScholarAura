@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { toPublicListing } from "@/lib/publicListing";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
@@ -6,6 +7,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { eventPeopleSchema } from "@/lib/eventPeople";
 import { notifyInterestedStudents } from "@/lib/interestNotify";
+import { httpUrl } from "@/lib/safeUrl";
 
 const optionalDate = z.preprocess(
   (val) => (val === "" || val == null ? undefined : val),
@@ -19,8 +21,8 @@ const updateEventSchema = z
   .object({
     isPublished: z.boolean().optional(),
     isArchived: z.boolean().optional(),
-    thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
-    brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
+    thumbnailUrl: z.union([httpUrl(), z.literal("")]).nullable().optional(),
+    brochureUrl: z.union([httpUrl(), z.literal("")]).nullable().optional(),
     title: z.string().min(3).optional(),
     description: z.string().min(10).optional(),
     startDate: z.coerce.date().optional(),
@@ -41,12 +43,12 @@ const updateEventSchema = z
     prizeSecond: z.string().trim().nullable().optional(),
     prizeThird: z.string().trim().nullable().optional(),
     certificateLogoUrl: z
-      .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
+      .union([httpUrl(), z.literal("")])
       .nullable()
       .optional(),
     people: eventPeopleSchema.nullable(),
     organizer: z.string().trim().nullable().optional(),
-    googleFormUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
+    googleFormUrl: z.union([httpUrl(), z.literal("")]).nullable().optional(),
     googleFormNameEntryId: z.string().trim().nullable().optional(),
     googleFormEmailEntryId: z.string().trim().nullable().optional(),
     googleFormEnrollmentEntryId: z.string().trim().nullable().optional(),
@@ -73,12 +75,16 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   const event = await prisma.event.findUnique({ where: { slug: params.slug } });
+  const session = await getServerSession(authOptions);
+  const isAdmin = session?.user.role === "ADMIN";
 
-  if (!event) {
+  // Drafts are admin-only, and non-admins never get the private fields
+  // (joining link, webhook secret, Google Form/Sheet wiring).
+  if (!event || (!event.isPublished && !isAdmin)) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
 
-  return NextResponse.json(event);
+  return NextResponse.json(isAdmin ? event : toPublicListing(event));
 }
 
 export async function PATCH(

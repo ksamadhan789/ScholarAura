@@ -5,12 +5,13 @@ import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canonicalCityName } from "@/lib/cityAliases";
+import { httpUrl } from "@/lib/safeUrl";
 
 const updateJobSchema = z
   .object({
     title: z.string().min(3).optional(),
     companyName: z.string().min(1).optional(),
-    companyLogoUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).nullable().optional(),
+    companyLogoUrl: z.union([httpUrl(), z.literal("")]).nullable().optional(),
     location: z.string().min(1).optional(),
     city: z.string().trim().max(100).nullable().optional(),
     isRemote: z.boolean().optional(),

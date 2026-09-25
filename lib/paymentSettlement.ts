@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { eventCalendarEmailLinks } from "@/lib/eventCalendar";
 import { SITE_URL } from "@/lib/siteUrl";
 import { settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
+import { createRefund } from "@/lib/razorpay";
 import { claimCouponRedemption } from "@/lib/coupon";
 import { withEnrollmentNumber } from "@/lib/enrollment";
 import { withEnrollmentNumber as withCompetitionEnrollmentNumber } from "@/lib/competitionEnrollment";
@@ -9,32 +10,68 @@ import { sendEventRegistrationConfirmationEmail, sendCompetitionEntryConfirmatio
 import { leaveEventWaitlist } from "@/lib/waitlist";
 
 /**
- * Settles referral credit but never lets an already-captured payment fail to
- * confirm just because the buyer's credit balance was spent elsewhere in the
- * window between checkout and payment verification — that's a rarer,
- * lower-stakes edge case than leaving a paying customer unregistered.
+ * A captured payment that can't be honored — the event filled up, or the
+ * credit the buyer applied at checkout was already spent on another purchase
+ * (two checkouts open at once) — is refunded automatically instead of being
+ * settled. Settling it anyway would hand over a seat that doesn't exist, or
+ * an item for less than its price (and a later refund would then "restore"
+ * credit that was never deducted).
  */
-async function settleReferralCreditBestEffort(
+export class PaymentNotHonoredError extends Error {
+  constructor(readonly reason: "EVENT_FULL" | "CREDIT_UNAVAILABLE" | "NOT_SETTLED") {
+    super(reason);
+  }
+}
+
+export class EventFullError extends PaymentNotHonoredError {
+  constructor() {
+    super("EVENT_FULL");
+  }
+}
+
+/** What to tell the buyer when their payment was refunded instead of settled. */
+export function paymentNotHonoredMessage(err: PaymentNotHonoredError): string {
+  switch (err.reason) {
+    case "EVENT_FULL":
+      return "Your payment went through but the event filled up in the meantime, so it has been refunded automatically. Refunds reach your account in 5–7 working days.";
+    case "CREDIT_UNAVAILABLE":
+      return "Your credit balance was already used on another purchase, so this payment has been refunded automatically. Please check out again. Refunds reach your account in 5–7 working days.";
+    default:
+      return "This payment can't be completed. If money left your account, please contact support.";
+  }
+}
+
+async function settleReferralCreditOrThrow(
   tx: Parameters<typeof settleReferralCredit>[0],
   args: Parameters<typeof settleReferralCredit>[1]
 ) {
   try {
     await settleReferralCredit(tx, args);
   } catch (err) {
-    if (err instanceof InsufficientCreditError) {
-      console.error(
-        `Credit balance insufficient at settlement for user ${args.buyerId} (${args.description}) — payment still honored, credit not deducted.`
-      );
-      return;
-    }
+    if (err instanceof InsufficientCreditError) throw new PaymentNotHonoredError("CREDIT_UNAVAILABLE");
     throw err;
   }
 }
 
-export class EventFullError extends Error {
-  constructor() {
-    super("EVENT_FULL");
+/**
+ * On PaymentNotHonoredError, refunds the captured payment and rethrows. The
+ * PENDING → FAILED/CANCELLED claim makes sure only one caller (browser
+ * verification or the webhook) ever issues the refund.
+ */
+async function refundIfNotHonored(
+  err: unknown,
+  claim: () => Promise<{ count: number }>,
+  paymentId: string,
+  label: string
+): Promise<never> {
+  if (err instanceof PaymentNotHonoredError && (await claim()).count > 0) {
+    try {
+      await createRefund(paymentId);
+    } catch (refundErr) {
+      console.error(`Automatic refund FAILED for payment ${paymentId} (${label}) — refund it manually in Razorpay:`, refundErr);
+    }
   }
+  throw err;
 }
 
 /**
@@ -50,14 +87,14 @@ export async function settleCoursePurchase(purchaseId: string, paymentId: string
   const course = await prisma.course.findUnique({ where: { id: purchase.courseId } });
   if (!course) return null;
 
-  return prisma.$transaction(async (tx) => {
+  const settled = await prisma.$transaction(async (tx) => {
     const claimed = await tx.coursePurchase.updateMany({
-      where: { id: purchase.id, status: { not: "SUCCESS" } },
+      where: { id: purchase.id, status: "PENDING" },
       data: { status: "SUCCESS", razorpayPaymentId: paymentId },
     });
 
     if (claimed.count > 0) {
-      await settleReferralCreditBestEffort(tx, {
+      await settleReferralCreditOrThrow(tx, {
         buyerId: purchase.userId,
         originalAmount: Number(purchase.amount),
         creditApplied: Number(purchase.creditApplied),
@@ -71,14 +108,30 @@ export async function settleCoursePurchase(purchaseId: string, paymentId: string
     }
 
     return tx.coursePurchase.findUniqueOrThrow({ where: { id: purchase.id } });
-  });
+  }).catch((err) =>
+    refundIfNotHonored(
+      err,
+      () =>
+        prisma.coursePurchase.updateMany({
+          where: { id: purchase.id, status: "PENDING" },
+          data: { status: "FAILED", razorpayPaymentId: paymentId },
+        }),
+      paymentId,
+      `course purchase ${purchase.id}`
+    )
+  );
+
+  // Never report a refunded/failed purchase back as paid (e.g. a verification
+  // replayed after a refund).
+  if (settled.status !== "SUCCESS") throw new PaymentNotHonoredError("NOT_SETTLED");
+  return settled;
 }
 
 /**
  * Marks an event registration CONFIRMED, claims a seat, and settles referral
- * credit — guarded the same way as settleCoursePurchase. Throws EventFullError
- * if the event filled up between checkout and payment capture (the payment
- * already succeeded at that point, so this needs a human to sort out).
+ * credit — guarded the same way as settleCoursePurchase. If the event filled
+ * up between checkout and payment capture, the payment is refunded
+ * automatically and EventFullError is thrown.
  */
 export async function settleEventRegistration(registrationId: string, paymentId: string) {
   const registration = await prisma.eventRegistration.findUnique({
@@ -95,7 +148,7 @@ export async function settleEventRegistration(registrationId: string, paymentId:
     (enrollmentNumber) =>
       prisma.$transaction(async (tx) => {
         const claimedRegistration = await tx.eventRegistration.updateMany({
-          where: { id: registration.id, status: { not: "CONFIRMED" } },
+          where: { id: registration.id, status: "PENDING" },
           data: { status: "CONFIRMED", razorpayPaymentId: paymentId, enrollmentNumber },
         });
 
@@ -109,7 +162,7 @@ export async function settleEventRegistration(registrationId: string, paymentId:
             throw new EventFullError();
           }
 
-          await settleReferralCreditBestEffort(tx, {
+          await settleReferralCreditOrThrow(tx, {
             buyerId: registration.userId,
             originalAmount: Number(registration.amount),
             creditApplied: Number(registration.creditApplied),
@@ -125,7 +178,21 @@ export async function settleEventRegistration(registrationId: string, paymentId:
         const result = await tx.eventRegistration.findUniqueOrThrow({ where: { id: registration.id } });
         return { settled: result, isFreshSettlement: claimedRegistration.count > 0 };
       })
+  ).catch((err) =>
+    refundIfNotHonored(
+      err,
+      () =>
+        prisma.eventRegistration.updateMany({
+          where: { id: registration.id, status: "PENDING" },
+          data: { status: "CANCELLED", razorpayPaymentId: paymentId },
+        }),
+      paymentId,
+      `event registration ${registration.id}`
+    )
   );
+  if (settled.status !== "CONFIRMED" && settled.status !== "ATTENDED") {
+    throw new PaymentNotHonoredError("NOT_SETTLED");
+  }
 
   if (isFreshSettlement) {
     // Same cleanup as the free-registration path — a confirmed seat means
@@ -166,12 +233,12 @@ export async function settleCompetitionEntry(entryId: string, paymentId: string)
     (enrollmentNumber) =>
       prisma.$transaction(async (tx) => {
         const claimed = await tx.competitionEntry.updateMany({
-          where: { id: entry.id, status: { not: "SUCCESS" } },
+          where: { id: entry.id, status: "PENDING" },
           data: { status: "SUCCESS", razorpayPaymentId: paymentId, enrollmentNumber },
         });
 
         if (claimed.count > 0) {
-          await settleReferralCreditBestEffort(tx, {
+          await settleReferralCreditOrThrow(tx, {
             buyerId: entry.userId,
             originalAmount: Number(entry.amount),
             creditApplied: Number(entry.creditApplied),
@@ -187,7 +254,19 @@ export async function settleCompetitionEntry(entryId: string, paymentId: string)
         const result = await tx.competitionEntry.findUniqueOrThrow({ where: { id: entry.id } });
         return { settled: result, isFreshSettlement: claimed.count > 0 };
       })
+  ).catch((err) =>
+    refundIfNotHonored(
+      err,
+      () =>
+        prisma.competitionEntry.updateMany({
+          where: { id: entry.id, status: "PENDING" },
+          data: { status: "FAILED", razorpayPaymentId: paymentId },
+        }),
+      paymentId,
+      `competition entry ${entry.id}`
+    )
   );
+  if (settled.status !== "SUCCESS") throw new PaymentNotHonoredError("NOT_SETTLED");
 
   if (isFreshSettlement) {
     await sendCompetitionEntryConfirmationEmail(

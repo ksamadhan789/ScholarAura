@@ -1,9 +1,11 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { google } from "googleapis";
 import { authOptions } from "@/lib/auth";
 import { SITE_URL } from "@/lib/siteUrl";
 import { DELEGATED_DRIVE_SCOPES } from "@/lib/google/delegatedAuth";
+import { DRIVE_OAUTH_COOKIE } from "@/lib/google/driveOAuthState";
 
 function safeReturnTo(value: string | null): string {
   // Only ever redirect back within our own site — reject anything that
@@ -25,6 +27,11 @@ export async function GET(request: Request) {
     `${SITE_URL}/api/admin/google-drive/callback`
   );
 
+  // Random state, also kept in an httpOnly cookie that the callback checks —
+  // otherwise anyone could get a signed-in admin to open a callback URL
+  // carrying *their* Google account's code and swap the site's Drive account.
+  const state = crypto.randomBytes(24).toString("base64url");
+
   const url = client.generateAuthUrl({
     access_type: "offline",
     // Forces the consent screen (and a fresh refresh_token) even if this
@@ -32,8 +39,16 @@ export async function GET(request: Request) {
     // skip straight to the callback with no refresh_token at all.
     prompt: "consent",
     scope: DELEGATED_DRIVE_SCOPES,
-    state: returnTo,
+    state,
   });
 
-  return NextResponse.redirect(url);
+  const response = NextResponse.redirect(url);
+  response.cookies.set(DRIVE_OAUTH_COOKIE, JSON.stringify({ state, returnTo }), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/api/admin/google-drive",
+    maxAge: 10 * 60,
+  });
+  return response;
 }

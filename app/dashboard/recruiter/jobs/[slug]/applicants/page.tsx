@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { formatJobDate } from "@/lib/jobLabels";
 import { Avatar } from "@/components/Avatar";
 import { ApplicationStatusSelect } from "@/app/dashboard/jobs/[slug]/applicants/ApplicationStatusSelect";
+import { isActiveJobOwner } from "@/lib/jobOwnership";
 
 export default async function RecruiterJobApplicantsPage({ params }: { params: { slug: string } }) {
   const session = await getServerSession(authOptions);
@@ -13,7 +14,7 @@ export default async function RecruiterJobApplicantsPage({ params }: { params: {
   if (session.user.role !== "RECRUITER") redirect("/dashboard");
 
   const job = await prisma.job.findUnique({ where: { slug: params.slug } });
-  if (!job || job.postedByUserId !== session.user.id) notFound();
+  if (!job || !(await isActiveJobOwner(session.user.id, job))) notFound();
 
   const applications = await prisma.jobApplication.findMany({
     where: { jobId: job.id },

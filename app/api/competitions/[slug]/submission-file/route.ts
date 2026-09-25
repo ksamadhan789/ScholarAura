@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { downloadCompetitionEntryFile } from "@/lib/competitionEntryFileStorage";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 export async function GET(_request: Request, { params }: { params: { slug: string } }) {
   const session = await getServerSession(authOptions);
@@ -27,7 +28,7 @@ export async function GET(_request: Request, { params }: { params: { slug: strin
     return new NextResponse(bytes, {
       headers: {
         "Content-Type": entry.submissionFileContentType ?? "application/octet-stream",
-        "Content-Disposition": `inline; filename="${entry.submissionFileName}"`,
+        "Content-Disposition": contentDisposition("inline", entry.submissionFileName),
       },
     });
   } catch (err) {

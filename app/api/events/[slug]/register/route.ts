@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { eventCalendarEmailLinks } from "@/lib/eventCalendar";
 import { SITE_URL } from "@/lib/siteUrl";
 import { getServerSession } from "next-auth";
@@ -60,26 +61,41 @@ export async function POST(
   try {
     const registration = await withEnrollmentNumber(existing?.enrollmentNumber, (enrollmentNumber) =>
       prisma.$transaction(async (tx) => {
+        // Flip the registration first and only take a seat if this request
+        // actually made it CONFIRMED — several clicks at once used to each
+        // take a seat for one registration and fill the event.
+        const reactivated = existing
+          ? await tx.eventRegistration.updateMany({
+              where: { id: existing.id, status: { notIn: ["CONFIRMED", "ATTENDED"] } },
+              data: { status: "CONFIRMED", amount: event.fee, certificateName, enrollmentNumber },
+            })
+          : null;
+        if (existing && reactivated!.count === 0) throw new Error("ALREADY_REGISTERED");
+        if (!existing) {
+          // A concurrent click that also creates the row hits the unique
+          // (userId, eventId) constraint and is reported as already registered.
+          await tx.eventRegistration.create({
+            data: {
+              userId: session.user.id,
+              eventId: event.id,
+              amount: event.fee,
+              status: "CONFIRMED",
+              certificateName,
+              enrollmentNumber,
+            },
+          });
+        }
+
         const claimed = await tx.event.updateMany({
           where: { id: event.id, seatsFilled: { lt: event.seatsTotal } },
           data: { seatsFilled: { increment: 1 } },
         });
-
         if (claimed.count === 0) {
           throw new Error("EVENT_FULL");
         }
 
-        return tx.eventRegistration.upsert({
+        return tx.eventRegistration.findUniqueOrThrow({
           where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
-          update: { status: "CONFIRMED", amount: event.fee, certificateName, enrollmentNumber },
-          create: {
-            userId: session.user.id,
-            eventId: event.id,
-            amount: event.fee,
-            status: "CONFIRMED",
-            certificateName,
-            enrollmentNumber,
-          },
         });
       })
     );
@@ -117,6 +133,14 @@ export async function POST(
     if (err instanceof Error && err.message === "EVENT_FULL") {
       return NextResponse.json({ error: "This event is full" }, { status: 409 });
     }
+    if (
+      (err instanceof Error && err.message === "ALREADY_REGISTERED") ||
+      (err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2002" &&
+        !(err.meta?.target as string[] | undefined)?.includes("enrollmentNumber"))
+    ) {
+      return NextResponse.json({ error: "Already registered" }, { status: 409 });
+    }
     console.error("Event registration failed:", err);
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
@@ -149,17 +173,23 @@ export async function DELETE(_request: Request, { params }: { params: { slug: st
     return NextResponse.json({ error: "You're not registered for this event" }, { status: 404 });
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.eventRegistration.update({
-      where: { id: registration.id },
+  const cancelled = await prisma.$transaction(async (tx) => {
+    // Conditional, so two cancel clicks at once can't both free a seat.
+    const flipped = await tx.eventRegistration.updateMany({
+      where: { id: registration.id, status: "CONFIRMED" },
       data: { status: "CANCELLED" },
     });
+    if (flipped.count === 0) return false;
     // Frees the seat back up — guarded so it can never go negative.
     await tx.event.updateMany({
       where: { id: event.id, seatsFilled: { gt: 0 } },
       data: { seatsFilled: { decrement: 1 } },
     });
+    return true;
   });
+  if (!cancelled) {
+    return NextResponse.json({ error: "You're not registered for this event" }, { status: 404 });
+  }
 
   // Best-effort — a waitlist notification failure shouldn't undo the cancellation.
   await notifyNextWaitlisted(event.id).catch((err) =>

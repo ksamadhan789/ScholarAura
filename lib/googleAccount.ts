@@ -44,7 +44,8 @@ export async function findOrCreateGoogleUser({
       data: {
         googleId: existing.googleId ?? googleId,
         emailVerified: true,
-        ...(!existing.emailVerified && { passwordHash: null }),
+        // …and any session that squatter already has is ended too.
+        ...(!existing.emailVerified && { passwordHash: null, sessionVersion: { increment: 1 } }),
       },
     });
   }

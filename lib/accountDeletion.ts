@@ -70,6 +70,7 @@ export async function deactivateAccount(
       referralCode: null,
       deactivatedAt: new Date(),
       deletionReason: reason,
+      sessionVersion: { increment: 1 },
     },
   });
 

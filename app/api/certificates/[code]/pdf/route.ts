@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCertificatePdfBytes } from "@/lib/certificatePdf";
 import { checkRateLimit, CERTIFICATE_VERIFY_ATTEMPT_LIMIT, CERTIFICATE_VERIFY_WINDOW_MS } from "@/lib/rateLimit";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 export async function GET(
   request: Request,
@@ -34,7 +35,7 @@ export async function GET(
   return new NextResponse(Buffer.from(pdfBytes), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${certificate.certificateNumber}.pdf"`,
+      "Content-Disposition": contentDisposition("inline", `${certificate.certificateNumber}.pdf`),
     },
   });
 }

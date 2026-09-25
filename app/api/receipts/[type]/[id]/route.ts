@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateReceiptPdf } from "@/lib/generateReceiptPdf";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 type ReceiptType = "course" | "event" | "competition";
 
@@ -116,7 +117,8 @@ export async function GET(
   const amount = Number(record.amount);
   const discountAmount = Number(record.discountAmount);
   const creditApplied = Number(record.creditApplied);
-  const netAmount = amount - discountAmount - creditApplied;
+  // `amount` is stored after the coupon discount already, so only credit comes off it.
+  const netAmount = amount - creditApplied;
   const receiptNumber = `RCPT-${record.id.replace(/-/g, "").slice(0, 10).toUpperCase()}`;
   const orgLogoBytes = fs.readFileSync(path.join(process.cwd(), "public", "logo.png"));
 
@@ -140,7 +142,7 @@ export async function GET(
   return new NextResponse(Buffer.from(pdfBytes), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${receiptNumber}.pdf"`,
+      "Content-Disposition": contentDisposition("inline", `${receiptNumber}.pdf`),
     },
   });
 }

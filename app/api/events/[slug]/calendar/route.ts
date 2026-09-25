@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { buildIcs } from "@/lib/calendarLinks";
 import { eventToCalendar } from "@/lib/eventCalendar";
 import { SITE_URL } from "@/lib/siteUrl";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 // "Apple / other calendar" download for an event — a standard .ics file
 // that Apple Calendar, Outlook desktop and most calendar apps open. Public,
@@ -16,7 +17,7 @@ export async function GET(_request: Request, { params }: { params: { slug: strin
   return new NextResponse(buildIcs(eventToCalendar(event, SITE_URL)), {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${event.slug}.ics"`,
+      "Content-Disposition": contentDisposition("attachment", `${event.slug}.ics`),
     },
   });
 }

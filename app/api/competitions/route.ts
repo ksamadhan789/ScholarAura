@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { toPublicListing } from "@/lib/publicListing";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
 import { eventPeopleSchema } from "@/lib/eventPeople";
+import { httpUrl } from "@/lib/safeUrl";
 
 const optionalDate = z.preprocess(
   (val) => (val === "" || val == null ? undefined : val),
@@ -24,10 +26,10 @@ const createCompetitionSchema = z
     prizeSecond: z.string().trim().optional().or(z.literal("")),
     prizeThird: z.string().trim().optional().or(z.literal("")),
     maxTeamSize: z.coerce.number().int().min(1, "Team size must be at least 1"),
-    thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
-    brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
+    thumbnailUrl: z.union([httpUrl(), z.literal("")]).optional(),
+    brochureUrl: z.union([httpUrl(), z.literal("")]).optional(),
     certificateLogoUrl: z
-      .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
+      .union([httpUrl(), z.literal("")])
       .optional(),
     shortDescription: z.string().trim().optional().or(z.literal("")),
     eligibility: z.string().trim().optional().or(z.literal("")),
@@ -52,7 +54,7 @@ export async function GET() {
     orderBy: { startDate: "asc" },
   });
 
-  return NextResponse.json(competitions);
+  return NextResponse.json(competitions.map(toPublicListing));
 }
 
 export async function POST(request: Request) {

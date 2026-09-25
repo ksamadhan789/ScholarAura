@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
+import { httpUrl } from "@/lib/safeUrl";
 
 const createListingSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -11,7 +12,7 @@ const createListingSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   skills: z.array(z.string().trim().min(1)).max(10).optional(),
   rate: z.string().trim().optional().or(z.literal("")),
-  portfolioUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
+  portfolioUrl: z.union([httpUrl(), z.literal("")]).optional(),
   contactEmail: z.string().trim().email("Enter a valid email"),
 });
 

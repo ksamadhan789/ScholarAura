@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { toPublicListing } from "@/lib/publicListing";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
 import { eventPeopleSchema } from "@/lib/eventPeople";
+import { httpUrl } from "@/lib/safeUrl";
 
 const eventTypes = [
   "INTERNATIONAL_CONFERENCE",
@@ -36,8 +38,8 @@ const createEventSchema = z
     format: z.enum(eventFormats).default("OFFLINE"),
     city: z.string().trim().optional().or(z.literal("")),
     audience: z.enum(eventAudiences).default("EVERYONE"),
-    thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
-    brochureUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
+    thumbnailUrl: z.union([httpUrl(), z.literal("")]).optional(),
+    brochureUrl: z.union([httpUrl(), z.literal("")]).optional(),
     shortDescription: z.string().trim().optional().or(z.literal("")),
     eligibility: z.string().trim().optional().or(z.literal("")),
     registrationStartDate: optionalDate,
@@ -64,7 +66,7 @@ export async function GET() {
     orderBy: { startDate: "asc" },
   });
 
-  return NextResponse.json(events);
+  return NextResponse.json(events.map(toPublicListing));
 }
 
 export async function POST(request: Request) {

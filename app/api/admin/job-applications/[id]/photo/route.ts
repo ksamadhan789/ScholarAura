@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { downloadProfilePhoto } from "@/lib/profilePhotoStorage";
+import { isActiveJobOwner } from "@/lib/jobOwnership";
 
 // Same access rule as the resume route on this application: the admin, or
 // the recruiter who posted the job. Deliberately not gated by
@@ -22,7 +23,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
   if (!application) {
     return NextResponse.json({ error: "Application not found" }, { status: 404 });
   }
-  if (session.user.role !== "ADMIN" && session.user.id !== application.job.postedByUserId) {
+  if (session.user.role !== "ADMIN" && !(await isActiveJobOwner(session.user.id, application.job))) {
     return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
   if (!application.user.photoFileId) {

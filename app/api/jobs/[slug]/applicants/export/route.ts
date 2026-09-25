@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { toCsvResponse } from "@/lib/csv";
+import { isActiveJobOwner } from "@/lib/jobOwnership";
 
 export async function GET(_request: Request, { params }: { params: { slug: string } }) {
   const session = await getServerSession(authOptions);
@@ -14,7 +15,7 @@ export async function GET(_request: Request, { params }: { params: { slug: strin
   if (!job) {
     return NextResponse.json({ error: "Job not found" }, { status: 404 });
   }
-  if (session.user.role !== "ADMIN" && session.user.id !== job.postedByUserId) {
+  if (session.user.role !== "ADMIN" && !(await isActiveJobOwner(session.user.id, job))) {
     return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   }
 

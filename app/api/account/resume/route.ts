@@ -7,6 +7,7 @@ import {
   downloadProfileResume,
   deleteProfileResume,
 } from "@/lib/profileResumeStorage";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 const MAX_RESUME_BYTES = 4 * 1024 * 1024; // stay under Vercel's serverless request body limit
 // "%PDF-" — the client-supplied MIME type is just a label the browser attaches
@@ -33,7 +34,7 @@ export async function GET() {
     return new NextResponse(bytes, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${user.resumeName}"`,
+        "Content-Disposition": contentDisposition("inline", user.resumeName),
       },
     });
   } catch (err) {

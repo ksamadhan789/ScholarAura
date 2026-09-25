@@ -26,7 +26,7 @@ describe("findOrCreateGoogleUser", () => {
     await findOrCreateGoogleUser(google);
     expect(prismaMock.user.update).toHaveBeenCalledWith({
       where: { email: "owner@example.com" },
-      data: { googleId: "g-1", emailVerified: true, passwordHash: null },
+      data: { googleId: "g-1", emailVerified: true, passwordHash: null, sessionVersion: { increment: 1 } },
     });
   });
 

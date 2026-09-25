@@ -4,13 +4,14 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
+import { httpUrl } from "@/lib/safeUrl";
 
 const createCourseSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   price: z.coerce.number().min(0, "Price can't be negative"),
   category: z.string().min(1, "Category is required"),
-  thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
+  thumbnailUrl: z.union([httpUrl(), z.literal("")]).optional(),
 });
 
 export async function GET() {

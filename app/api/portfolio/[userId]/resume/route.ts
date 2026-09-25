@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { downloadProfileResume } from "@/lib/profileResumeStorage";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 // Public — anyone can fetch a resume from a profile the user has explicitly
 // made public, mirroring how the portfolio page itself works (no auth check).
@@ -18,7 +19,7 @@ export async function GET(_request: Request, { params }: { params: { userId: str
     return new NextResponse(bytes, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${user.resumeName}"`,
+        "Content-Disposition": contentDisposition("inline", user.resumeName),
       },
     });
   } catch (err) {

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { downloadStudentIdCard } from "@/lib/studentIdCardStorage";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 // Admin-only — used on admin entry/management tables that already show a
 // user's name and email, for verifying eligibility (e.g. a competition
@@ -27,7 +28,7 @@ export async function GET(_request: Request, { params }: { params: { userId: str
     return new NextResponse(bytes, {
       headers: {
         "Content-Type": user.idCardContentType ?? "application/octet-stream",
-        "Content-Disposition": `inline; filename="${user.idCardFileName}"`,
+        "Content-Disposition": contentDisposition("inline", user.idCardFileName),
       },
     });
   } catch (err) {

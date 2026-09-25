@@ -35,7 +35,12 @@ export async function POST(request: Request) {
   await prisma.$transaction([
     // The reset link reached this inbox, which proves ownership — so it
     // also verifies the email (a second way in for never-verified accounts).
-    prisma.user.update({ where: { id: resetToken.userId }, data: { passwordHash, emailVerified: true } }),
+    // Signs the account out everywhere, so whoever had the old password (or a
+    // stolen session) loses access the moment the owner resets it.
+    prisma.user.update({
+      where: { id: resetToken.userId },
+      data: { passwordHash, emailVerified: true, sessionVersion: { increment: 1 } },
+    }),
     prisma.passwordResetToken.update({ where: { id: resetToken.id }, data: { usedAt: new Date() } }),
     // Invalidate any other outstanding reset requests for this user too.
     prisma.passwordResetToken.updateMany({

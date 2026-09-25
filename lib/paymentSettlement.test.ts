@@ -5,7 +5,11 @@ import {
   settleEventRegistration,
   settleCompetitionEntry,
   EventFullError,
+  PaymentNotHonoredError,
 } from "@/lib/paymentSettlement";
+
+vi.mock("@/lib/razorpay", () => ({ createRefund: vi.fn().mockResolvedValue({ id: "rfnd_1", status: "processed" }) }));
+import { createRefund } from "@/lib/razorpay";
 
 vi.mock("@/lib/email", () => ({
   sendEventRegistrationConfirmationEmail: vi.fn().mockResolvedValue(true),
@@ -15,11 +19,54 @@ vi.mock("@/lib/email", () => ({
 import { sendEventRegistrationConfirmationEmail, sendCompetitionEntryConfirmationEmail } from "@/lib/email";
 
 beforeEach(() => {
+  vi.mocked(createRefund).mockClear();
   vi.mocked(sendEventRegistrationConfirmationEmail).mockClear();
   vi.mocked(sendCompetitionEntryConfirmationEmail).mockClear();
 });
 
 describe("settleCoursePurchase", () => {
+  it("refuses to turn a refunded purchase back into a paid one (replayed verification)", async () => {
+    prismaMock.coursePurchase.findUnique.mockResolvedValue({
+      id: "p1",
+      userId: "buyer-1",
+      courseId: "course-1",
+      couponId: null,
+      amount: 1000,
+      creditApplied: 0,
+      status: "REFUNDED",
+    } as never);
+    prismaMock.course.findUnique.mockResolvedValue({ id: "course-1", title: "Test Course" } as never);
+    prismaMock.coursePurchase.updateMany.mockResolvedValue({ count: 0 });
+    prismaMock.coursePurchase.findUniqueOrThrow.mockResolvedValue({ id: "p1", status: "REFUNDED" } as never);
+
+    await expect(settleCoursePurchase("p1", "pay_1")).rejects.toBeInstanceOf(PaymentNotHonoredError);
+    expect(prismaMock.user.updateMany).not.toHaveBeenCalled();
+    expect(createRefund).not.toHaveBeenCalled();
+  });
+
+  it("refunds instead of settling when the applied credit was already spent elsewhere", async () => {
+    prismaMock.coursePurchase.findUnique.mockResolvedValue({
+      id: "p1",
+      userId: "buyer-1",
+      courseId: "course-1",
+      couponId: null,
+      amount: 600,
+      creditApplied: 500,
+      status: "PENDING",
+    } as never);
+    prismaMock.course.findUnique.mockResolvedValue({ id: "course-1", title: "Test Course" } as never);
+    prismaMock.coursePurchase.updateMany.mockResolvedValue({ count: 1 });
+    prismaMock.user.findUnique.mockResolvedValue({ id: "buyer-1", referredById: null } as never);
+    prismaMock.user.updateMany.mockResolvedValue({ count: 0 }); // balance no longer covers it
+
+    await expect(settleCoursePurchase("p1", "pay_1")).rejects.toMatchObject({ reason: "CREDIT_UNAVAILABLE" });
+    expect(prismaMock.coursePurchase.updateMany).toHaveBeenLastCalledWith({
+      where: { id: "p1", status: "PENDING" },
+      data: { status: "FAILED", razorpayPaymentId: "pay_1" },
+    });
+    expect(createRefund).toHaveBeenCalledWith("pay_1");
+  });
+
   it("returns null when the purchase doesn't exist", async () => {
     prismaMock.coursePurchase.findUnique.mockResolvedValue(null);
     await expect(settleCoursePurchase("missing", "pay_1")).resolves.toBeNull();
@@ -44,7 +91,7 @@ describe("settleCoursePurchase", () => {
     await settleCoursePurchase("p1", "pay_1");
 
     expect(prismaMock.coursePurchase.updateMany).toHaveBeenCalledWith({
-      where: { id: "p1", status: { not: "SUCCESS" } },
+      where: { id: "p1", status: "PENDING" },
       data: { status: "SUCCESS", razorpayPaymentId: "pay_1" },
     });
     expect(prismaMock.coupon.update).toHaveBeenCalledWith({

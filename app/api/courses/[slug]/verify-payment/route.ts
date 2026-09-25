@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
-import { settleCoursePurchase } from "@/lib/paymentSettlement";
+import { settleCoursePurchase, PaymentNotHonoredError, paymentNotHonoredMessage } from "@/lib/paymentSettlement";
 
 const verifySchema = z.object({
   razorpay_order_id: z.string(),
@@ -52,6 +52,13 @@ export async function POST(
   // Idempotent — also called by the Razorpay webhook, so a replayed/duplicate
   // verification (the signature doesn't expire) can't re-settle referral
   // credit a second time for the same purchase.
-  const updated = await settleCoursePurchase(purchase.id, razorpay_payment_id);
-  return NextResponse.json(updated);
+  try {
+    const updated = await settleCoursePurchase(purchase.id, razorpay_payment_id);
+    return NextResponse.json(updated);
+  } catch (err) {
+    if (err instanceof PaymentNotHonoredError) {
+      return NextResponse.json({ error: paymentNotHonoredMessage(err) }, { status: 409 });
+    }
+    throw err;
+  }
 }

@@ -10,6 +10,7 @@ import {
   isAllowedUploadType,
   matchesMagicBytes,
 } from "@/lib/uploadValidation";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -30,7 +31,7 @@ export async function GET() {
     return new NextResponse(bytes, {
       headers: {
         "Content-Type": user.idCardContentType ?? "application/octet-stream",
-        "Content-Disposition": `inline; filename="${user.idCardFileName}"`,
+        "Content-Disposition": contentDisposition("inline", user.idCardFileName),
       },
     });
   } catch (err) {

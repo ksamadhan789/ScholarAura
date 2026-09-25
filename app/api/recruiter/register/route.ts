@@ -4,19 +4,35 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { isEmailVerificationRequired, sendVerificationEmail } from "@/lib/emailVerification";
+import { httpUrl } from "@/lib/safeUrl";
+import { checkRateLimit, REGISTER_ATTEMPT_LIMIT, REGISTER_WINDOW_MS } from "@/lib/rateLimit";
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   companyName: z.string().min(1, "Company name is required"),
-  companyWebsite: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
+  companyWebsite: z.union([httpUrl(), z.literal("")]).optional(),
   designation: z.string().trim().optional().or(z.literal("")),
   turnstileToken: z.string().optional(),
 });
 
 export async function POST(request: Request) {
   try {
+    // Same per-IP sign-up limit as student registration.
+    const remoteIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const withinRegisterLimit = await checkRateLimit(
+      `register:${remoteIp ?? "unknown"}`,
+      REGISTER_ATTEMPT_LIMIT,
+      REGISTER_WINDOW_MS
+    );
+    if (!withinRegisterLimit) {
+      return NextResponse.json(
+        { error: "Too many signup attempts. Please wait a while and try again." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {
@@ -35,7 +51,6 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-      const remoteIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
       const verified = await verifyTurnstileToken(turnstileToken, remoteIp);
       if (!verified) {
         return NextResponse.json(

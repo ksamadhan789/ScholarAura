@@ -127,20 +127,34 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user }) {
-      if (user) {
-        token.role = (user as { role?: string }).role;
+      // Re-read the user on every call so a role change (e.g. an admin
+      // demoted after abuse) takes effect on their next request instead of
+      // staying cached in the JWT for the session's 30-day lifetime. At
+      // sign-in the token's sub can be the provider's id (Google), so look
+      // up by email there; afterwards always by our own id, because account
+      // deletion rewrites the email — an email lookup that found nothing
+      // used to leave a deleted account's token working.
+      const signInEmail = user ? (user.email ?? token.email) : null;
+      const dbUser = signInEmail
+        ? await prisma.user.findUnique({ where: { email: signInEmail } })
+        : token.sub
+          ? await prisma.user.findUnique({ where: { id: token.sub } })
+          : null;
+
+      if (user && dbUser) {
+        token.sessionVersion = dbUser.sessionVersion;
       }
-      // Re-read on every call (not just when token.role is unset) so a role
-      // change (e.g. an admin demoted after abuse) takes effect on the
-      // user's next request instead of staying cached in the JWT for up to
-      // the session's 30-day lifetime.
-      if (token.email) {
-        const dbUser = await prisma.user.findUnique({ where: { email: token.email } });
-        if (dbUser) {
-          token.role = dbUser.role;
-          token.sub = dbUser.id;
-        }
+
+      // Deleted account, or signed out everywhere since this token was
+      // issued (password reset, Google linking that removed a squatter's
+      // password) — throwing makes NextAuth clear the cookie and treat the
+      // request as signed out.
+      if (!dbUser || dbUser.deactivatedAt || (token.sessionVersion ?? 0) !== dbUser.sessionVersion) {
+        throw new Error("SESSION_REVOKED");
       }
+
+      token.sub = dbUser.id;
+      token.role = dbUser.role;
       return token;
     },
     async session({ session, token }) {

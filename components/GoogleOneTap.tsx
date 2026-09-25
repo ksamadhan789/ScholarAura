@@ -48,7 +48,14 @@ function loadGsiScript(): Promise<void> {
 // back silently (no-op) if the script fails to load or the browser
 // suppresses the prompt; the regular "Continue with Google" OAuth button
 // stays as the reliable fallback everywhere this is used.
-export function GoogleOneTap({ clientId }: { clientId: string }) {
+export function GoogleOneTap({
+  clientId,
+  callbackPath,
+}: {
+  clientId: string;
+  /** Where to go after signing in; defaults to the dashboard. */
+  callbackPath?: () => string;
+}) {
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -69,7 +76,7 @@ export function GoogleOneTap({ clientId }: { clientId: string }) {
             });
             if (!result?.error) {
               // Full page load so no router-cached signed-out redirect is reused.
-              window.location.assign("/dashboard");
+              window.location.assign(callbackPath ? callbackPath() : "/dashboard");
             }
           },
           use_fedcm_for_prompt: true,

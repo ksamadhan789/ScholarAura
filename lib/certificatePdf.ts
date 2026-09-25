@@ -22,15 +22,27 @@ export type CertificateWithRelations = Certificate & {
 // path is reachable from the public, unauthenticated certificate PDF route.
 // Without the SSRF guard, this would be a way to make the server issue
 // requests to internal services or cloud metadata endpoints.
+// Redirects are followed by hand so every hop is checked too — with fetch's
+// default redirect: "follow", a safe-looking public URL could 302 to an
+// internal address after the guard had already passed.
+const MAX_LOGO_REDIRECTS = 3;
+
 async function fetchImageBytes(url: string): Promise<Uint8Array | null> {
   try {
-    await assertSafeExternalUrl(url);
-
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), LOGO_FETCH_TIMEOUT_MS);
     try {
-      const res = await fetch(url, { signal: controller.signal });
-      if (!res.ok) return null;
+      let currentUrl = url;
+      let res: Response | null = null;
+      for (let hop = 0; hop <= MAX_LOGO_REDIRECTS; hop++) {
+        await assertSafeExternalUrl(currentUrl);
+        res = await fetch(currentUrl, { signal: controller.signal, redirect: "manual" });
+        const location = res.headers.get("location");
+        if (res.status < 300 || res.status >= 400 || !location) break;
+        currentUrl = new URL(location, currentUrl).toString();
+        res = null;
+      }
+      if (!res || !res.ok) return null;
 
       const contentLength = Number(res.headers.get("content-length"));
       if (contentLength && contentLength > MAX_LOGO_BYTES) return null;

@@ -15,7 +15,7 @@ export async function settleJobBoost(boostId: string, paymentId: string) {
 
   return prisma.$transaction(async (tx) => {
     const claimed = await tx.jobBoost.updateMany({
-      where: { id: boost.id, status: { not: "SUCCESS" } },
+      where: { id: boost.id, status: "PENDING" },
       data: { status: "SUCCESS", razorpayPaymentId: paymentId },
     });
 

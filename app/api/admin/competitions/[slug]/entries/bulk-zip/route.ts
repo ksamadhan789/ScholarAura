@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { downloadCompetitionEntryFile } from "@/lib/competitionEntryFileStorage";
 import { mapWithConcurrency } from "@/lib/concurrency";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 // Drive downloads are I/O-bound — running a handful at once instead of one
 // at a time cuts wall-clock time enough to matter for a serverless
@@ -78,7 +79,7 @@ export async function GET(_request: Request, { params }: { params: { slug: strin
   return new NextResponse(Buffer.from(zipBytes), {
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="${competition.slug}-entry-files.zip"`,
+      "Content-Disposition": contentDisposition("attachment", `${competition.slug}-entry-files.zip`),
     },
   });
 }

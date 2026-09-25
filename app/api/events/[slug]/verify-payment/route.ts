@@ -4,7 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
-import { settleEventRegistration, EventFullError } from "@/lib/paymentSettlement";
+import { settleEventRegistration, PaymentNotHonoredError, paymentNotHonoredMessage } from "@/lib/paymentSettlement";
 import { buildGoogleFormUrl } from "@/lib/enrollment";
 
 const verifySchema = z.object({
@@ -65,12 +65,9 @@ export async function POST(
         : null;
     return NextResponse.json({ ...updated, googleFormUrl });
   } catch (err) {
-    if (err instanceof EventFullError) {
-      // Payment succeeded but the seat is gone — flagged for manual refund.
-      return NextResponse.json(
-        { error: "Your payment succeeded but the event filled up. Contact support for a refund." },
-        { status: 409 }
-      );
+    if (err instanceof PaymentNotHonoredError) {
+      // Event full / credit already spent — the payment was refunded automatically.
+      return NextResponse.json({ error: paymentNotHonoredMessage(err) }, { status: 409 });
     }
     console.error("Event payment verification failed:", err);
     return NextResponse.json(

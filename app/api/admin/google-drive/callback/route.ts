@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { google } from "googleapis";
@@ -5,6 +6,14 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { SITE_URL } from "@/lib/siteUrl";
 import { DRIVE_CONNECTION_ID } from "@/lib/google/delegatedAuth";
+import { DRIVE_OAUTH_COOKIE, readDriveOAuthState } from "@/lib/google/driveOAuthState";
+import { cookies } from "next/headers";
+
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
+}
 
 function safeReturnTo(value: string | null): string {
   return value && value.startsWith("/") && !value.startsWith("//") ? value : "/dashboard/events";
@@ -13,10 +22,18 @@ function safeReturnTo(value: string | null): string {
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   const url = new URL(request.url);
-  const returnTo = safeReturnTo(url.searchParams.get("state"));
+  const saved = readDriveOAuthState(cookies().get(DRIVE_OAUTH_COOKIE)?.value);
+  cookies().delete({ name: DRIVE_OAUTH_COOKIE, path: "/api/admin/google-drive" });
+  const returnTo = safeReturnTo(saved?.returnTo ?? null);
 
   if (!session || session.user.role !== "ADMIN") {
     return NextResponse.redirect(`${SITE_URL}/dashboard`);
+  }
+
+  // Must be the flow this admin started from our Connect button (see connect/route.ts).
+  const state = url.searchParams.get("state");
+  if (!saved || !state || !safeEqual(state, saved.state)) {
+    return NextResponse.redirect(`${SITE_URL}${returnTo}?driveError=invalid_state`);
   }
 
   const code = url.searchParams.get("code");

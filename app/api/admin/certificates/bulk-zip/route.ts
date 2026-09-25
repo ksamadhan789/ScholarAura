@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCertificatePdfBytes } from "@/lib/certificatePdf";
 import { mapWithConcurrency } from "@/lib/concurrency";
+import { contentDisposition } from "@/lib/contentDisposition";
 
 // Drive downloads / PDF renders per certificate are I/O-bound — running a
 // handful at once instead of one at a time cuts wall-clock time enough to
@@ -74,7 +75,7 @@ export async function GET(request: Request) {
   return new NextResponse(Buffer.from(zipBytes), {
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="${entityTitle}-certificates.zip"`,
+      "Content-Disposition": contentDisposition("attachment", `${entityTitle}-certificates.zip`),
     },
   });
 }
