@@ -1,14 +1,17 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatJobDate } from "@/lib/jobLabels";
-import { Avatar } from "@/components/Avatar";
-import { ApplicationStatusSelect } from "@/app/dashboard/jobs/[slug]/applicants/ApplicationStatusSelect";
 import { isActiveJobOwner } from "@/lib/jobOwnership";
+import { ApplicantsBoard } from "@/components/jobs/ApplicantsBoard";
 
-export default async function RecruiterJobApplicantsPage({ params }: { params: { slug: string } }) {
+export default async function RecruiterJobApplicantsPage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { tab?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
   if (session.user.role !== "RECRUITER") redirect("/dashboard");
@@ -18,75 +21,32 @@ export default async function RecruiterJobApplicantsPage({ params }: { params: {
 
   const applications = await prisma.jobApplication.findMany({
     where: { jobId: job.id },
-    include: { user: true },
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true,
+          photoFileId: true,
+          organization: true,
+          fieldOfStudy: true,
+          jobRole: true,
+          expertise: true,
+          linkedinUrl: true,
+          achievements: true,
+        },
+      },
+    },
     orderBy: { appliedAt: "desc" },
   });
 
   return (
-    <main className="mx-auto max-w-[1200px] px-4 py-16">
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Applicants for {job.title}</h1>
-        {applications.length > 0 && (
-          <a
-            href={`/api/jobs/${job.slug}/applicants/export`}
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
-            Export CSV
-          </a>
-        )}
-      </div>
-
-      {applications.length === 0 ? (
-        <p className="mt-8 text-gray-500 dark:text-slate-400">No applications yet.</p>
-      ) : (
-        <div className="mt-8 flex flex-col gap-3">
-          {applications.map((app) => (
-            <div
-              key={app.id}
-              className="rounded border border-gray-200 dark:border-slate-700 p-4"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <Avatar
-                    name={app.user.name}
-                    src={app.user.photoFileId ? `/api/admin/job-applications/${app.id}/photo` : null}
-                    size={48}
-                  />
-                  <div>
-                    <p className="font-medium">{app.user.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-slate-400">{app.user.email}</p>
-                    <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
-                      Applied {formatJobDate(app.appliedAt)}
-                    </p>
-                  </div>
-                </div>
-                <ApplicationStatusSelect applicationId={app.id} status={app.status} />
-              </div>
-              {app.coverNote && (
-                <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300">
-                  {app.coverNote}
-                </p>
-              )}
-              <div className="mt-3 flex items-center gap-4">
-                <a
-                  href={`/api/admin/job-applications/${app.id}/resume`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm text-brand-600 underline dark:text-brand-400"
-                >
-                  View resume
-                </a>
-                <Link
-                  href={`/dashboard/recruiter/jobs/${job.slug}/applicants/${app.id}/messages`}
-                  className="text-sm text-brand-600 underline dark:text-brand-400"
-                >
-                  💬 Message
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </main>
+    <ApplicantsBoard
+      job={job}
+      applications={applications}
+      tab={searchParams.tab}
+      basePath={`/dashboard/recruiter/jobs/${job.slug}/applicants`}
+      backHref="/dashboard/recruiter"
+      backLabel="Recruiter dashboard"
+    />
   );
 }

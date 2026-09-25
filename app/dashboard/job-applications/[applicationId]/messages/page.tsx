@@ -1,15 +1,11 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MessageThread } from "@/components/jobs/MessageThread";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
-export default async function MyApplicationMessagesPage({
-  params,
-}: {
-  params: { applicationId: string };
-}) {
+export default async function MyApplicationMessagesPage({ params }: { params: { applicationId: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
@@ -28,16 +24,13 @@ export default async function MyApplicationMessagesPage({
   });
 
   return (
-    <main className="mx-auto max-w-[1050px] px-4 py-16">
-      <Link
-        href="/dashboard/job-applications"
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← My applications
-      </Link>
-      <h1 className="mt-2 mb-6 text-2xl font-semibold">
-        Messages — {application.job.title} at {application.job.companyName}
-      </h1>
+    <DashboardShell
+      narrow
+      backHref="/dashboard/job-applications"
+      backLabel="My applications"
+      title={`Messages · ${application.job.title}`}
+      description={`With the recruiter at ${application.job.companyName}`}
+    >
       <MessageThread
         applicationId={application.id}
         currentUserId={session.user.id}
@@ -50,6 +43,6 @@ export default async function MyApplicationMessagesPage({
           createdAt: m.createdAt.toISOString(),
         }))}
       />
-    </main>
+    </DashboardShell>
   );
 }

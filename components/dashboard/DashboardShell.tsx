@@ -17,6 +17,7 @@ export function DashboardShell({
   actions,
   backHref = "/dashboard",
   backLabel = "Dashboard",
+  narrow = false,
   children,
 }: {
   title: string;
@@ -24,11 +25,13 @@ export function DashboardShell({
   actions?: ReactNode;
   backHref?: string;
   backLabel?: string;
+  /** A reading-width column, for single-thread pages like messages. */
+  narrow?: boolean;
   children: ReactNode;
 }) {
   return (
     <main className="flex-1 bg-slate-50 dark:bg-slate-950">
-      <div className="mx-auto max-w-[1200px] px-4 py-10 sm:py-12">
+      <div className={`mx-auto px-4 py-10 sm:py-12 ${narrow ? "max-w-[860px]" : "max-w-[1200px]"}`}>
         <Link
           href={backHref}
           className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-brand-700 dark:text-slate-400 dark:hover:text-brand-400"

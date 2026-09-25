@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MessageThread } from "@/components/jobs/MessageThread";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default async function AdminApplicationMessagesPage({
   params,
@@ -29,14 +29,13 @@ export default async function AdminApplicationMessagesPage({
   });
 
   return (
-    <main className="mx-auto max-w-[1050px] px-4 py-16">
-      <Link
-        href={`/dashboard/jobs/${params.slug}/applicants`}
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← Applicants
-      </Link>
-      <h1 className="mt-2 mb-6 text-2xl font-semibold">Messages with {application.user.name}</h1>
+    <DashboardShell
+      narrow
+      backHref={`/dashboard/jobs/${params.slug}/applicants`}
+      backLabel="Applicants"
+      title={`Messages with ${application.user.name}`}
+      description={`About ${application.job.title}`}
+    >
       <MessageThread
         applicationId={application.id}
         currentUserId={session.user.id}
@@ -49,6 +48,6 @@ export default async function AdminApplicationMessagesPage({
           createdAt: m.createdAt.toISOString(),
         }))}
       />
-    </main>
+    </DashboardShell>
   );
 }
