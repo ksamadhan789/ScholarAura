@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PeopleEditor } from "@/components/PeopleEditor";
 import type { EventPerson } from "@/lib/eventPeople";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default function NewCompetitionPage() {
   const router = useRouter();
@@ -81,75 +82,82 @@ export default function NewCompetitionPage() {
   }
 
   return (
-    <main className="mx-auto max-w-[900px] px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">Create a competition</h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <DashboardShell narrow title="Create a competition" backHref="/dashboard/competitions" backLabel="Competitions">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800"
+      >
         <div>
-          <label className="mb-1 block text-sm font-medium">Title</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Title</label>
           <input
             type="text"
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Short description (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Short description (optional)
+          </label>
           <input
             type="text"
             placeholder="One-line tagline shown at the top of the competition page"
             value={shortDescription}
             onChange={(e) => setShortDescription(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
           <textarea
             required
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium">Start</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Start</label>
             <input
               type="datetime-local"
               required
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">End</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">End</label>
             <input
               type="datetime-local"
               required
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Submission deadline</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Submission deadline
+          </label>
           <input
             type="datetime-local"
             required
             value={submissionDeadline}
             onChange={(e) => setSubmissionDeadline(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium">Entry fee (₹, 0 for free)</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Entry fee (₹, 0 for free)
+            </label>
             <input
               type="number"
               min="0"
@@ -157,118 +165,135 @@ export default function NewCompetitionPage() {
               required
               value={fee}
               onChange={(e) => setFee(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Max team size</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Max team size</label>
             <input
               type="number"
               min="1"
               required
               value={maxTeamSize}
               onChange={(e) => setMaxTeamSize(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
-            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">1 = individual entries only</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">1 = individual entries only</p>
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Thumbnail URL (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Thumbnail URL (optional)
+          </label>
           <input
             type="url"
             placeholder="https://..."
             value={thumbnailUrl}
             onChange={(e) => setThumbnailUrl(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Shown as the cover image on the competition card. Landscape images work best.
           </p>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Brochure URL (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Brochure URL (optional)
+          </label>
           <input
             type="url"
             value={brochureUrl}
             onChange={(e) => setBrochureUrl(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Who can participate (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Who can participate (optional)
+          </label>
           <input
             type="text"
             placeholder="e.g. Bonafide D.Pharmacy students"
             value={eligibility}
             onChange={(e) => setEligibility(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
-            City <span className="font-normal text-gray-400 dark:text-slate-500">(optional — leave blank for online/remote)</span>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            City{" "}
+            <span className="font-normal text-slate-400 dark:text-slate-500">
+              (optional — leave blank for online/remote)
+            </span>
           </label>
           <input
             type="text"
             placeholder="e.g. Pune"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
-            <label className="mb-1 block text-sm font-medium">Registration opens (optional)</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Registration opens (optional)
+            </label>
             <input
               type="datetime-local"
               value={registrationStartDate}
               onChange={(e) => setRegistrationStartDate(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Registration deadline (optional)</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Registration deadline (optional)
+            </label>
             <input
               type="datetime-local"
               value={registrationDeadline}
               onChange={(e) => setRegistrationDeadline(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Result date (optional)</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Result date (optional)
+            </label>
             <input
               type="datetime-local"
               value={resultDate}
               onChange={(e) => setResultDate(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Prizes (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Prizes (optional)
+          </label>
           <div className="grid grid-cols-3 gap-2">
             <input
               type="text"
-              placeholder="🥇 1st prize"
+              placeholder="1st prize"
               value={prizeFirst}
               onChange={(e) => setPrizeFirst(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
             <input
               type="text"
-              placeholder="🥈 2nd prize"
+              placeholder="2nd prize"
               value={prizeSecond}
               onChange={(e) => setPrizeSecond(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
             <input
               type="text"
-              placeholder="🥉 3rd prize"
+              placeholder="3rd prize"
               value={prizeThird}
               onChange={(e) => setPrizeThird(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <textarea
@@ -276,12 +301,12 @@ export default function NewCompetitionPage() {
             placeholder="Additional prize notes (optional)"
             value={prizeDescription}
             onChange={(e) => setPrizeDescription(e.target.value)}
-            className="mt-2 w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
             Collaborating institute logo URL (optional)
           </label>
           <input
@@ -289,7 +314,7 @@ export default function NewCompetitionPage() {
             placeholder="https://..."
             value={certificateLogoUrl}
             onChange={(e) => setCertificateLogoUrl(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
 
@@ -300,11 +325,11 @@ export default function NewCompetitionPage() {
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
+          className="self-start rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
         >
           {loading ? "Creating…" : "Create competition (as draft)"}
         </button>
       </form>
-    </main>
+    </DashboardShell>
   );
 }

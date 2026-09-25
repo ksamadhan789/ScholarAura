@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (create & edit forms polish)
+
+### Changed
+- Every "create" and "edit" form — jobs (admin and recruiter), events, competitions, courses, recommended courses and freelance listings — now sits in a white card inside the new page frame, with a back link to its list, clearer labels, inputs with focus rings, two-column rows that stack on phones, and a proper Save / Submit button. The job Boost pages match. Shared form pieces (city field, speakers editor, location picker, quiz builder, resource manager) got the same input style. Emoji removed from placeholders and buttons.
+
 ## 2026-09-25 (admin people & settings polish)
 
 ### Changed

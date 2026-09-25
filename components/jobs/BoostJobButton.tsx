@@ -89,7 +89,7 @@ export function BoostJobButton({
       <button
         onClick={handleClick}
         disabled={loading}
-        className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-5 py-2.5 text-white disabled:opacity-50"
+        className="mt-3 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
       >
         {loading ? "Please wait…" : `Boost for ₹${priceInr}`}
       </button>

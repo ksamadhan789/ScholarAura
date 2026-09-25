@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { COURSE_CATEGORIES } from "@/lib/courseCategories";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 type FormState = {
   title: string;
@@ -55,37 +56,38 @@ export function EditCourseForm({ slug, initial }: { slug: string; initial: FormS
   }
 
   return (
-    <main className="mx-auto max-w-[900px] px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">Edit course</h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <DashboardShell narrow title="Edit course" backHref="/dashboard/courses" backLabel="My courses">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800"
+      >
         <div>
-          <label className="mb-1 block text-sm font-medium">Title</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Title</label>
           <input
             type="text"
             required
             value={form.title}
             onChange={(e) => set("title", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
           <textarea
             required
             rows={4}
             value={form.description}
             onChange={(e) => set("description", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Category</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Category</label>
           <select
             required
             value={form.category}
             onChange={(e) => set("category", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           >
             {COURSE_CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -95,7 +97,9 @@ export function EditCourseForm({ slug, initial }: { slug: string; initial: FormS
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Price (₹, use 0 for free)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Price (₹, use 0 for free)
+          </label>
           <input
             type="number"
             min="0"
@@ -103,32 +107,36 @@ export function EditCourseForm({ slug, initial }: { slug: string; initial: FormS
             required
             value={form.price}
             onChange={(e) => set("price", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Thumbnail URL (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Thumbnail URL (optional)
+          </label>
           <input
             type="url"
             placeholder="https://..."
             value={form.thumbnailUrl}
             onChange={(e) => set("thumbnailUrl", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Shown as the cover image on the course card. Landscape images work best.
           </p>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Certificate logo URL (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Certificate logo URL (optional)
+          </label>
           <input
             type="url"
             placeholder="https://..."
             value={form.certificateLogoUrl}
             onChange={(e) => set("certificateLogoUrl", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Shown alongside the ScholarAura logo on certificates issued for this course.
           </p>
         </div>
@@ -138,11 +146,11 @@ export function EditCourseForm({ slug, initial }: { slug: string; initial: FormS
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
+          className="self-start rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
         >
           {loading ? "Saving…" : "Save changes"}
         </button>
       </form>
-    </main>
+    </DashboardShell>
   );
 }

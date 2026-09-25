@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EMPLOYMENT_TYPE_LABELS, INTERNSHIP_PERKS } from "@/lib/jobLabels";
 import { JobCityField } from "@/components/jobs/JobCityField";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default function NewRecruiterJobPage() {
   const router = useRouter();
@@ -76,62 +77,70 @@ export default function NewRecruiterJobPage() {
   }
 
   return (
-    <main className="mx-auto max-w-[900px] px-4 py-16">
-      <h1 className="mb-2 text-2xl font-semibold">Post a job</h1>
-      <p className="mb-6 text-sm text-gray-600 dark:text-slate-400">
-        Your posting will be reviewed before it goes live.
-      </p>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <DashboardShell
+      narrow
+      title="Post a job"
+      backHref="/dashboard/recruiter"
+      backLabel="Recruiter dashboard"
+      description={<>Your posting will be reviewed before it goes live.</>}
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800"
+      >
         <div>
-          <label className="mb-1 block text-sm font-medium">Job title</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Job title</label>
           <input
             type="text"
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Company name</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Company name</label>
           <input
             type="text"
             required
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Company logo URL (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Company logo URL (optional)
+          </label>
           <input
             type="url"
             placeholder="https://..."
             value={companyLogoUrl}
             onChange={(e) => setCompanyLogoUrl(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium">Location</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Location</label>
             <input
               type="text"
               required
               placeholder="City, Country"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <JobCityField value={city} onChange={setCity} />
           <div>
-            <label className="mb-1 block text-sm font-medium">Employment type</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Employment type
+            </label>
             <select
               value={employmentType}
               onChange={(e) => setEmploymentType(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             >
               {Object.entries(EMPLOYMENT_TYPE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -146,85 +155,83 @@ export default function NewRecruiterJobPage() {
           This role is remote
         </label>
         <div>
-          <label className="mb-1 block text-sm font-medium">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
           <textarea
             required
             rows={6}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
-            Requirements <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Requirements <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
           </label>
           <textarea
             rows={4}
             value={requirements}
             onChange={(e) => setRequirements(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Min. experience (years){" "}
-              <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Min. experience (years) <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
             </label>
             <input
               type="number"
               min="0"
               value={minExperienceYears}
               onChange={(e) => setMinExperienceYears(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Salary range <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Salary range <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
             </label>
             <input
               type="text"
               placeholder="e.g. ₹6-9 LPA"
               value={salaryRange}
               onChange={(e) => setSalaryRange(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
-            Application deadline{" "}
-            <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Application deadline <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
           </label>
           <input
             type="date"
             value={applicationDeadline}
             onChange={(e) => setApplicationDeadline(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
 
         {isInternship && (
-          <div className="flex flex-col gap-4 rounded border border-gray-200 dark:border-slate-700 p-4">
+          <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-700 dark:bg-slate-900/30">
             <p className="text-sm font-medium">Internship details</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-medium">
-                  Stipend <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Stipend <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. ₹10,000/month, or Unpaid"
                   value={stipendRange}
                   onChange={(e) => setStipendRange(e.target.value)}
-                  className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">
-                  Duration (months) <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Duration (months) <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
                 </label>
                 <input
                   type="number"
@@ -232,14 +239,14 @@ export default function NewRecruiterJobPage() {
                   max="24"
                   value={durationMonths}
                   onChange={(e) => setDurationMonths(e.target.value)}
-                  className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                 />
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
                 Start date{" "}
-                <span className="font-normal text-gray-400 dark:text-slate-500">
+                <span className="font-normal text-slate-400 dark:text-slate-500">
                   (optional — leave blank for &quot;Immediately&quot;)
                 </span>
               </label>
@@ -247,19 +254,15 @@ export default function NewRecruiterJobPage() {
                 type="date"
                 value={internshipStartDate}
                 onChange={(e) => setInternshipStartDate(e.target.value)}
-                className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Perks</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Perks</label>
               <div className="flex flex-wrap gap-x-4 gap-y-2">
                 {INTERNSHIP_PERKS.map((perk) => (
                   <label key={perk} className="flex items-center gap-1.5 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={perks.includes(perk)}
-                      onChange={() => togglePerk(perk)}
-                    />
+                    <input type="checkbox" checked={perks.includes(perk)} onChange={() => togglePerk(perk)} />
                     {perk}
                   </label>
                 ))}
@@ -273,11 +276,11 @@ export default function NewRecruiterJobPage() {
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
+          className="self-start rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
         >
           {loading ? "Submitting…" : "Submit for review"}
         </button>
       </form>
-    </main>
+    </DashboardShell>
   );
 }
