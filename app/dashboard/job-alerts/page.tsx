@@ -6,6 +6,9 @@ import { prisma } from "@/lib/prisma";
 import { describeJobAlert, jobAlertSearchPath } from "@/lib/jobAlertLabels";
 import { MAX_ALERTS_PER_USER } from "@/lib/jobAlerts";
 import { JobAlertActions } from "./JobAlertActions";
+import { Bell, BellOff } from "lucide-react";
+import { Badge } from "@/components/Badge";
+import { DASHBOARD_CARD_CLASS, DashboardEmptyState, DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default async function JobAlertsPage() {
   const session = await getServerSession(authOptions);
@@ -17,44 +20,70 @@ export default async function JobAlertsPage() {
   });
 
   return (
-    <main className="mx-auto max-w-[900px] px-4 py-16">
-      <h1 className="text-2xl font-semibold">Job alerts</h1>
-      <p className="mt-1 mb-8 text-sm text-slate-600 dark:text-slate-400">
-        Once a day we email you new jobs matching each active alert — only when there&apos;s something
-        new. Create an alert from any search on the{" "}
-        <Link href="/jobs" className="text-brand-600 underline dark:text-brand-400">
-          Jobs page
-        </Link>{" "}
-        (up to {MAX_ALERTS_PER_USER}).
-      </p>
-
+    <DashboardShell
+      narrow
+      title="Job alerts"
+      description={
+        <>
+          Once a day we email you new jobs matching each active alert — only when there&apos;s something new. Create an
+          alert from any search on the{" "}
+          <Link href="/jobs" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
+            Jobs page
+          </Link>{" "}
+          (up to {MAX_ALERTS_PER_USER}).
+        </>
+      }
+    >
       {alerts.length === 0 ? (
-        <p className="text-slate-500 dark:text-slate-400">You don&apos;t have any job alerts yet.</p>
+        <DashboardEmptyState
+          icon={Bell}
+          title="You don't have any job alerts yet"
+          text="Search for jobs, then choose “Create job alert” to get new matches by email."
+          href="/jobs"
+          cta="Search jobs"
+        />
       ) : (
-        <div className="flex flex-col gap-3">
+        <ul className="space-y-3">
           {alerts.map((alert) => (
-            <div
+            <li
               key={alert.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+              className={`${DASHBOARD_CARD_CLASS} flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between`}
             >
-              <div>
-                <Link
-                  href={jobAlertSearchPath(alert)}
-                  className="font-medium text-slate-900 hover:text-brand-600 dark:text-white"
+              <div className="flex min-w-0 gap-3">
+                <span
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                    alert.isActive
+                      ? "bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
+                      : "bg-slate-100 text-slate-400 dark:bg-slate-700"
+                  }`}
                 >
-                  {describeJobAlert(alert)}
-                </Link>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {alert.isActive ? "Active" : "Paused"}
-                  {alert.lastSentAt &&
-                    ` · last email ${alert.lastSentAt.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`}
-                </p>
+                  {alert.isActive ? (
+                    <Bell aria-hidden className="h-5 w-5" />
+                  ) : (
+                    <BellOff aria-hidden className="h-5 w-5" />
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <Link
+                    href={jobAlertSearchPath(alert)}
+                    className="font-semibold text-slate-900 hover:text-brand-700 dark:text-white dark:hover:text-brand-400"
+                  >
+                    {describeJobAlert(alert)}
+                  </Link>
+                  <p className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <Badge variant={alert.isActive ? "success" : "neutral"}>
+                      {alert.isActive ? "Active" : "Paused"}
+                    </Badge>
+                    {alert.lastSentAt &&
+                      `Last email ${alert.lastSentAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" })}`}
+                  </p>
+                </div>
               </div>
               <JobAlertActions id={alert.id} isActive={alert.isActive} />
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </main>
+    </DashboardShell>
   );
 }

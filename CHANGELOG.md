@@ -2,6 +2,17 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (My competitions, Refer & earn, Saved for later, Job alerts polish)
+
+### Changed
+- My competitions: Active / Past tabs, a date tile for the submission deadline, "Submissions open/closed" and placing tags, the enrolment number, a clear "One step left" prompt when the organiser's form still needs filling, and Your submission / Certificate / Receipt / Request refund buttons.
+- Refer & earn: a navy banner with your reward rate and referral link with a Copy button, stat cards (credit balance, people invited, credit earned all time), side-by-side invited list and credit history, and a leaderboard with gold/silver/bronze rank badges.
+- Saved for later and Job alerts use the new page frame, cards and icons; deleting a job alert asks in-page instead of a pop-up.
+- The save / wishlist buttons across the site use a heart icon (filled red when saved) instead of heart emoji.
+
+### Fixed
+- Accounts without a referral code (e.g. those created before referral codes existed) saw a broken `?ref=null` referral link — they now get a code the first time they open Refer & earn.
+
 ## 2026-09-25 (instructor lecture manager & course analytics polish)
 
 ### Changed
