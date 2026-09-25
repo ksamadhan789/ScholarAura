@@ -1,3 +1,4 @@
+import { Mail } from "lucide-react";
 import Link from "next/link";
 import { ShareButtons } from "@/components/ShareButtons";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -113,7 +114,10 @@ export default async function FreelanceListingPage({
           <ActionCard
             label="Rate"
             price={
-              listing.rate ?? (
+              listing.rate ? (
+                // Rates are free text ("From ₹800 per poster") — long ones get a smaller size.
+                <span className={listing.rate.length > 14 ? "text-2xl" : undefined}>{listing.rate}</span>
+              ) : (
                 <span className="text-lg font-semibold text-slate-500 dark:text-slate-400">On request</span>
               )
             }
@@ -137,8 +141,9 @@ export default async function FreelanceListingPage({
                   href={`mailto:${listing.contactEmail}?subject=${encodeURIComponent(
                     `Re: ${listing.title} on ScholarAura`
                   )}`}
-                  className="text-center text-sm text-gray-500 underline hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-300"
+                  className="inline-flex items-center justify-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                 >
+                  <Mail aria-hidden className="h-3.5 w-3.5" />
                   or email directly
                 </a>
               </>

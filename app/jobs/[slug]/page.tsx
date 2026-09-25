@@ -216,7 +216,8 @@ export default async function JobDetailPage({ params }: { params: { slug: string
           </div>
         )}
 
-        <div className="mt-6 whitespace-pre-wrap text-slate-800 dark:text-slate-200">
+        <h2 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">About this role</h2>
+        <div className="mt-3 whitespace-pre-wrap leading-relaxed text-slate-700 dark:text-slate-300">
           {job.description}
         </div>
 

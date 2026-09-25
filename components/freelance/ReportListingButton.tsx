@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FREELANCE_REPORT_REASONS } from "@/lib/freelanceReportReasons";
+import { Flag } from "lucide-react";
 
-// Small "🚩 Report" link that expands into an inline form. Logged-out
+// Small "Report" link that expands into an inline form. Logged-out
 // visitors are sent to log in first, same as ContactButton.
 export function ReportListingButton({ slug, isLoggedIn }: { slug: string; isLoggedIn: boolean }) {
   const router = useRouter();
@@ -63,9 +64,10 @@ export function ReportListingButton({ slug, isLoggedIn }: { slug: string; isLogg
     return (
       <button
         onClick={start}
-        className="text-sm text-gray-500 underline hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
+        className="inline-flex items-center justify-center gap-1.5 text-sm text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400"
       >
-        🚩 Report this listing
+        <Flag aria-hidden className="h-3.5 w-3.5" />
+        Report this listing
       </button>
     );
   }

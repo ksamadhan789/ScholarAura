@@ -2,6 +2,13 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (jobs & freelance polish)
+
+### Changed
+- Jobs list: "Posted yesterday / 3 days ago" instead of a full date, a green "New" tag for jobs under 3 days old, an amber "Closes in N days" tag in the last week before the application deadline, the company's initial in a coloured tile when there's no logo (instead of identical briefcase icons), and a hover arrow.
+- Job page: the description gets an "About this role" heading.
+- Freelance: full-width "Message" button with an icon, a tidier "or email directly" link, long rates shown smaller, a proper flag icon for "Report this listing", "Post your services" with a plus icon, and a hover arrow on listing cards.
+
 ## 2026-09-25 (listing polish)
 
 ### Changed
