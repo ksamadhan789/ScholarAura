@@ -2,6 +2,12 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (admin dashboard polish)
+
+### Changed
+- Admin dashboard (`/dashboard/admin`): the navy banner with an Analytics button; the Google Drive status as a clear green/amber card; a "Needs your attention" row of six review queues (recruiters, jobs, refund requests, support tickets, freelance reports, colleges) that turn amber with a count when something is waiting and say "All clear" otherwise; "At a glance" stat cards (students, revenue after credits, onboarded %, marketing opt-ins, published courses/events/competitions/jobs) that link to their pages; and the old row of 17 plain buttons regrouped into Content / People / Money / Trust & safety cards with icons and pending counts.
+- The shortcut cards are a shared component now (`DashboardLinkGroup`).
+
 ## 2026-09-25 (applicant pages polish)
 
 ### Changed
