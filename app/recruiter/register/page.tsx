@@ -6,6 +6,13 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Turnstile } from "@/components/Turnstile";
 import { VerifyEmailPrompt } from "@/components/auth/VerifyEmailPrompt";
+import { Sparkles, UserCheck, Users } from "lucide-react";
+import {
+  AUTH_INPUT_CLASS,
+  AUTH_LABEL_CLASS,
+  AUTH_PRIMARY_BUTTON_CLASS,
+  AuthShell,
+} from "@/components/auth/AuthShell";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
@@ -76,130 +83,166 @@ export default function RecruiterRegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex flex-1 w-full max-w-[640px] flex-col justify-center px-4 py-16">
-      <h1 className="mb-2 text-2xl font-semibold">💼 Hire on ScholarAura</h1>
-      <p className="mb-6 text-sm text-gray-600 dark:text-slate-400">
-        Create a recruiter account to post jobs to our student and professional community. Your
-        account and each job posting are reviewed before going live.
-      </p>
-
+    <AuthShell
+      eyebrow="For recruiters"
+      headline="Hire from ScholarAura's student and professional community"
+      benefits={[
+        {
+          icon: UserCheck,
+          title: "Reviewed and trusted",
+          text: "Your account and every job are reviewed before they go live.",
+        },
+        {
+          icon: Users,
+          title: "Applicants in one place",
+          text: "Resumes, shortlisting and messages in your recruiter dashboard.",
+        },
+        {
+          icon: Sparkles,
+          title: "Featured boosts",
+          text: "Pin a job to the top of the jobs page when you need more reach.",
+        },
+      ]}
+      title="Create a recruiter account"
+      subtitle="We review new recruiter accounts before your first job goes live."
+      footer={
+        <>
+          <p>
+            Already have an account?{" "}
+            <Link href="/login" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+              Sign in
+            </Link>
+          </p>
+          <p>
+            Looking for a job instead?{" "}
+            <Link href="/jobs" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+              Browse jobs
+            </Link>
+          </p>
+        </>
+      }
+    >
       {registeredEmail ? (
         <div className="flex flex-col gap-4">
           <VerifyEmailPrompt
             email={registeredEmail}
             intro="Your recruiter account is created — our team will review it after you verify."
           />
-          <Link href="/login" className="text-sm font-medium text-brand-600 underline dark:text-brand-400">
+          <Link href="/login" className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400">
             Go to sign in
           </Link>
         </div>
       ) : (
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Your name</label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Work email</label>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Password</label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 pr-16 dark:bg-slate-800 dark:text-white"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="absolute inset-y-0 right-0 px-3 text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
-            >
-              {showPassword ? "Hide" : "Show"}
-            </button>
-          </div>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Company name</label>
-          <input
-            type="text"
-            required
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">
-            Company website{" "}
-            <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
-          </label>
-          <input
-            type="url"
-            placeholder="https://..."
-            value={companyWebsite}
-            onChange={(e) => setCompanyWebsite(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">
-            Your designation{" "}
-            <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. Talent Acquisition Manager"
-            value={designation}
-            onChange={(e) => setDesignation(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label htmlFor="rec-name" className={AUTH_LABEL_CLASS}>
+                Your name
+              </label>
+              <input
+                id="rec-name"
+                type="text"
+                required
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={AUTH_INPUT_CLASS}
+              />
+            </div>
+            <div>
+              <label htmlFor="rec-email" className={AUTH_LABEL_CLASS}>
+                Work email
+              </label>
+              <input
+                id="rec-email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={AUTH_INPUT_CLASS}
+              />
+            </div>
+            <div>
+              <label htmlFor="rec-password" className={AUTH_LABEL_CLASS}>
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="rec-password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`${AUTH_INPUT_CLASS} pr-16`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">At least 8 characters.</p>
+            </div>
+            <div>
+              <label htmlFor="rec-company" className={AUTH_LABEL_CLASS}>
+                Company name
+              </label>
+              <input
+                id="rec-company"
+                type="text"
+                required
+                autoComplete="organization"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className={AUTH_INPUT_CLASS}
+              />
+            </div>
+            <div>
+              <label htmlFor="rec-website" className={AUTH_LABEL_CLASS}>
+                Company website{" "}
+                <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
+              </label>
+              <input
+                id="rec-website"
+                type="url"
+                placeholder="https://..."
+                value={companyWebsite}
+                onChange={(e) => setCompanyWebsite(e.target.value)}
+                className={AUTH_INPUT_CLASS}
+              />
+            </div>
+            <div>
+              <label htmlFor="rec-designation" className={AUTH_LABEL_CLASS}>
+                Your designation{" "}
+                <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
+              </label>
+              <input
+                id="rec-designation"
+                type="text"
+                placeholder="e.g. Talent Acquisition Manager"
+                value={designation}
+                onChange={(e) => setDesignation(e.target.value)}
+                className={AUTH_INPUT_CLASS}
+              />
+            </div>
 
-        {TURNSTILE_SITE_KEY && (
-          <Turnstile siteKey={TURNSTILE_SITE_KEY} onVerify={setTurnstileToken} />
-        )}
+          {TURNSTILE_SITE_KEY && <Turnstile siteKey={TURNSTILE_SITE_KEY} onVerify={setTurnstileToken} />}
 
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Creating account…" : "Create recruiter account"}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={loading || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
+            className={AUTH_PRIMARY_BUTTON_CLASS}
+          >
+            {loading ? "Creating account…" : "Create recruiter account"}
+          </button>
+        </form>
       )}
-
-      <p className="mt-6 text-sm text-gray-600 dark:text-slate-400">
-        Looking for a job instead?{" "}
-        <Link href="/jobs" className="underline">
-          Browse jobs
-        </Link>
-      </p>
-      <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-        Already have an account?{" "}
-        <Link href="/login" className="underline">
-          Log in
-        </Link>
-      </p>
-    </main>
+    </AuthShell>
   );
 }
