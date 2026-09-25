@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (dashboard polish)
+
+### Changed
+- The learner dashboard (`/dashboard`) was redesigned: a navy welcome banner ("Good morning/afternoon/evening, <first name>" by India time) with Edit profile / View profile buttons; four stat cards with the person's own real counts (courses enrolled, upcoming events, certificates earned, job applications); a "Continue learning" panel with progress bars and a Continue/Start button that opens the next unfinished lecture; a "Coming up" panel with the next three events they're registered for; and the old emoji tiles replaced by four tidy shortcut cards with icons. New members still get a "Let's get you started" panel (now three clear choices) with course suggestions for their field.
+
 ## 2026-09-25 (sign-in & sign-up polish)
 
 ### Changed
