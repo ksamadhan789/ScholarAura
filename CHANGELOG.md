@@ -2,6 +2,13 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (My events, certificates & applications polish)
+
+### Changed
+- My events (`/dashboard/registrations`): Upcoming / Past tabs, a date tile, event type, "Happening now", time and Online/Hybrid/city with icons, the enrolment number, and — when the organiser's Google Form still needs filling in — a clear "One step left: complete the registration form" prompt. Certificate, Receipt, Request refund and Cancel registration are tidy buttons underneath.
+- My certificates: cards with the kind (Course / event type / Competition), title, issue date and certificate number, with Download, Verify and Add to LinkedIn buttons; certificates still being generated say so instead of showing an issue date. The shareable-portfolio switch is a clear Public / Private card with Copy and View.
+- My applications: company logo or initial, title, company, location, job type, a coloured status tag and an Applied → Shortlisted → Hired progress line, with Messages and Withdraw application buttons. "Rejected" now reads "Not selected".
+
 ## 2026-09-25 (My learning polish)
 
 ### Changed

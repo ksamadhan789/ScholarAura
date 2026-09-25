@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { XCircle } from "lucide-react";
 
 export function CancelRegistrationButton({ slug }: { slug: string }) {
   const router = useRouter();
@@ -28,18 +29,20 @@ export function CancelRegistrationButton({ slug }: { slug: string }) {
   if (confirming) {
     return (
       <div className="flex flex-col gap-1">
-        <p className="text-xs text-gray-500 dark:text-slate-400">Cancel your registration?</p>
-        <div className="flex gap-3">
+        <p className="text-xs text-slate-500 dark:text-slate-400">Cancel your registration?</p>
+        <div className="flex gap-2">
           <button
             onClick={cancel}
             disabled={loading}
-            className="text-xs text-red-600 hover:underline dark:text-red-400 disabled:opacity-50"
+            type="button"
+            className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
           >
             {loading ? "Cancelling…" : "Yes, cancel"}
           </button>
           <button
+            type="button"
             onClick={() => setConfirming(false)}
-            className="text-xs text-gray-500 hover:underline dark:text-slate-400"
+            className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             Never mind
           </button>
@@ -52,8 +55,10 @@ export function CancelRegistrationButton({ slug }: { slug: string }) {
   return (
     <button
       onClick={() => setConfirming(true)}
-      className="self-start text-xs text-gray-500 hover:underline dark:text-slate-400"
+      type="button"
+      className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-red-50 hover:text-red-700 dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400"
     >
+      <XCircle aria-hidden className="h-4 w-4" />
       Cancel registration
     </button>
   );
