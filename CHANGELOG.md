@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (profile editor polish)
+
+### Changed
+- Edit profile (`/dashboard/profile`): a "Profile strength" card with a percentage and a checklist of what's still missing (photo, mobile number, college/organisation, field of study or job role, expertise, LinkedIn, bio, resume) — each item jumps to its section. Every section has an icon and a one-line reason; inputs have clear labels and focus rings; the save bar says whether your changes saved (and that photo/resume/ID card save on upload); the resume and ID card show as file chips with View / Replace / Remove; "Danger zone" is now a plainly labelled "Delete account". No emoji left.
+
 ## 2026-09-25 (My events, certificates & applications polish)
 
 ### Changed
