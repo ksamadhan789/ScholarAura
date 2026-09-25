@@ -1,10 +1,15 @@
 import { withSentryConfig } from "@sentry/nextjs";
+import { contentSecurityPolicyHeaders } from "./lib/contentSecurityPolicy.mjs";
 
-// Baseline security headers on every response. No full Content-Security-
-// Policy yet: Razorpay, Google sign-in/One Tap, Turnstile, Analytics and the
-// Bunny video player all load third-party scripts/frames, so a CSP needs its
-// own careful rollout (report-only first).
+// Security headers on every response. The Content-Security-Policy lives in
+// lib/contentSecurityPolicy.mjs (with the list of allowed third-party hosts);
+// violations are logged by app/api/csp-report.
 const securityHeaders = [
+  // Baseline CSP enforced; full allowlist report-only until CSP_ENFORCE=true.
+  ...contentSecurityPolicyHeaders({
+    dev: process.env.NODE_ENV === "development",
+    enforce: process.env.CSP_ENFORCE === "true",
+  }),
   // Nobody else may put ScholarAura in a frame (clickjacking on admin pages,
   // account deletion, checkout).
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
