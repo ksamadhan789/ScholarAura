@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { TRUST_STAT_MIN, formatTrustCount } from "@/lib/trustSignals";
 import { CoursesExplorer } from "@/components/CoursesExplorer";
 import { ExternalLink } from "lucide-react";
 import { Badge } from "@/components/Badge";
@@ -22,7 +23,7 @@ export const dynamic = "force-dynamic";
 export default async function CoursesPage() {
   const session = await getServerSession(authOptions);
 
-  const [courses, courseCount, enrollmentCount, certificateCount, externalCourses, ratingGroups, wishlistEntries] =
+  const [courses, courseCount, enrollmentCount, certificateCount, externalCourses, ratingGroups, wishlistEntries, videoGroups] =
     await Promise.all([
       prisma.course.findMany({
         where: { isPublished: true },
@@ -43,25 +44,31 @@ export default async function CoursesPage() {
             select: { courseId: true },
           })
         : Promise.resolve([]),
+      prisma.courseVideo.groupBy({ by: ["courseId"], _count: { _all: true }, _sum: { durationSeconds: true } }),
     ]);
 
   const ratingByCourseId = new Map(
     ratingGroups.map((g) => [g.courseId, { average: g._avg.rating ?? 0, count: g._count._all }])
   );
+  const videosByCourseId = new Map(
+    videoGroups.map((g) => [g.courseId, { count: g._count._all, seconds: g._sum.durationSeconds ?? 0 }])
+  );
   const coursesWithRatings = courses.map((c) => ({
     ...c,
     rating: ratingByCourseId.get(c.id) ?? null,
+    lectureCount: videosByCourseId.get(c.id)?.count ?? 0,
+    totalMinutes: Math.round((videosByCourseId.get(c.id)?.seconds ?? 0) / 60),
   }));
   const wishlistedCourseIds = wishlistEntries.map((w) => w.courseId);
 
-  // Public platform stats — a zero is left out rather than advertised, and the
-  // bar only shows once there are at least two real numbers (a lone "N
-  // courses" would just repeat the results heading above it).
+  // Public platform stats — same rule as the homepage (lib/trustSignals.ts):
+  // a number only shows once it's at least TRUST_STAT_MIN, rounded down, and
+  // the bar needs at least two of them ("2 courses" undersold the site).
   const stats = [
     { label: "Courses", value: courseCount },
     { label: "Enrollments", value: enrollmentCount },
     { label: "Certificates issued", value: certificateCount },
-  ].filter((s) => s.value > 0);
+  ].filter((s) => s.value >= TRUST_STAT_MIN);
 
   return (
     <main>
@@ -86,7 +93,7 @@ export default async function CoursesPage() {
             {stats.map((stat) => (
               <div key={stat.label} className="py-3 first:pt-0 last:pb-0 sm:py-0">
                 <p className="text-3xl font-bold text-brand-700 dark:text-brand-400">
-                  {stat.value.toLocaleString("en-IN")}
+                  {formatTrustCount(stat.value)}
                 </p>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{stat.label}</p>
               </div>

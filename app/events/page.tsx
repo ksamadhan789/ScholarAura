@@ -12,7 +12,7 @@ import {
 import { CalendarDays, MapPin, Monitor, Users } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { SaveButton } from "@/components/SaveButton";
-import { MediaCard, formatPrice } from "@/components/listing/MediaCard";
+import { MediaCard, PriceTag } from "@/components/listing/MediaCard";
 import {
   CardGrid,
   EmptyState,
@@ -78,6 +78,11 @@ function EventCard({
           {event.audience !== "EVERYONE" && (
             <Badge variant="neutral">{EVENT_AUDIENCE_LABELS[event.audience]}</Badge>
           )}
+          {/* Real scarcity only: the last quarter of seats, and at most 10. */}
+          {seatsLeft > 0 && seatsLeft <= 10 && seatsLeft <= event.seatsTotal / 4 && (
+            <Badge variant="warning">Only {seatsLeft} left</Badge>
+          )}
+          {seatsLeft <= 0 && <Badge variant="neutral">Full</Badge>}
         </>
       }
       meta={[
@@ -88,9 +93,7 @@ function EventCard({
         },
         { icon: Users, text: seatsLeft > 0 ? `${seatsLeft} seats left` : "Full — join the waitlist" },
       ]}
-      footer={
-        <span className="font-bold text-slate-900 dark:text-white">{formatPrice(event.fee)}</span>
-      }
+      footer={<PriceTag amount={event.fee} />}
       overlay={
         isSaved !== null && (
           <SaveButton endpoint={`/api/events/${event.slug}/wishlist`} isSaved={isSaved} variant="overlay" />
