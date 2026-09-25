@@ -5,12 +5,15 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AddVideoForm } from "./AddVideoForm";
 import { LectureRow } from "./LectureRow";
+import { ListChecks, Paperclip, Pencil, PlayCircle, Plus, Users } from "lucide-react";
+import { Badge } from "@/components/Badge";
+import {
+  DASHBOARD_SECONDARY_BUTTON_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+} from "@/components/dashboard/DashboardShell";
 
-export default async function ManageCoursePage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function ManageCoursePage({ params }: { params: { slug: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) {
     redirect("/login");
@@ -44,46 +47,50 @@ export default async function ManageCoursePage({
     where: { courseId: course.id, courseVideoId: null },
   });
 
+  const totalMinutes = Math.round(course.videos.reduce((sum, v) => sum + v.durationSeconds, 0) / 60);
+
   return (
-    <main className="mx-auto max-w-[1050px] px-4 py-16">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">{course.title}</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-            {course.isPublished ? "Published" : "Draft"} · Manage lectures
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href={`/dashboard/courses/${course.slug}/edit`}
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
+    <DashboardShell
+      title={course.title}
+      backHref="/dashboard/courses"
+      backLabel={isAdmin && !isOwner ? "All courses" : "My courses"}
+      description={
+        <span className="inline-flex flex-wrap items-center gap-2">
+          <Badge variant={course.isPublished ? "success" : "warning"}>
+            {course.isPublished ? "Published" : "Draft"}
+          </Badge>
+          {course.videos.length} {course.videos.length === 1 ? "lecture" : "lectures"} · {totalMinutes} min in total
+        </span>
+      }
+      actions={
+        <>
+          <Link href={`/dashboard/courses/${course.slug}/edit`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+            <Pencil aria-hidden className="h-4 w-4" />
             Edit details
           </Link>
-          <Link
-            href={`/dashboard/courses/${course.slug}/students`}
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
+          <Link href={`/dashboard/courses/${course.slug}/students`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+            <Users aria-hidden className="h-4 w-4" />
             Students
           </Link>
-          <Link
-            href={`/dashboard/courses/${course.slug}/quiz`}
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
-            {finalQuiz ? "Final quiz" : "+ Final quiz"}
+          <Link href={`/dashboard/courses/${course.slug}/quiz`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+            {finalQuiz ? <ListChecks aria-hidden className="h-4 w-4" /> : <Plus aria-hidden className="h-4 w-4" />}
+            Final quiz
           </Link>
-          <Link
-            href={`/dashboard/courses/${course.slug}/resources`}
-            className="rounded border border-gray-300 dark:border-slate-600 px-4 py-2 text-sm"
-          >
-            {courseResourceCount > 0 ? `Resources (${courseResourceCount})` : "+ Resources"}
+          <Link href={`/dashboard/courses/${course.slug}/resources`} className={DASHBOARD_SECONDARY_BUTTON_CLASS}>
+            {courseResourceCount > 0 ? (
+              <Paperclip aria-hidden className="h-4 w-4" />
+            ) : (
+              <Plus aria-hidden className="h-4 w-4" />
+            )}
+            {courseResourceCount > 0 ? `Resources (${courseResourceCount})` : "Resources"}
           </Link>
-        </div>
-      </div>
-
-      <div className="mt-8 flex flex-col gap-3">
+        </>
+      }
+    >
+      <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-white">Lectures</h2>
+      <div className="flex flex-col gap-3">
         {course.videos.length === 0 ? (
-          <p className="text-gray-500 dark:text-slate-400">No lectures added yet.</p>
+          <DashboardEmptyState icon={PlayCircle} title="No lectures yet" text="Add your first lecture below." />
         ) : (
           course.videos.map((video, i) => (
             <LectureRow
@@ -103,6 +110,6 @@ export default async function ManageCoursePage({
       <div className="mt-8">
         <AddVideoForm slug={course.slug} />
       </div>
-    </main>
+    </DashboardShell>
   );
 }

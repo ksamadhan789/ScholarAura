@@ -4,15 +4,17 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getInstructorCommissionRatePercent } from "@/lib/instructorPayout";
-
-function StatTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded border border-gray-200 dark:border-slate-700 p-4">
-      <p className="text-2xl font-semibold">{value}</p>
-      <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{label}</p>
-    </div>
-  );
-}
+import {
+  DASHBOARD_CARD_CLASS,
+  DASHBOARD_TABLE_HEAD_CLASS,
+  DASHBOARD_TABLE_WRAPPER_CLASS,
+  DASHBOARD_TH_CLASS,
+  DASHBOARD_TR_CLASS,
+  DashboardEmptyState,
+  DashboardShell,
+  DashboardStatCard,
+} from "@/components/dashboard/DashboardShell";
+import { Award, BarChart3, BookOpen, IndianRupee, Users, Wallet } from "lucide-react";
 
 function netAmount(amount: unknown, creditApplied: unknown): number {
   return Number(amount) - Number(creditApplied);
@@ -42,9 +44,7 @@ export default async function InstructorAnalyticsPage() {
   // instructor (not admin), so the rate is uniform — only meaningful to
   // surface as a single "your rate" line in that case.
   const singleInstructorRate =
-    !isAdmin && courses.length > 0
-      ? getInstructorCommissionRatePercent(courses[0].instructor)
-      : null;
+    !isAdmin && courses.length > 0 ? getInstructorCommissionRatePercent(courses[0].instructor) : null;
 
   const courseStats = await Promise.all(
     courses.map(async (course) => {
@@ -84,7 +84,7 @@ export default async function InstructorAnalyticsPage() {
         commissionRate,
         netEarnings,
       };
-    })
+    }),
   );
 
   const totalEnrollments = courseStats.reduce((sum, c) => sum + c.enrollments, 0);
@@ -94,60 +94,73 @@ export default async function InstructorAnalyticsPage() {
   const maxRevenue = Math.max(1, ...courseStats.map((c) => c.revenue));
 
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-16">
-      <Link href="/dashboard/courses" className="text-sm text-gray-500 hover:underline dark:text-slate-400">
-        ← My courses
-      </Link>
-      <h1 className="mt-2 mb-2 text-2xl font-semibold">Course analytics</h1>
-      {singleInstructorRate != null && (
-        <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
-          Your net earnings below are calculated at your commission rate of{" "}
-          <strong>{singleInstructorRate}%</strong> of course revenue. This is informational only —
-          it doesn&apos;t represent a payout that has been made.
-        </p>
-      )}
-
+    <DashboardShell
+      title="Course analytics"
+      backHref="/dashboard/courses"
+      backLabel={isAdmin ? "All courses" : "My courses"}
+      description={
+        singleInstructorRate != null ? (
+          <>
+            Net earnings are calculated at your commission rate of <strong>{singleInstructorRate}%</strong> of course
+            revenue. This is informational only — it doesn&apos;t represent a payout that has been made.
+          </>
+        ) : undefined
+      }
+    >
       {courses.length === 0 ? (
-        <p className="text-gray-500 dark:text-slate-400">No courses yet.</p>
+        <DashboardEmptyState
+          icon={BarChart3}
+          title="No courses yet"
+          href="/dashboard/courses/new"
+          cta="Create a course"
+        />
       ) : (
         <>
-          <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-5">
-            <StatTile label="Courses" value={courses.length.toLocaleString("en-IN")} />
-            <StatTile label="Total enrollments" value={totalEnrollments.toLocaleString("en-IN")} />
-            <StatTile label="Revenue" value={`₹${totalRevenue.toLocaleString("en-IN")}`} />
-            <StatTile label="Net earnings" value={`₹${totalNetEarnings.toLocaleString("en-IN")}`} />
-            <StatTile label="Certificates issued" value={totalCertificates.toLocaleString("en-IN")} />
+          <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
+            <DashboardStatCard icon={BookOpen} value={courses.length} label="Courses" />
+            <DashboardStatCard icon={Users} value={totalEnrollments} label="Total enrolments" />
+            <DashboardStatCard icon={IndianRupee} value={`₹${totalRevenue.toLocaleString("en-IN")}`} label="Revenue" />
+            <DashboardStatCard
+              icon={Wallet}
+              value={`₹${totalNetEarnings.toLocaleString("en-IN")}`}
+              label="Net earnings"
+            />
+            <DashboardStatCard icon={Award} value={totalCertificates} label="Certificates issued" />
           </div>
 
-          <h2 className="mb-3 font-semibold">Revenue by course</h2>
-          <div className="mb-10 flex flex-col gap-2">
-            {courseStats.map(({ course, revenue }) => (
-              <div key={course.id} className="flex items-center gap-3 text-sm">
-                <span className="w-40 shrink-0 truncate">{course.title}</span>
-                <div className="h-3 flex-1 rounded bg-gray-100 dark:bg-slate-800">
-                  <div
-                    className="h-3 rounded bg-brand-600"
-                    style={{ width: `${Math.max((revenue / maxRevenue) * 100, revenue > 0 ? 2 : 0)}%` }}
-                  />
+          <section className={`${DASHBOARD_CARD_CLASS} mb-8 p-5 sm:p-6`}>
+            <h2 className="mb-4 font-semibold text-slate-900 dark:text-white">Revenue by course</h2>
+            <div className="flex flex-col gap-3">
+              {courseStats.map(({ course, revenue }) => (
+                <div key={course.id} className="flex items-center gap-3 text-sm">
+                  <span className="w-32 shrink-0 truncate text-slate-700 sm:w-48 dark:text-slate-200">
+                    {course.title}
+                  </span>
+                  <div className="h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-brand-600 to-sky-400"
+                      style={{ width: `${Math.max((revenue / maxRevenue) * 100, revenue > 0 ? 2 : 0)}%` }}
+                    />
+                  </div>
+                  <span className="w-20 shrink-0 text-right font-semibold tabular-nums text-slate-900 dark:text-white">
+                    ₹{revenue.toLocaleString("en-IN")}
+                  </span>
                 </div>
-                <span className="w-24 shrink-0 text-right text-gray-500 dark:text-slate-400">
-                  ₹{revenue.toLocaleString("en-IN")}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </section>
 
-          <h2 className="mb-3 font-semibold">By course</h2>
-          <div className="overflow-x-auto rounded border border-gray-200 dark:border-slate-700">
+          <h2 className="mb-3 font-semibold text-slate-900 dark:text-white">By course</h2>
+          <div className={DASHBOARD_TABLE_WRAPPER_CLASS}>
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50 dark:bg-slate-800">
+              <thead className={DASHBOARD_TABLE_HEAD_CLASS}>
                 <tr>
-                  <th className="px-4 py-2.5 font-medium">Course</th>
-                  <th className="px-4 py-2.5 font-medium">Enrollments</th>
-                  <th className="px-4 py-2.5 font-medium">Revenue</th>
-                  <th className="px-4 py-2.5 font-medium">Net earnings</th>
-                  <th className="px-4 py-2.5 font-medium">Completed</th>
-                  <th className="px-4 py-2.5 font-medium">Certificates</th>
+                  <th className={DASHBOARD_TH_CLASS}>Course</th>
+                  <th className={DASHBOARD_TH_CLASS}>Enrollments</th>
+                  <th className={DASHBOARD_TH_CLASS}>Revenue</th>
+                  <th className={DASHBOARD_TH_CLASS}>Net earnings</th>
+                  <th className={DASHBOARD_TH_CLASS}>Completed</th>
+                  <th className={DASHBOARD_TH_CLASS}>Certificates</th>
                 </tr>
               </thead>
               <tbody>
@@ -162,29 +175,35 @@ export default async function InstructorAnalyticsPage() {
                     commissionRate,
                     netEarnings,
                   }) => (
-                  <tr key={course.id} className="border-t border-gray-200 dark:border-slate-700">
-                    <td className="px-4 py-2.5">
-                      <Link href={`/dashboard/courses/${course.slug}/students`} className="hover:underline">
-                        {course.title}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">{enrollments}</td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">₹{revenue.toLocaleString("en-IN")}</td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                      ₹{netEarnings.toLocaleString("en-IN")}
-                      {isAdmin && <span className="text-xs"> ({commissionRate}%)</span>}
-                    </td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                      {completedCount} ({completionRate}%)
-                    </td>
-                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">{certificatesIssued}</td>
-                  </tr>
-                ))}
+                    <tr key={course.id} className={DASHBOARD_TR_CLASS}>
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/dashboard/courses/${course.slug}/students`}
+                          className="font-medium text-slate-900 hover:text-brand-700 dark:text-white dark:hover:text-brand-400"
+                        >
+                          {course.title}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{enrollments}</td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                        ₹{revenue.toLocaleString("en-IN")}
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                        ₹{netEarnings.toLocaleString("en-IN")}
+                        {isAdmin && <span className="text-xs"> ({commissionRate}%)</span>}
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                        {completedCount} ({completionRate}%)
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{certificatesIssued}</td>
+                    </tr>
+                  ),
+                )}
               </tbody>
             </table>
           </div>
         </>
       )}
-    </main>
+    </DashboardShell>
   );
 }

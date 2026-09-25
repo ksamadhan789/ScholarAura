@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ResourceManager } from "@/components/ResourceManager";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default async function CourseResourcesPage({ params }: { params: { slug: string } }) {
   const session = await getServerSession(authOptions);
@@ -28,15 +28,13 @@ export default async function CourseResourcesPage({ params }: { params: { slug: 
   });
 
   return (
-    <main className="mx-auto max-w-[1050px] px-4 py-16">
-      <Link
-        href={`/dashboard/courses/${course.slug}`}
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← {course.title}
-      </Link>
-      <h1 className="mt-2 mb-6 text-2xl font-semibold">Course resources</h1>
+    <DashboardShell
+      narrow
+      title="Course resources"
+      backHref={`/dashboard/courses/${course.slug}`}
+      backLabel={course.title}
+    >
       <ResourceManager slug={course.slug} resources={resources} />
-    </main>
+    </DashboardShell>
   );
 }

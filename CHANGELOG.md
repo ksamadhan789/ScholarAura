@@ -2,6 +2,13 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (instructor lecture manager & course analytics polish)
+
+### Changed
+- Lecture manager (`/dashboard/courses/[slug]`): the course title with a Published/Draft tag, lecture count and total length, and Edit details / Students / Final quiz / Resources buttons at the top; each lecture is a card with its number, length, a "Free preview" tag and icon buttons (move up/down, Edit, Quiz, Resources, Delete — which now asks in-page instead of a pop-up); the Add a lecture form got the new input style.
+- Course Students, Final quiz, Course resources, lecture Quiz and lecture Resources pages use the new page frame with a back link to the course.
+- Course analytics: stat cards (courses, enrolments, revenue, net earnings, certificates), a cleaner revenue-by-course bar chart, and the per-course table in the new style.
+
 ## 2026-09-25 (event & competition admin sub-pages polish)
 
 ### Changed
