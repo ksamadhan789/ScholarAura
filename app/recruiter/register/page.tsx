@@ -126,7 +126,8 @@ export default function RecruiterRegisterPage() {
         <div className="flex flex-col gap-4">
           <VerifyEmailPrompt
             email={registeredEmail}
-            intro="Your recruiter account is created — our team will review it after you verify."
+            intro="Almost done — once your email is verified, our team reviews new recruiter accounts."
+            variant="signup"
           />
           <Link href="/login" className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400">
             Go to sign in

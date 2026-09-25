@@ -67,6 +67,62 @@ export async function sendEmailVerificationEmail(
   return true;
 }
 
+/**
+ * Sent when someone tries to sign up with an email that already has an
+ * account. The sign-up page itself shows the same "check your inbox" screen
+ * either way (so the form can't be used to find out who's registered); this
+ * email is how the real owner learns what happened and what to do instead.
+ */
+export async function sendAccountAlreadyExistsEmail(
+  to: string,
+  name: string,
+  { hasPassword }: { hasPassword: boolean }
+): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send account-already-exists email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const loginUrl = `${SITE_URL}/login`;
+  const resetUrl = `${SITE_URL}/forgot-password`;
+  const howToSignIn = hasPassword
+    ? "Sign in with your email and password — or, if you've forgotten it, reset your password."
+    : "Your account uses Google sign-in, so choose \"Continue with Google\" on the sign-in page.";
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: "You already have a ScholarAura account",
+      text: `Hi ${displayName},\n\nSomeone (hopefully you) just tried to create a new ScholarAura account with this email address — but you already have one.\n\n${howToSignIn}\n\nSign in: ${loginUrl}${hasPassword ? `\nReset your password: ${resetUrl}` : ""}\n\nIf this wasn't you, you can ignore this email — nothing has changed on your account.\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${safeDisplayName},</p>
+        <p>Someone (hopefully you) just tried to create a new ScholarAura account with this email address — but you already have one.</p>
+        <p>${escapeHtml(howToSignIn)}</p>
+        <p>
+          <a href="${escapeHtml(loginUrl)}" style="display:inline-block;padding:12px 24px;background-color:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Sign in</a>
+        </p>
+        ${hasPassword ? `<p><a href="${escapeHtml(resetUrl)}">Forgot your password? Reset it here.</a></p>` : ""}
+        <p>If this wasn't you, you can ignore this email — nothing has changed on your account.</p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send account-already-exists email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send account-already-exists email:", err);
+    return false;
+  }
+
+  return true;
+}
+
 export async function sendPasswordResetEmail(
   to: string,
   name: string,

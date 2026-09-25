@@ -155,7 +155,7 @@ function RegisterForm() {
 
       {registeredEmail ? (
         <div className="flex flex-col gap-4">
-          <VerifyEmailPrompt email={registeredEmail} intro="Your account is created." />
+          <VerifyEmailPrompt email={registeredEmail} intro="Almost done." variant="signup" />
           <Link href="/login" className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400">
             Go to sign in
           </Link>

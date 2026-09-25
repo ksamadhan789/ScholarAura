@@ -54,7 +54,6 @@ Task tracker. Update whenever status changes. Read alongside PROJECT_STATE.md at
 
 - Security review follow-ups still open (2026-09-25):
   - Content-Security-Policy is in report-only for its host allowlist (baseline already enforced). After a few days of real traffic, check Vercel logs for `[csp] blocked` lines: add any legitimate host to `lib/contentSecurityPolicy.mjs`, then set `CSP_ENFORCE=true` in Vercel (Production) and redeploy. Test a real checkout, Google sign-in and a lecture video afterwards.
-  - Sign-up reveals whether an email already has an account ("An account with this email already exists") — fixing it means changing the sign-up flow to always say "check your inbox" and emailing the existing owner instead; a product call.
   - Rotate the event/competition webhook secrets with the new "Regenerate secret" button (Edit event/competition → Certificate section), then paste each new one into its Apps Script — only needed for events/competitions that actually use the Google Form attendance script.
 
 - (Fixed 2026-09-24) Schema changes without migration files — see the catch-up migration note in PROJECT_STATE.md "Do Not Change".
