@@ -2,6 +2,14 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (listing polish)
+
+### Changed
+- Listing cards (courses, events, competitions): free items show a green "Free" / "Free entry" tag, every card gets a subtle arrow that moves on hover, and the rating row no longer shows a second, empty star icon.
+- Course cards show the number of lectures and total length ("5 lectures · 1h 53m").
+- Event cards show "Only N left" when an event is into its last quarter of seats (and at most 10 remain), and "Full" when it's full — both from the real seat count.
+- The Courses page stats strip follows the homepage rule: a number only appears once it reaches 50 (rounded down, e.g. "1,200+"), and the strip needs at least two of them.
+
 ## 2026-09-25 (homepage polish)
 
 ### Changed

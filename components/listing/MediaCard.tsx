@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
+import { ArrowRight, type LucideIcon } from "lucide-react";
 import { Thumbnail } from "@/components/Thumbnail";
 
-export type CardMeta = { icon: LucideIcon; text: ReactNode };
+/** A detail row; `icon` is optional for rows that carry their own visual (e.g. star ratings). */
+export type CardMeta = { icon?: LucideIcon; text: ReactNode };
 
 // The one card used by the course, event, competition and freelance listings:
 // 16:9 image (or branded placeholder), badges, a two-line title, icon-led
@@ -51,7 +52,7 @@ export function MediaCard({
             <ul className="mt-3 space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
               {meta.map((m, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <m.icon aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                  {m.icon && <m.icon aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />}
                   <span className="min-w-0">{m.text}</span>
                 </li>
               ))}
@@ -60,12 +61,28 @@ export function MediaCard({
           {footer && (
             <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-700 [&:not(:first-child)]:mt-4">
               {footer}
+              <ArrowRight
+                aria-hidden
+                className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-brand-600 dark:text-slate-600 dark:group-hover:text-brand-400"
+              />
             </div>
           )}
         </div>
       </Link>
     </div>
   );
+}
+
+/** Card footer price: a green "Free" tag, or the price in bold. */
+export function PriceTag({ amount, freeLabel = "Free" }: { amount: unknown; freeLabel?: string }) {
+  if (Number(amount) === 0) {
+    return (
+      <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+        {freeLabel}
+      </span>
+    );
+  }
+  return <span className="font-bold text-slate-900 dark:text-white">{formatPrice(amount)}</span>;
 }
 
 /** "Free" or "₹1,299" — the standard price label on cards. */

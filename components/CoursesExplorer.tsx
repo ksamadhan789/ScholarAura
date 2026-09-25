@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import type { Decimal } from "@prisma/client/runtime/library";
-import { BookOpen, Star, UserRound } from "lucide-react";
+import { BookOpen, PlayCircle, UserRound } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { Avatar } from "@/components/Avatar";
 import { StarRating } from "@/components/StarRating";
 import { WishlistButton } from "@/components/courses/WishlistButton";
-import { MediaCard, formatPrice } from "@/components/listing/MediaCard";
+import { MediaCard, PriceTag } from "@/components/listing/MediaCard";
 import {
   CardGrid,
   EmptyState,
@@ -30,7 +30,13 @@ type CourseItem = {
   thumbnailUrl: string | null;
   instructor: { name: string; photoFileId: string | null };
   rating: { average: number; count: number } | null;
+  lectureCount: number;
+  totalMinutes: number;
 };
+
+function formatLength(minutes: number): string {
+  return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes} min`;
+}
 
 export function CoursesExplorer({
   courses,
@@ -129,10 +135,19 @@ export function CoursesExplorer({
                       </span>
                     ),
                   },
+                  ...(course.lectureCount > 0
+                    ? [
+                        {
+                          icon: PlayCircle,
+                          text: `${course.lectureCount} lecture${course.lectureCount === 1 ? "" : "s"}${
+                            course.totalMinutes > 0 ? ` · ${formatLength(course.totalMinutes)}` : ""
+                          }`,
+                        },
+                      ]
+                    : []),
                   ...(course.rating && course.rating.count > 0
                     ? [
                         {
-                          icon: Star,
                           text: (
                             <span className="flex items-center gap-1.5">
                               <StarRating value={course.rating.average} />
@@ -145,9 +160,7 @@ export function CoursesExplorer({
                       ]
                     : []),
                 ]}
-                footer={
-                  <span className="font-bold text-slate-900 dark:text-white">{formatPrice(course.price)}</span>
-                }
+                footer={<PriceTag amount={course.price} />}
                 overlay={
                   isLoggedIn && (
                     <WishlistButton slug={course.slug} isWishlisted={wishlistedSet.has(course.id)} variant="overlay" />

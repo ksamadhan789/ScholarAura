@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/Badge";
 import { SaveButton } from "@/components/SaveButton";
-import { MediaCard, formatPrice } from "@/components/listing/MediaCard";
+import { MediaCard, PriceTag } from "@/components/listing/MediaCard";
 import {
   CardGrid,
   EmptyState,
@@ -71,11 +71,7 @@ function CompetitionCard({
         },
         ...(competition.city ? [{ icon: MapPin, text: competition.city }] : []),
       ]}
-      footer={
-        <span className="font-bold text-slate-900 dark:text-white">
-          {Number(competition.fee) === 0 ? "Free entry" : formatPrice(competition.fee)}
-        </span>
-      }
+      footer={<PriceTag amount={competition.fee} freeLabel="Free entry" />}
       overlay={
         isSaved !== null && (
           <SaveButton
