@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Check, X } from "lucide-react";
+import { DASHBOARD_APPROVE_BUTTON_CLASS, DASHBOARD_REJECT_BUTTON_CLASS } from "@/components/dashboard/DashboardShell";
 
 export function CollegeModerationActions({ id }: { id: string }) {
   const router = useRouter();
@@ -28,16 +30,20 @@ export function CollegeModerationActions({ id }: { id: string }) {
       <button
         onClick={() => moderate("APPROVED")}
         disabled={loading !== null}
-        className="rounded border border-green-300 dark:border-green-700 px-3 py-1.5 text-sm text-green-700 dark:text-green-400 disabled:opacity-50"
+        type="button"
+        className={DASHBOARD_APPROVE_BUTTON_CLASS}
       >
-        {loading === "approve" ? "…" : "Approve"}
+        <Check aria-hidden className="h-4 w-4" />
+        {loading === "approve" ? "Approving…" : "Approve"}
       </button>
       <button
         onClick={() => moderate("REJECTED")}
         disabled={loading !== null}
-        className="rounded border border-red-300 dark:border-red-700 px-3 py-1.5 text-sm text-red-700 dark:text-red-400 disabled:opacity-50"
+        type="button"
+        className={DASHBOARD_REJECT_BUTTON_CLASS}
       >
-        {loading === "reject" ? "…" : "Reject"}
+        <X aria-hidden className="h-4 w-4" />
+        {loading === "reject" ? "Rejecting…" : "Reject"}
       </button>
     </div>
   );

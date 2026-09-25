@@ -252,3 +252,11 @@ export function DashboardLinkGroup({ title, links }: { title: string; links: Das
     </div>
   );
 }
+
+/** Green "approve" action for admin review queues. */
+export const DASHBOARD_APPROVE_BUTTON_CLASS =
+  "inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50";
+
+/** Quiet red-on-hover "reject" action for admin review queues. */
+export const DASHBOARD_REJECT_BUTTON_CLASS =
+  "inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-red-800 dark:hover:bg-red-900/20 dark:hover:text-red-400";
