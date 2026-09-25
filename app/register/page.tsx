@@ -1,12 +1,21 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Turnstile } from "@/components/Turnstile";
 import { GoogleOneTap } from "@/components/GoogleOneTap";
 import { VerifyEmailPrompt } from "@/components/auth/VerifyEmailPrompt";
+import { Briefcase, CalendarDays, Gift, GraduationCap } from "lucide-react";
+import {
+  AUTH_INPUT_CLASS,
+  AUTH_LABEL_CLASS,
+  AUTH_PRIMARY_BUTTON_CLASS,
+  AuthDivider,
+  AuthShell,
+  GoogleButton,
+} from "@/components/auth/AuthShell";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -84,101 +93,145 @@ function RegisterForm() {
     }
   }
 
+  const field = (id: string, label: ReactNode, input: ReactNode) => (
+    <div>
+      <label htmlFor={id} className={AUTH_LABEL_CLASS}>
+        {label}
+      </label>
+      {input}
+    </div>
+  );
+
   return (
-    <main className="mx-auto flex flex-1 w-full max-w-[640px] flex-col justify-center px-4">
+    <AuthShell
+      eyebrow="Free to join"
+      headline="One account for learning, events and your career"
+      benefits={[
+        {
+          icon: GraduationCap,
+          title: "Courses with certificates",
+          text: "Learn at your own pace — every certificate can be verified.",
+        },
+        {
+          icon: CalendarDays,
+          title: "Conferences, FDPs & competitions",
+          text: "Register in a few clicks and get reminders before they start.",
+        },
+        {
+          icon: Briefcase,
+          title: "Jobs & internships",
+          text: "Apply with your profile and get new jobs by email.",
+        },
+      ]}
+      title="Create your free account"
+      subtitle={
+        ref ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+            <Gift aria-hidden className="h-3.5 w-3.5" />
+            You were invited by a friend
+          </span>
+        ) : (
+          "Takes less than a minute."
+        )
+      }
+      footer={
+        <>
+          <p>
+            Already have an account?{" "}
+            <Link href="/login" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+              Sign in
+            </Link>
+          </p>
+          <p>
+            Hiring talent?{" "}
+            <Link href="/recruiter/register" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+              Post a job as a recruiter
+            </Link>
+          </p>
+        </>
+      }
+    >
       {GOOGLE_CLIENT_ID && <GoogleOneTap clientId={GOOGLE_CLIENT_ID} />}
-      <h1 className="mb-2 text-2xl font-semibold">✨ Create your account</h1>
-      {ref && (
-        <p className="mb-4 rounded bg-green-50 dark:bg-green-900/40 px-3 py-2 text-sm text-green-800 dark:text-green-300">
-          🎉 You were invited by a friend
-        </p>
-      )}
 
       {registeredEmail ? (
         <div className="flex flex-col gap-4">
           <VerifyEmailPrompt email={registeredEmail} intro="Your account is created." />
-          <Link href="/login" className="text-sm font-medium text-brand-600 underline dark:text-brand-400">
+          <Link href="/login" className="text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400">
             Go to sign in
           </Link>
         </div>
       ) : (
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Full name</label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Password</label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 pr-16 dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-            />
+        <>
+          <GoogleButton onClick={() => signIn("google", { callbackUrl: "/dashboard" })} />
+          <AuthDivider />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {field(
+              "register-name",
+              "Full name",
+              <input
+                id="register-name"
+                type="text"
+                required
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={AUTH_INPUT_CLASS}
+              />
+            )}
+            {field(
+              "register-email",
+              "Email",
+              <input
+                id="register-email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={AUTH_INPUT_CLASS}
+              />
+            )}
+            {field(
+              "register-password",
+              "Password",
+              <>
+                <div className="relative">
+                  <input
+                    id="register-password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`${AUTH_INPUT_CLASS} pr-16`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">At least 8 characters.</p>
+              </>
+            )}
+
+            {TURNSTILE_SITE_KEY && <Turnstile siteKey={TURNSTILE_SITE_KEY} onVerify={setTurnstileToken} />}
+
+            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+
             <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="absolute inset-y-0 right-0 px-3 text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+              type="submit"
+              disabled={loading || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
+              className={AUTH_PRIMARY_BUTTON_CLASS}
             >
-              {showPassword ? "Hide" : "Show"}
+              {loading ? "Creating account…" : "Create account"}
             </button>
-          </div>
-        </div>
-
-        {TURNSTILE_SITE_KEY && (
-          <Turnstile siteKey={TURNSTILE_SITE_KEY} onVerify={setTurnstileToken} />
-        )}
-
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={loading || (!!TURNSTILE_SITE_KEY && !turnstileToken)}
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Creating account…" : "Sign up"}
-        </button>
-      </form>
+          </form>
+        </>
       )}
-
-      <button
-        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        className="mt-4 rounded border border-gray-300 dark:border-slate-600 px-4 py-2"
-      >
-        Continue with Google
-      </button>
-
-      <p className="mt-6 text-sm text-gray-600 dark:text-slate-400">
-        Already have an account?{" "}
-        <Link href="/login" className="underline">
-          Log in
-        </Link>
-      </p>
-      <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
-        Hiring talent?{" "}
-        <Link href="/recruiter/register" className="underline">
-          Post a job as a recruiter
-        </Link>
-      </p>
-    </main>
+    </AuthShell>
   );
 }

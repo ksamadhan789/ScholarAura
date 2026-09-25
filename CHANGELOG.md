@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (sign-in & sign-up polish)
+
+### Changed
+- Sign in, sign up and recruiter sign-up share one polished layout (`components/auth/AuthShell.tsx`): on desktop a navy panel with three true benefits beside a clean form card; on phones just the card. Google sign-in is the first option on sign-up too (it used to sit below the form), fields have proper labels and browser autofill hints, the password rule ("At least 8 characters") is shown up front, and the old emoji (🌟 ✨ 🎉 💼) are gone. The login page's outdated tagline was replaced.
+
 ## 2026-09-25 (jobs & freelance polish)
 
 ### Changed
