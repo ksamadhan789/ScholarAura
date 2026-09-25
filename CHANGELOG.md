@@ -2,6 +2,16 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (recruiter plans)
+
+### Added
+- Recruiter plans. **Free**: up to 2 live jobs at a time. **Pro**: up to 10 live jobs plus 1 free Boost every 30 days (a Boost is otherwise ₹999) — ₹499 for 30 days or ₹4,990 for a year. Paid once through Razorpay and never charged automatically; renewing early adds time after the current plan ends. A reminder email goes out 3 days before Pro ends.
+- New "Your plan" page for recruiters (current plan, live jobs used, included Boost, Free vs Pro, payment history), a plan summary on the recruiter dashboard, and a "Use your included Boost (free)" option on the Boost page.
+- Jobs in review count toward the limit. Jobs that were already live stay live — the limit only stops new ones going live.
+
+### Fixed
+- The recruiter's Publish / Pause listing button now shows why it failed instead of doing nothing.
+
 ## 2026-09-25 (private sign-up)
 
 ### Security

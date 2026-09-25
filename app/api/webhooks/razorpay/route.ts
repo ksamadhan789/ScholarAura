@@ -8,6 +8,7 @@ import {
   PaymentNotHonoredError,
 } from "@/lib/paymentSettlement";
 import { settleJobBoost } from "@/lib/jobBoost";
+import { settleRecruiterSubscription } from "@/lib/recruiterPlan";
 
 // Server-to-server safety net for payment confirmation: the checkout flow
 // normally relies on the buyer's browser calling verify-payment after
@@ -76,6 +77,14 @@ export async function POST(request: Request) {
     });
     if (jobBoost) {
       await settleJobBoost(jobBoost.id, paymentId);
+      return NextResponse.json({ received: true });
+    }
+
+    const recruiterSubscription = await prisma.recruiterSubscription.findFirst({
+      where: { razorpayOrderId: orderId },
+    });
+    if (recruiterSubscription) {
+      await settleRecruiterSubscription(recruiterSubscription.id, paymentId);
       return NextResponse.json({ received: true });
     }
 

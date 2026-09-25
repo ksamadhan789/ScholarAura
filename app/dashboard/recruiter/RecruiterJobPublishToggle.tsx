@@ -7,6 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 export function RecruiterJobPublishToggle({ slug, isPublished }: { slug: string; isPublished: boolean }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function toggle() {
     setLoading(true);
@@ -17,7 +18,11 @@ export function RecruiterJobPublishToggle({ slug, isPublished }: { slug: string;
         body: JSON.stringify({ isPublished: !isPublished }),
       });
       if (res.ok) {
+        setError(null);
         router.refresh();
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Couldn't update this job. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -25,18 +30,21 @@ export function RecruiterJobPublishToggle({ slug, isPublished }: { slug: string;
   }
 
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      disabled={loading}
-      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
-        isPublished
-          ? "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-          : "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-      }`}
-    >
-      {isPublished ? <EyeOff aria-hidden className="h-4 w-4" /> : <Eye aria-hidden className="h-4 w-4" />}
-      {loading ? "Saving…" : isPublished ? "Pause listing" : "Publish"}
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={toggle}
+        disabled={loading}
+        className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
+          isPublished
+            ? "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+            : "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+        }`}
+      >
+        {isPublished ? <EyeOff aria-hidden className="h-4 w-4" /> : <Eye aria-hidden className="h-4 w-4" />}
+        {loading ? "Saving…" : isPublished ? "Pause listing" : "Publish"}
+      </button>
+      {error && <p className="max-w-xs text-right text-xs text-red-600 dark:text-red-400">{error}</p>}
+    </div>
   );
 }

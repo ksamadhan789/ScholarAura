@@ -123,6 +123,51 @@ export async function sendAccountAlreadyExistsEmail(
   return true;
 }
 
+/** "Your Pro plan ends soon" — plans never auto-renew, so this is the recruiter's only nudge. */
+export async function sendRecruiterPlanEndingEmail(to: string, name: string, endsAt: Date): Promise<boolean> {
+  const resend = getClient();
+  if (!resend) {
+    console.error("RESEND_API_KEY is not set — cannot send plan-ending email");
+    return false;
+  }
+
+  const displayName = name.trim() || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const endDate = endsAt.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  });
+  const planUrl = `${SITE_URL}/dashboard/recruiter/plan`;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM ?? "ScholarAura <onboarding@resend.dev>",
+      to,
+      subject: `Your ScholarAura Pro plan ends on ${endDate}`,
+      text: `Hi ${displayName},\n\nYour ScholarAura Pro plan ends on ${endDate}. Plans don't renew automatically, so nothing will be charged — but after that date you'll be back on the Free plan (2 live jobs at a time, no included Boost). Jobs that are already live stay live.\n\nTo keep Pro, renew here: ${planUrl}\n\nTeam ScholarAura`,
+      html: `
+        <p>Hi ${safeDisplayName},</p>
+        <p>Your ScholarAura Pro plan ends on <strong>${escapeHtml(endDate)}</strong>.</p>
+        <p>Plans don't renew automatically, so nothing will be charged — but after that date you'll be back on the Free plan (2 live jobs at a time, no included Boost). Jobs that are already live stay live.</p>
+        <p>
+          <a href="${escapeHtml(planUrl)}" style="display:inline-block;padding:12px 24px;background-color:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Renew Pro</a>
+        </p>
+        <p>Team ScholarAura</p>
+      `,
+    });
+    if (error) {
+      console.error("Failed to send plan-ending email:", error);
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to send plan-ending email:", err);
+    return false;
+  }
+  return true;
+}
+
 export async function sendPasswordResetEmail(
   to: string,
   name: string,

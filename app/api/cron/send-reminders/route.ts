@@ -4,6 +4,7 @@ import { sendEventReminderEmail, sendCompetitionReminderEmail } from "@/lib/emai
 import { secretsMatch } from "@/lib/timingSafeEqual";
 import { sendDueJobAlerts } from "@/lib/jobAlerts";
 import { deleteStaleStagedBlobs } from "@/lib/blobUpload";
+import { sendPlanEndingReminders } from "@/lib/recruiterPlan";
 
 // Runs once a day (see vercel.json). A generous look-ahead window plus the
 // reminderSentAt guard means a registration gets exactly one reminder even
@@ -89,6 +90,14 @@ export async function GET(request: Request) {
     console.error("Sending job alerts failed:", err);
   }
 
+  // Recruiter Pro plans don't auto-renew — remind before one ends.
+  let planEndingRemindersSent = 0;
+  try {
+    planEndingRemindersSent = await sendPlanEndingReminders(now);
+  } catch (err) {
+    console.error("Sending plan-ending reminders failed:", err);
+  }
+
   // Also daily housekeeping: staged uploads nobody confirmed (see lib/blobUpload.ts).
   let staleUploadsDeleted = 0;
   if (process.env.BLOB_READ_WRITE_TOKEN) {
@@ -99,5 +108,11 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ eventRemindersSent, competitionRemindersSent, jobAlertEmailsSent, staleUploadsDeleted });
+  return NextResponse.json({
+    eventRemindersSent,
+    competitionRemindersSent,
+    jobAlertEmailsSent,
+    planEndingRemindersSent,
+    staleUploadsDeleted,
+  });
 }
