@@ -157,8 +157,8 @@ describe("refundCoursePurchase", () => {
 
     await refundCoursePurchase("p1");
 
-    expect(prismaMock.user.updateMany).toHaveBeenCalledWith({
-      where: { id: "referrer-1", creditBalance: { gte: 100 } },
+    expect(prismaMock.user.update).toHaveBeenCalledWith({
+      where: { id: "referrer-1" },
       data: { creditBalance: { decrement: 100 } },
     });
     expect(prismaMock.creditTransaction.create).toHaveBeenCalledWith(
@@ -189,13 +189,13 @@ describe("refundCoursePurchase", () => {
     await refundCoursePurchase("p1");
 
     // 10% of the 600 actually paid in cash (1000 - 400 credit), not 10% of 1000.
-    expect(prismaMock.user.updateMany).toHaveBeenCalledWith({
-      where: { id: "referrer-1", creditBalance: { gte: 60 } },
+    expect(prismaMock.user.update).toHaveBeenCalledWith({
+      where: { id: "referrer-1" },
       data: { creditBalance: { decrement: 60 } },
     });
   });
 
-  it("skips the clawback without throwing when the referrer already spent the reward", async () => {
+  it("still claws back a reward the referrer already spent (balance may go negative)", async () => {
     const purchase = {
       id: "p1",
       userId: "buyer-1",
@@ -214,9 +214,13 @@ describe("refundCoursePurchase", () => {
     prismaMock.user.updateMany.mockResolvedValue({ count: 0 });
 
     await expect(refundCoursePurchase("p1")).resolves.toBeDefined();
-    // No REDEEMED clawback transaction should be recorded since the guard claimed nothing.
-    expect(prismaMock.creditTransaction.create).not.toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ type: "REDEEMED" }) })
+    // No balance guard any more — a spent reward becomes a negative balance.
+    expect(prismaMock.user.update).toHaveBeenCalledWith({
+      where: { id: "referrer-1" },
+      data: { creditBalance: { decrement: 100 } },
+    });
+    expect(prismaMock.creditTransaction.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ userId: "referrer-1", type: "REDEEMED" }) })
     );
   });
 

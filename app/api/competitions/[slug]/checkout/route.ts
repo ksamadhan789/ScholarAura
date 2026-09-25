@@ -192,7 +192,7 @@ export async function POST(
               creditApplied,
               description: `Competition: ${competition.title}`,
             });
-            await claimCouponRedemption(tx, couponId);
+            await claimCouponRedemption(tx, couponId, { userId: session.user.id, competitionId: competition.id });
             // An entered competition no longer needs to be "saved for later".
             await tx.competitionWishlist.deleteMany({
               where: { userId: session.user.id, competitionId: competition.id },
@@ -287,6 +287,9 @@ export async function POST(
         { error: "Your credit balance changed. Please retry checkout." },
         { status: 409 }
       );
+    }
+    if (err instanceof CouponError) {
+      return NextResponse.json({ error: err.message }, { status: 409 });
     }
     console.error("Competition checkout failed:", err);
     if (payCurrency !== "INR") {

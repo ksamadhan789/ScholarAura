@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { deleteProfilePhoto } from "@/lib/profilePhotoStorage";
 import { deleteProfileResume } from "@/lib/profileResumeStorage";
 import { deleteStudentIdCard } from "@/lib/studentIdCardStorage";
+import { deleteResume } from "@/lib/jobResumeStorage";
 
 export class AccountNotFoundError extends Error {
   constructor() {
@@ -40,6 +41,28 @@ export async function deactivateAccount(
         )
       : null,
   ]);
+
+  // Resumes attached to job applications are personal documents, so they go
+  // too; the application rows stay (they're the recruiter's records) with the
+  // file marked removed. Competition entry files are kept — they're the
+  // submitted work the competition was judged on, like its payment record.
+  const applications = await prisma.jobApplication.findMany({
+    where: { userId, resumeFileId: { not: "" } },
+    select: { id: true, resumeFileId: true },
+  });
+  await Promise.all(
+    applications.map((a) =>
+      deleteResume(a.resumeFileId).catch((err) =>
+        console.error(`Failed to delete application resume ${a.resumeFileId} on account deletion:`, err)
+      )
+    )
+  );
+  if (applications.length > 0) {
+    await prisma.jobApplication.updateMany({
+      where: { id: { in: applications.map((a) => a.id) } },
+      data: { resumeFileId: "", resumeName: "Removed (account deleted)" },
+    });
+  }
 
   await prisma.user.update({
     where: { id: userId },

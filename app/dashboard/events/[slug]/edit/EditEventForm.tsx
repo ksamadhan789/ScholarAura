@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { EVENT_TYPE_LABELS, EVENT_FORMAT_OPTIONS, EVENT_AUDIENCE_OPTIONS } from "@/lib/eventLabels";
 import { PeopleEditor } from "@/components/PeopleEditor";
 import type { EventPerson } from "@/lib/eventPeople";
+import { RegenerateWebhookSecretButton } from "@/components/RegenerateWebhookSecretButton";
 
 type FormState = {
   title: string;
@@ -465,6 +466,7 @@ export function EditEventForm({
                 onClick={(e) => e.currentTarget.select()}
                 className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 font-mono text-xs dark:bg-slate-800 dark:text-white"
               />
+              <RegenerateWebhookSecretButton endpoint={`/api/events/${slug}/webhook-secret`} />
               <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                 Unique to this event — paste it as the <code>WEBHOOK_SECRET</code> script property in
                 the Apps Script bound to this event&rsquo;s response sheet. Each event has its own, so

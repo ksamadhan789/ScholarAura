@@ -62,3 +62,13 @@ describe("issueCourseCertificateIfEligible — quiz gating", () => {
     expect(result).toEqual({ id: "cert-1" });
   });
 });
+
+describe("randomCertificateSuffix", () => {
+  it("is 8 unambiguous characters and differs between calls", async () => {
+    const { randomCertificateSuffix } = await import("@/lib/certificate");
+    const a = randomCertificateSuffix();
+    expect(a).toMatch(/^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{8}$/);
+    const many = new Set(Array.from({ length: 50 }, () => randomCertificateSuffix()));
+    expect(many.size).toBe(50);
+  });
+});

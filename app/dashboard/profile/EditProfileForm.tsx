@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { upload } from "@vercel/blob/client";
+import { stagedUploadPath } from "@/lib/stagedUpload";
 import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
 import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
 import { Avatar } from "@/components/Avatar";
@@ -220,7 +221,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
     setIdCardUploading(true);
     setIdCardProgress(0);
     try {
-      const blob = await upload(file.name, file, {
+      const blob = await upload(await stagedUploadPath(file.name), file, {
         access: "private",
         handleUploadUrl: "/api/account/id-card/blob-upload",
         contentType: file.type,

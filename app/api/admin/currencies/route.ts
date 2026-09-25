@@ -4,13 +4,16 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAdminAction } from "@/lib/auditLog";
+import { UNSUPPORTED_DECIMAL_CURRENCIES } from "@/lib/currency";
 
 const upsertSchema = z.object({
   currencyCode: z
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^[A-Z]{3}$/, "Use a 3-letter currency code, e.g. USD"),
+    .regex(/^[A-Z]{3}$/, "Use a 3-letter currency code, e.g. USD")
+    // See lib/currency.ts — these would be charged the wrong amount.
+    .refine((code) => !UNSUPPORTED_DECIMAL_CURRENCIES.has(code), "This currency isn't supported for payments"),
   symbol: z.string().min(1).max(5),
   rateFromInr: z.coerce.number().finite().positive("Rate must be greater than 0"),
 });

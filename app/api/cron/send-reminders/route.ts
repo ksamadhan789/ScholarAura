@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendEventReminderEmail, sendCompetitionReminderEmail } from "@/lib/email";
 import { secretsMatch } from "@/lib/timingSafeEqual";
 import { sendDueJobAlerts } from "@/lib/jobAlerts";
+import { deleteStaleStagedBlobs } from "@/lib/blobUpload";
 
 // Runs once a day (see vercel.json). A generous look-ahead window plus the
 // reminderSentAt guard means a registration gets exactly one reminder even
@@ -88,5 +89,15 @@ export async function GET(request: Request) {
     console.error("Sending job alerts failed:", err);
   }
 
-  return NextResponse.json({ eventRemindersSent, competitionRemindersSent, jobAlertEmailsSent });
+  // Also daily housekeeping: staged uploads nobody confirmed (see lib/blobUpload.ts).
+  let staleUploadsDeleted = 0;
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      staleUploadsDeleted = await deleteStaleStagedBlobs(now);
+    } catch (err) {
+      console.error("Deleting stale staged uploads failed:", err);
+    }
+  }
+
+  return NextResponse.json({ eventRemindersSent, competitionRemindersSent, jobAlertEmailsSent, staleUploadsDeleted });
 }

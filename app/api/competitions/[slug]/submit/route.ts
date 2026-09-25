@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { uploadCompetitionEntryFile, deleteCompetitionEntryFile } from "@/lib/competitionEntryFileStorage";
-import { downloadBlobBytes, deleteBlob } from "@/lib/blobUpload";
+import { downloadBlobBytes, deleteBlob, isOwnStagedBlob } from "@/lib/blobUpload";
 import { sendCompetitionSubmissionReceivedEmail } from "@/lib/email";
 import {
   ALLOWED_UPLOAD_TYPES_LABEL,
@@ -86,6 +86,10 @@ export async function POST(
       );
     }
 
+    if (!isOwnStagedBlob(blobUrl, session.user.id)) {
+      return NextResponse.json({ error: "Invalid upload. Please try again." }, { status: 400 });
+    }
+
     let bytes: Buffer;
     try {
       bytes = await downloadBlobBytes(blobUrl);
@@ -112,18 +116,23 @@ export async function POST(
       );
     }
 
-    const submissionFileId = await uploadCompetitionEntryFile(
-      competition.slug,
-      session.user.id,
-      fileName,
-      bytes,
-      mimeType
-    );
+    let submissionFileId: string;
+    try {
+      submissionFileId = await uploadCompetitionEntryFile(
+        competition.slug,
+        session.user.id,
+        fileName,
+        bytes,
+        mimeType
+      );
+    } catch (err) {
+      console.error("Failed to store competition entry file:", err);
+      return NextResponse.json({ error: "Couldn't save your file. Please try again." }, { status: 502 });
+    } finally {
+      // The staged copy is never needed again, whether Drive accepted it or not.
+      await deleteBlob(blobUrl).catch((err) => console.error(`Failed to delete staged blob ${blobUrl}:`, err));
+    }
     fileFields = { submissionFileId, submissionFileName: fileName, submissionFileContentType: mimeType };
-
-    await deleteBlob(blobUrl).catch((err) =>
-      console.error(`Failed to delete staged blob ${blobUrl}:`, err)
-    );
   } else if (removeFile) {
     fileFields = { submissionFileId: null, submissionFileName: null, submissionFileContentType: null };
   }

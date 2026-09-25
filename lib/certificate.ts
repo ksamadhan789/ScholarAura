@@ -1,7 +1,23 @@
+import crypto from "crypto";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { sendCertificateReadyEmail } from "@/lib/email";
 import { getIstYear } from "@/lib/istDate";
+
+// No 0/O or 1/I/L, so a number read off a printed certificate can't be mistyped.
+const CERT_SUFFIX_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+
+/**
+ * Random part of a certificate number. The public verify page and PDF are
+ * looked up by the number alone, so a purely sequential CERT-2026-000123
+ * let anyone step through every certificate (names, courses, photos). 8
+ * random characters (~10^12 combinations) make numbers unguessable.
+ * Certificates issued before this keep their old numbers.
+ */
+export function randomCertificateSuffix(length = 8): string {
+  const bytes = crypto.randomBytes(length);
+  return Array.from(bytes, (b) => CERT_SUFFIX_ALPHABET[b % CERT_SUFFIX_ALPHABET.length]).join("");
+}
 
 async function generateCertificateNumber(): Promise<string> {
   const year = getIstYear();
@@ -11,7 +27,7 @@ async function generateCertificateNumber(): Promise<string> {
       where: { certificateNumber: { startsWith: `CERT-${year}-` } },
     });
     const sequence = (count + 1 + attempt).toString().padStart(6, "0");
-    const candidate = `CERT-${year}-${sequence}`;
+    const candidate = `CERT-${year}-${sequence}-${randomCertificateSuffix()}`;
 
     const existing = await prisma.certificate.findUnique({
       where: { certificateNumber: candidate },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { prismaMock } from "../test/prismaMock";
-import { computeDiscount, findValidCoupon, hasUserRedeemedCoupon, claimCouponRedemption, CouponError } from "@/lib/coupon";
+import { computeDiscount, findValidCoupon, hasUserRedeemedCoupon, claimCouponRedemption, CouponError, CouponUnavailableError } from "@/lib/coupon";
 import type { Coupon } from "@prisma/client";
 
 function makeCoupon(overrides: Partial<Coupon> = {}): Coupon {
@@ -124,28 +124,30 @@ describe("hasUserRedeemedCoupon", () => {
 });
 
 describe("claimCouponRedemption", () => {
+  const redeemer = { userId: "user-1", courseId: "course-1" };
+
   it("does nothing when there's no coupon", async () => {
-    await claimCouponRedemption(prismaMock, null);
+    await claimCouponRedemption(prismaMock, null, redeemer);
     expect(prismaMock.coupon.findUnique).not.toHaveBeenCalled();
   });
 
-  it("increments unconditionally for a coupon with no redemption limit", async () => {
+  it("increments a coupon with no redemption limit", async () => {
     prismaMock.coupon.findUnique.mockResolvedValue(makeCoupon({ maxRedemptions: null }));
+    prismaMock.coupon.updateMany.mockResolvedValue({ count: 1 });
 
-    await claimCouponRedemption(prismaMock, "coupon-1");
+    await claimCouponRedemption(prismaMock, "coupon-1", redeemer);
 
-    expect(prismaMock.coupon.update).toHaveBeenCalledWith({
+    expect(prismaMock.coupon.updateMany).toHaveBeenCalledWith({
       where: { id: "coupon-1" },
       data: { redemptionCount: { increment: 1 } },
     });
-    expect(prismaMock.coupon.updateMany).not.toHaveBeenCalled();
   });
 
   it("atomically claims a slot when still under the redemption limit", async () => {
     prismaMock.coupon.findUnique.mockResolvedValue(makeCoupon({ maxRedemptions: 10, redemptionCount: 5 }));
     prismaMock.coupon.updateMany.mockResolvedValue({ count: 1 });
 
-    await claimCouponRedemption(prismaMock, "coupon-1");
+    await claimCouponRedemption(prismaMock, "coupon-1", redeemer);
 
     expect(prismaMock.coupon.updateMany).toHaveBeenCalledWith({
       where: { id: "coupon-1", redemptionCount: { lt: 10 } },
@@ -153,13 +155,25 @@ describe("claimCouponRedemption", () => {
     });
   });
 
-  it("doesn't throw when a concurrent settlement already claimed the last slot", async () => {
+  it("refuses when a concurrent settlement already took the last slot", async () => {
     prismaMock.coupon.findUnique.mockResolvedValue(makeCoupon({ maxRedemptions: 10, redemptionCount: 10 }));
     prismaMock.coupon.updateMany.mockResolvedValue({ count: 0 });
 
-    // The payment for this purchase was already captured — the discount was
-    // honored regardless — so this must resolve, not reject, even though the
-    // limit is already exhausted.
-    await expect(claimCouponRedemption(prismaMock, "coupon-1")).resolves.toBeUndefined();
+    await expect(claimCouponRedemption(prismaMock, "coupon-1", redeemer)).rejects.toBeInstanceOf(
+      CouponUnavailableError
+    );
+  });
+
+  it("refuses when this person already used the coupon on another purchase (parallel checkouts)", async () => {
+    prismaMock.coupon.findUnique.mockResolvedValue(makeCoupon({ maxRedemptions: null }));
+    prismaMock.coupon.updateMany.mockResolvedValue({ count: 1 });
+    prismaMock.coursePurchase.findFirst.mockResolvedValue({ id: "other-purchase" } as never);
+
+    await expect(claimCouponRedemption(prismaMock, "coupon-1", redeemer)).rejects.toBeInstanceOf(
+      CouponUnavailableError
+    );
+    expect(prismaMock.coursePurchase.findFirst).toHaveBeenCalledWith({
+      where: { userId: "user-1", couponId: "coupon-1", status: "SUCCESS", courseId: { not: "course-1" } },
+    });
   });
 });

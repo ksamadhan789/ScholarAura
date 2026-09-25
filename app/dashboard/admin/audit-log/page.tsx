@@ -32,6 +32,7 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   FREELANCE_REPORT_DISMISSED: "Freelance report dismissed",
   FREELANCE_LISTING_REMOVED: "Freelance listing removed",
   FREELANCE_LISTING_RESTORED: "Freelance listing restored",
+  WEBHOOK_SECRET_REGENERATED: "Form webhook secret regenerated",
 };
 
 function formatMetadata(metadata: unknown): string | null {

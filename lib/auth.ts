@@ -10,6 +10,12 @@ import { EMAIL_NOT_VERIFIED, mustVerifyBeforeLogin, sendVerificationEmail } from
 
 const LOGIN_ATTEMPT_LIMIT = 5;
 const LOGIN_WINDOW_MS = 5 * 60 * 1000;
+// Looser cap per account across all IPs, against a distributed brute force.
+const LOGIN_ACCOUNT_ATTEMPT_LIMIT = 30;
+const LOGIN_ACCOUNT_WINDOW_MS = 15 * 60 * 1000;
+// Compared against when the email has no password, so a login attempt takes
+// the same time whether or not the account exists.
+const DUMMY_PASSWORD_HASH = "$2a$10$1UZhn96PNDrJ8..BkGdeyu4Bb/c0.cUGMvxOSyMe0Y.XMBngk6Cne";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -27,25 +33,29 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Keyed by the submitted email (not IP, which isn't reliably
-        // available in this callback) — protects a single account from
-        // being brute-forced regardless of where the attempts come from.
-        // Returning null either way (rate-limited or wrong password) keeps
-        // the response indistinguishable, same as any other failed login.
-        const allowed = await checkRateLimit(
-          `login:${credentials.email.trim().toLowerCase()}`,
-          LOGIN_ATTEMPT_LIMIT,
-          LOGIN_WINDOW_MS
-        );
+        // Keyed by email + IP, so someone else hammering a victim's email
+        // from their own connection can't lock the victim out; plus a looser
+        // per-email cap across all IPs so a distributed guesser is still
+        // throttled. Returning null either way (rate-limited or wrong
+        // password) keeps the response indistinguishable from a bad login.
+        const email = credentials.email.trim().toLowerCase();
+        const forwardedFor = req?.headers?.["x-forwarded-for"];
+        const ip = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor)?.split(",")[0]?.trim() ?? "unknown";
+        const allowed =
+          (await checkRateLimit(`login:${email}:${ip}`, LOGIN_ATTEMPT_LIMIT, LOGIN_WINDOW_MS)) &&
+          (await checkRateLimit(`login-account:${email}`, LOGIN_ACCOUNT_ATTEMPT_LIMIT, LOGIN_ACCOUNT_WINDOW_MS));
         if (!allowed) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
-        if (!user || !user.passwordHash) return null;
+        if (!user || !user.passwordHash) {
+          await bcrypt.compare(credentials.password, DUMMY_PASSWORD_HASH);
+          return null;
+        }
 
         const valid = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!valid) return null;

@@ -50,34 +50,68 @@ export function computeDiscount(coupon: Pick<Coupon, "discountType" | "discountV
 }
 
 /**
- * Bumps redemptionCount at settlement time — the only point a purchase is
- * known to have actually succeeded. findValidCoupon's maxRedemptions check
- * at checkout only rules out a coupon that was already exhausted before
- * this purchase started; it can't stop two checkouts that both passed that
- * check from both reaching settlement afterward. This atomic updateMany is
- * what actually caps redemptionCount at maxRedemptions when that race
- * happens — the loser still keeps the discount it already charged (the
- * payment is already captured by settlement time), but the count itself
- * never overshoots the limit.
+ * Thrown at settlement when a coupon can no longer be honored — its
+ * redemption limit was reached, or this person already used it on another
+ * purchase — typically because several checkouts using the same code were
+ * opened at once (each passed the checkout-time checks before any settled).
+ * The payment settlement turns this into an automatic refund.
  */
-export async function claimCouponRedemption(tx: Prisma.TransactionClient, couponId: string | null): Promise<void> {
+export class CouponUnavailableError extends CouponError {
+  constructor() {
+    super("This coupon was already used up by another purchase. Please check out again.");
+  }
+}
+
+/** Who is redeeming, and which item this purchase is for (excluded from the one-per-person check). */
+export type CouponRedeemer = {
+  userId: string;
+  courseId?: string;
+  eventId?: string;
+  competitionId?: string;
+};
+
+/**
+ * Records a redemption at settlement time — the only point a purchase is
+ * known to have actually succeeded — and enforces the redemption limit and
+ * "once per person" rule there, atomically. The checkout-time checks
+ * (findValidCoupon, hasUserRedeemedCoupon) can't: two checkouts opened at
+ * once both pass them before either settles. The coupon row is updated
+ * first, which locks it until this transaction commits, so concurrent
+ * settlements of the same coupon run one after another and the per-person
+ * check below sees the other's committed purchase. Throws
+ * CouponUnavailableError (rolling the settlement back) when the coupon
+ * can't be honored.
+ */
+export async function claimCouponRedemption(
+  tx: Prisma.TransactionClient,
+  couponId: string | null,
+  redeemer: CouponRedeemer
+): Promise<void> {
   if (!couponId) return;
 
   const coupon = await tx.coupon.findUnique({ where: { id: couponId }, select: { maxRedemptions: true } });
   if (!coupon) return;
 
-  if (coupon.maxRedemptions == null) {
-    await tx.coupon.update({ where: { id: couponId }, data: { redemptionCount: { increment: 1 } } });
-    return;
-  }
-
   const claimed = await tx.coupon.updateMany({
-    where: { id: couponId, redemptionCount: { lt: coupon.maxRedemptions } },
+    where: {
+      id: couponId,
+      ...(coupon.maxRedemptions != null && { redemptionCount: { lt: coupon.maxRedemptions } }),
+    },
     data: { redemptionCount: { increment: 1 } },
   });
-  if (claimed.count === 0) {
-    console.error(
-      `Coupon ${couponId} redemption count already at its limit — a concurrent checkout raced past it. The discount was still honored for this already-captured payment.`
-    );
-  }
+  if (claimed.count === 0) throw new CouponUnavailableError();
+
+  const { userId, courseId, eventId, competitionId } = redeemer;
+  const [course, event, competition] = await Promise.all([
+    tx.coursePurchase.findFirst({
+      where: { userId, couponId, status: "SUCCESS", ...(courseId && { courseId: { not: courseId } }) },
+    }),
+    tx.eventRegistration.findFirst({
+      where: { userId, couponId, status: { in: ["CONFIRMED", "ATTENDED"] }, ...(eventId && { eventId: { not: eventId } }) },
+    }),
+    tx.competitionEntry.findFirst({
+      where: { userId, couponId, status: "SUCCESS", ...(competitionId && { competitionId: { not: competitionId } }) },
+    }),
+  ]);
+  if (course || event || competition) throw new CouponUnavailableError();
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
+import { stagedUploadPath } from "@/lib/stagedUpload";
 import { MAX_UPLOAD_BYTES } from "@/lib/uploadValidation";
 
 // Shown right above the entry form so a student who hasn't uploaded their
@@ -42,7 +43,7 @@ function IdCardSection({
     setUploading(true);
     setProgress(0);
     try {
-      const blob = await upload(file.name, file, {
+      const blob = await upload(await stagedUploadPath(file.name), file, {
         access: "private",
         handleUploadUrl: "/api/account/id-card/blob-upload",
         contentType: file.type,
@@ -193,7 +194,7 @@ export function SubmissionForm({
     try {
       let blobUrl: string | null = null;
       if (pendingFile) {
-        const blob = await upload(pendingFile.name, pendingFile, {
+        const blob = await upload(await stagedUploadPath(pendingFile.name), pendingFile, {
           access: "private",
           handleUploadUrl: `/api/competitions/${slug}/submit/blob-upload`,
           contentType: pendingFile.type,
