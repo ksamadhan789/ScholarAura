@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { COURSE_CATEGORIES } from "@/lib/courseCategories";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default function NewExternalCoursePage() {
   const router = useRouter();
@@ -42,48 +43,55 @@ export default function NewExternalCoursePage() {
   }
 
   return (
-    <main className="mx-auto max-w-[900px] px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">Add a recommended course</h1>
-      <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
-        Paste a link to a real course from another provider (Google, Coursera,
-        edX, LinkedIn Learning, etc). Students will be sent to that provider&apos;s
-        site to actually take it — we just feature it here.
-      </p>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <DashboardShell
+      narrow
+      title="Add a recommended course"
+      backHref="/dashboard/external-courses"
+      backLabel="Recommended courses"
+      description={
+        <>
+          Paste a link to a real course from another provider (Google, Coursera, edX, LinkedIn Learning, etc). Students
+          will be sent to that provider&apos;s site to actually take it — we just feature it here.
+        </>
+      }
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800"
+      >
         <div>
-          <label className="mb-1 block text-sm font-medium">Course title</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Course title</label>
           <input
             type="text"
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Provider</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Provider</label>
           <input
             type="text"
             required
             placeholder="e.g. Google, Coursera, edX"
             value={provider}
             onChange={(e) => setProvider(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
           <textarea
             required
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
             Link to the actual course
           </label>
           <input
@@ -92,19 +100,19 @@ export default function NewExternalCoursePage() {
             placeholder="https://..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Double-check this is the real, correct URL before publishing.
           </p>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Category</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Category</label>
           <select
             required
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           >
             {COURSE_CATEGORIES.map((c) => (
               <option key={c} value={c}>
@@ -119,11 +127,11 @@ export default function NewExternalCoursePage() {
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
+          className="self-start rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
         >
           {loading ? "Adding…" : "Add link (as draft)"}
         </button>
       </form>
-    </main>
+    </DashboardShell>
   );
 }

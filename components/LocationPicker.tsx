@@ -125,7 +125,7 @@ export function LocationPicker() {
               ✕
             </button>
           </div>
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Sets your default city for Events, Competitions, and Jobs.
           </p>
 
@@ -133,7 +133,7 @@ export function LocationPicker() {
             type="button"
             onClick={useMyLocation}
             disabled={detecting}
-            className="mt-3 w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm disabled:opacity-50"
+            className="mt-3 w-full rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm disabled:opacity-50"
           >
             {detecting ? "Detecting…" : "📡 Use my current location"}
           </button>
@@ -141,7 +141,7 @@ export function LocationPicker() {
           {error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
 
           <div className="mt-3">
-            <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">
+            <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
               Or choose a city
             </label>
             <select
@@ -149,7 +149,7 @@ export function LocationPicker() {
               onChange={(e) => {
                 if (e.target.value) apply(e.target.value);
               }}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             >
               <option value="">{cities ? "Select a city…" : "Loading…"}</option>
               {cities?.map((c) => (

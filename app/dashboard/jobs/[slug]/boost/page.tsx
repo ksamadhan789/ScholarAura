@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
+import { Sparkles } from "lucide-react";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -24,39 +25,35 @@ export default async function BoostJobPage({ params }: { params: { slug: string 
   }));
 
   return (
-    <main className="mx-auto max-w-[900px] px-4 py-16">
-      <Link
-        href="/dashboard/jobs"
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← Manage jobs
-      </Link>
-      <h1 className="mt-2 mb-2 text-2xl font-semibold">Boost {job.title}</h1>
-      <p className="mb-6 text-sm text-gray-600 dark:text-slate-400">
-        Pin this listing to the top of /jobs with a Featured badge for {JOB_BOOST_DURATION_DAYS}{" "}
-        days.
-      </p>
-
+    <DashboardShell
+      narrow
+      title={`Boost ${job.title}`}
+      backHref="/dashboard/jobs"
+      backLabel="Jobs"
+      description={`Pin this listing to the top of /jobs with a Featured badge for ${JOB_BOOST_DURATION_DAYS} days.`}
+    >
       {isFeatured && (
-        <p className="mb-6 rounded bg-green-100 dark:bg-green-900/40 px-4 py-2.5 text-sm text-green-800 dark:text-green-300">
-          ⭐ Currently featured until {formatJobDate(job.featuredUntil!)}. Boosting again extends
-          the window.
+        <p className="mb-6 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300">
+          <Sparkles aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
+          Currently featured until {formatJobDate(job.featuredUntil!)}. Boosting again extends the window.
         </p>
       )}
 
       {!job.isPublished || job.approvalStatus !== "APPROVED" ? (
-        <p className="rounded bg-amber-100 dark:bg-amber-900/40 px-4 py-2.5 text-sm text-amber-800 dark:text-amber-300">
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
           This listing needs to be live (approved and published) before it can be boosted.
         </p>
       ) : (
-        <BoostJobButton
-          slug={job.slug}
-          priceInr={JOB_BOOST_PRICE_INR}
-          rates={serializedRates}
-          userName={session.user.name}
-          userEmail={session.user.email}
-        />
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800">
+          <BoostJobButton
+            slug={job.slug}
+            priceInr={JOB_BOOST_PRICE_INR}
+            rates={serializedRates}
+            userName={session.user.name}
+            userEmail={session.user.email}
+          />
+        </div>
       )}
-    </main>
+    </DashboardShell>
   );
 }

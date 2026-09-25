@@ -6,6 +6,7 @@ import { EVENT_TYPE_LABELS, EVENT_FORMAT_OPTIONS, EVENT_AUDIENCE_OPTIONS } from 
 import { PeopleEditor } from "@/components/PeopleEditor";
 import type { EventPerson } from "@/lib/eventPeople";
 import { RegenerateWebhookSecretButton } from "@/components/RegenerateWebhookSecretButton";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 type FormState = {
   title: string;
@@ -115,46 +116,49 @@ export function EditEventForm({
   }
 
   return (
-    <main className="mx-auto max-w-[900px] px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">Edit event</h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <DashboardShell narrow title="Edit event" backHref="/dashboard/events" backLabel="Events">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800"
+      >
         <div>
-          <label className="mb-1 block text-sm font-medium">Title</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Title</label>
           <input
             type="text"
             required
             value={form.title}
             onChange={(e) => set("title", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Short description (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Short description (optional)
+          </label>
           <input
             type="text"
             placeholder="One-line tagline shown at the top of the event page"
             value={form.shortDescription}
             onChange={(e) => set("shortDescription", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
           <textarea
             required
             rows={4}
             value={form.description}
             onChange={(e) => set("description", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Type</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Type</label>
           <select
             value={form.type}
             onChange={(e) => set("type", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           >
             {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
@@ -164,11 +168,11 @@ export function EditEventForm({
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Audience</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Audience</label>
           <select
             value={form.audience}
             onChange={(e) => set("audience", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           >
             {EVENT_AUDIENCE_OPTIONS.map(({ value, label }) => (
               <option key={value} value={value}>
@@ -177,31 +181,33 @@ export function EditEventForm({
             ))}
           </select>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium">Start</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Start</label>
             <input
               type="datetime-local"
               required
               value={form.startDate}
               onChange={(e) => set("startDate", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">End</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">End</label>
             <input
               type="datetime-local"
               required
               value={form.endDate}
               onChange={(e) => set("endDate", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-sm font-medium">Fee (₹, 0 for free)</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Fee (₹, 0 for free)
+            </label>
             <input
               type="number"
               min="0"
@@ -209,27 +215,27 @@ export function EditEventForm({
               required
               value={form.fee}
               onChange={(e) => set("fee", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Total seats</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Total seats</label>
             <input
               type="number"
               min="1"
               required
               value={form.seatsTotal}
               onChange={(e) => set("seatsTotal", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Format</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Format</label>
           <select
             value={form.format}
             onChange={(e) => set("format", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           >
             {EVENT_FORMAT_OPTIONS.map(({ value, label }) => (
               <option key={value} value={value}>
@@ -240,117 +246,135 @@ export function EditEventForm({
         </div>
         {form.format !== "ONLINE" && (
           <div>
-            <label className="mb-1 block text-sm font-medium">City</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">City</label>
             <input
               type="text"
               required
               placeholder="e.g. Mumbai"
               value={form.city}
               onChange={(e) => set("city", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
-            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-              Shown publicly and used for the location filter — the exact venue address stays hidden
-              until someone registers.
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Shown publicly and used for the location filter — the exact venue address stays hidden until someone
+              registers.
             </p>
           </div>
         )}
         <div>
-          <label className="mb-1 block text-sm font-medium">
-            {form.format === "ONLINE" ? "Zoom link" : form.format === "HYBRID" ? "Venue address + Zoom link" : "Venue address"}
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            {form.format === "ONLINE"
+              ? "Zoom link"
+              : form.format === "HYBRID"
+                ? "Venue address + Zoom link"
+                : "Venue address"}
           </label>
           <input
             type="text"
             required
             value={form.venueOrLink}
             onChange={(e) => set("venueOrLink", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Thumbnail URL (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Thumbnail URL (optional)
+          </label>
           <input
             type="url"
             placeholder="https://..."
             value={form.thumbnailUrl}
             onChange={(e) => set("thumbnailUrl", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Shown as the cover image on the event card. Landscape images work best.
           </p>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Brochure URL (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Brochure URL (optional)
+          </label>
           <input
             type="url"
             value={form.brochureUrl}
             onChange={(e) => set("brochureUrl", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Who can participate (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Who can participate (optional)
+          </label>
           <input
             type="text"
             placeholder="e.g. D.Pharm & B.Pharm students"
             value={form.eligibility}
             onChange={(e) => set("eligibility", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
-            <label className="mb-1 block text-sm font-medium">Registration opens (optional)</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Registration opens (optional)
+            </label>
             <input
               type="datetime-local"
               value={form.registrationStartDate}
               onChange={(e) => set("registrationStartDate", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Registration deadline (optional)</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Registration deadline (optional)
+            </label>
             <input
               type="datetime-local"
               value={form.registrationDeadline}
               onChange={(e) => set("registrationDeadline", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Result date (optional)</label>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              Result date (optional)
+            </label>
             <input
               type="datetime-local"
               value={form.resultDate}
               onChange={(e) => set("resultDate", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Prizes (optional)</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Prizes (optional)
+          </label>
           <div className="grid grid-cols-3 gap-2">
             <input
               type="text"
-              placeholder="🥇 1st prize"
+              placeholder="1st prize"
               value={form.prizeFirst}
               onChange={(e) => set("prizeFirst", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
             <input
               type="text"
-              placeholder="🥈 2nd prize"
+              placeholder="2nd prize"
               value={form.prizeSecond}
               onChange={(e) => set("prizeSecond", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
             <input
               type="text"
-              placeholder="🥉 3rd prize"
+              placeholder="3rd prize"
               value={form.prizeThird}
               onChange={(e) => set("prizeThird", e.target.value)}
-              className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
             />
           </div>
           <textarea
@@ -358,12 +382,12 @@ export function EditEventForm({
             placeholder="Additional prize notes (optional)"
             value={form.prizeDescription}
             onChange={(e) => set("prizeDescription", e.target.value)}
-            className="mt-2 w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
             Collaborating institute logo URL (optional)
           </label>
           <input
@@ -371,113 +395,128 @@ export function EditEventForm({
             placeholder="https://..."
             value={form.certificateLogoUrl}
             onChange={(e) => set("certificateLogoUrl", e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Shown alongside the ScholarAura logo on certificates issued for this event.
           </p>
         </div>
 
         <PeopleEditor people={form.people} onChange={(people) => set("people", people)} />
 
-        <div className="border-t border-gray-200 dark:border-slate-700 pt-4">
-          <h2 className="mb-3 font-semibold">Registration &amp; Google Form</h2>
+        <div className="border-t border-slate-100 pt-5 dark:border-slate-700">
+          <h2 className="mb-3 text-base font-semibold text-slate-900 dark:text-white">
+            Registration &amp; Google Form
+          </h2>
           <div className="flex flex-col gap-4">
             <div>
-              <label className="mb-1 block text-sm font-medium">Organizer (optional)</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Organizer (optional)
+              </label>
               <input
                 type="text"
                 value={form.organizer}
                 onChange={(e) => set("organizer", e.target.value)}
-                className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Google Form URL (optional)</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Google Form URL (optional)
+              </label>
               <input
                 type="url"
                 placeholder="https://docs.google.com/forms/d/e/.../viewform"
                 value={form.googleFormUrl}
                 onChange={(e) => set("googleFormUrl", e.target.value)}
-                className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 Registrants are sent here after registering on our site.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="mb-1 block text-xs font-medium">Name field entry ID (optional)</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
+                  Name field entry ID (optional)
+                </label>
                 <input
                   type="text"
                   placeholder="entry.123456"
                   value={form.googleFormNameEntryId}
                   onChange={(e) => set("googleFormNameEntryId", e.target.value)}
-                  className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium">Email field entry ID (optional)</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
+                  Email field entry ID (optional)
+                </label>
                 <input
                   type="text"
                   placeholder="entry.234567"
                   value={form.googleFormEmailEntryId}
                   onChange={(e) => set("googleFormEmailEntryId", e.target.value)}
-                  className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium">Enrollment ID field entry ID (optional)</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
+                  Enrollment ID field entry ID (optional)
+                </label>
                 <input
                   type="text"
                   placeholder="entry.345678"
                   value={form.googleFormEnrollmentEntryId}
                   onChange={(e) => set("googleFormEnrollmentEntryId", e.target.value)}
-                  className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                 />
               </div>
             </div>
-            <p className="text-xs text-gray-500 dark:text-slate-400">
-              Entry IDs let us prefill the form with the registrant's name/email/enrollment number —
-              open the form, add each field, then use Google Forms' &ldquo;Get pre-filled link&rdquo; tool
-              to find the <code>entry.NNNNNN</code> ID for each one. Leave blank to link to the form
-              without prefilling.
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Entry IDs let us prefill the form with the registrant's name/email/enrollment number — open the form, add
+              each field, then use Google Forms' &ldquo;Get pre-filled link&rdquo; tool to find the{" "}
+              <code>entry.NNNNNN</code> ID for each one. Leave blank to link to the form without prefilling.
             </p>
             <div>
-              <label className="mb-1 block text-sm font-medium">Google Sheet ID (optional)</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Google Sheet ID (optional)
+              </label>
               <input
                 type="text"
                 placeholder="The long ID in the response sheet's URL"
                 value={form.googleSheetId}
                 onChange={(e) => set("googleSheetId", e.target.value)}
-                className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                Share this sheet with our service account's email (view access) so attendance can be
-                synced from it. Expected columns: <code>email</code>, <code>attendance</code> (0-100).
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Share this sheet with our service account's email (view access) so attendance can be synced from it.
+                Expected columns: <code>email</code>, <code>attendance</code> (0-100).
               </p>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Webhook secret</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Webhook secret
+              </label>
               <input
                 type="text"
                 readOnly
                 value={webhookSecret}
                 onClick={(e) => e.currentTarget.select()}
-                className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 font-mono text-xs dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white font-mono !text-xs"
               />
               <RegenerateWebhookSecretButton endpoint={`/api/events/${slug}/webhook-secret`} />
-              <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                Unique to this event — paste it as the <code>WEBHOOK_SECRET</code> script property in
-                the Apps Script bound to this event&rsquo;s response sheet. Each event has its own, so
-                access to one event&rsquo;s script can&rsquo;t be used to submit data for another event.
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Unique to this event — paste it as the <code>WEBHOOK_SECRET</code> script property in the Apps Script
+                bound to this event&rsquo;s response sheet. Each event has its own, so access to one event&rsquo;s
+                script can&rsquo;t be used to submit data for another event.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 dark:border-slate-700 pt-4">
-          <h2 className="mb-3 font-semibold">Attendance</h2>
+        <div className="border-t border-slate-100 pt-5 dark:border-slate-700">
+          <h2 className="mb-3 text-base font-semibold text-slate-900 dark:text-white">Attendance</h2>
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
@@ -488,7 +527,9 @@ export function EditEventForm({
           </label>
           {form.attendanceRequired && (
             <div className="mt-3">
-              <label className="mb-1 block text-sm font-medium">Minimum attendance (%)</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                Minimum attendance (%)
+              </label>
               <input
                 type="number"
                 required
@@ -496,23 +537,23 @@ export function EditEventForm({
                 max="100"
                 value={form.minAttendancePercent}
                 onChange={(e) => set("minAttendancePercent", e.target.value)}
-                className="w-full max-w-[8rem] rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white !max-w-[8rem]"
               />
             </div>
           )}
         </div>
 
-        <div className="border-t border-gray-200 dark:border-slate-700 pt-4">
-          <h2 className="mb-3 font-semibold">Certificate</h2>
+        <div className="border-t border-slate-100 pt-5 dark:border-slate-700">
+          <h2 className="mb-3 text-base font-semibold text-slate-900 dark:text-white">Certificate</h2>
           <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between rounded border border-gray-200 bg-gray-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800/50">
+            <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-700 dark:bg-slate-900/40">
               <span className="text-sm">
                 Status:{" "}
                 <strong
                   className={
                     form.certificateEnabled
                       ? "text-green-600 dark:text-green-400"
-                      : "text-gray-500 dark:text-slate-400"
+                      : "text-slate-500 dark:text-slate-400"
                   }
                 >
                   Automatic Certification is {form.certificateEnabled ? "ON" : "OFF"}
@@ -529,11 +570,13 @@ export function EditEventForm({
             {form.certificateEnabled && (
               <>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Certificate type</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                    Certificate type
+                  </label>
                   <select
                     value={form.certificateType}
                     onChange={(e) => set("certificateType", e.target.value)}
-                    className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                   >
                     {CERTIFICATE_TYPES.map((t) => (
                       <option key={t} value={t}>
@@ -543,7 +586,7 @@ export function EditEventForm({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
                     Google Slides template ID (optional)
                   </label>
                   <input
@@ -551,7 +594,7 @@ export function EditEventForm({
                     placeholder="The long ID in the template's URL"
                     value={form.googleSlidesTemplateId}
                     onChange={(e) => set("googleSlidesTemplateId", e.target.value)}
-                    className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                   />
                   {form.googleSlidesTemplateId && (
                     <a
@@ -563,31 +606,30 @@ export function EditEventForm({
                       Preview template ↗
                     </a>
                   )}
-                  <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                    Design the certificate in Google Slides using placeholders{" "}
-                    <code>{"{{NAME}}"}</code>, <code>{"{{EVENT_TITLE}}"}</code>,{" "}
-                    <code>{"{{CERTIFICATE_NUMBER}}"}</code>, <code>{"{{DATE}}"}</code>,{" "}
-                    <code>{"{{CERTIFICATE_TYPE}}"}</code>, <code>{"{{COLLEGE}}"}</code>,{" "}
-                    <code>{"{{SIGNATORY_NAME}}"}</code> and <code>{"{{SIGNATORY_TITLE}}"}</code> — these
-                    are the exact strings the certificate gets generated with, so a typo (extra space,
-                    wrong case) means that spot won't fill in. Share the Slides file with our service
-                    account's email (view access) and paste its ID here.
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Design the certificate in Google Slides using placeholders <code>{"{{NAME}}"}</code>,{" "}
+                    <code>{"{{EVENT_TITLE}}"}</code>, <code>{"{{CERTIFICATE_NUMBER}}"}</code>, <code>{"{{DATE}}"}</code>
+                    , <code>{"{{CERTIFICATE_TYPE}}"}</code>, <code>{"{{COLLEGE}}"}</code>,{" "}
+                    <code>{"{{SIGNATORY_NAME}}"}</code> and <code>{"{{SIGNATORY_TITLE}}"}</code> — these are the exact
+                    strings the certificate gets generated with, so a typo (extra space, wrong case) means that spot
+                    won't fill in. Share the Slides file with our service account's email (view access) and paste its ID
+                    here.
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
                       Signatory name (optional)
                     </label>
                     <input
                       type="text"
                       value={form.certificateSignatoryName}
                       onChange={(e) => set("certificateSignatoryName", e.target.value)}
-                      className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium">
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
                       Signatory title (optional)
                     </label>
                     <input
@@ -595,7 +637,7 @@ export function EditEventForm({
                       placeholder="e.g. Director, Academics"
                       value={form.certificateSignatoryTitle}
                       onChange={(e) => set("certificateSignatoryTitle", e.target.value)}
-                      className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
                     />
                   </div>
                 </div>
@@ -604,14 +646,12 @@ export function EditEventForm({
                     type="button"
                     onClick={handleEmailSample}
                     disabled={!form.googleSlidesTemplateId || sampleSending}
-                    className="rounded border border-gray-300 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-slate-600 dark:hover:bg-slate-800"
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                   >
-                    {sampleSending ? "Sending…" : "📧 Email me a sample"}
+                    {sampleSending ? "Sending…" : "Email me a sample"}
                   </button>
                   {!form.googleSlidesTemplateId && (
-                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                      Set a template ID above first.
-                    </p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Set a template ID above first.</p>
                   )}
                   {sampleMessage && (
                     <p
@@ -631,11 +671,11 @@ export function EditEventForm({
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
+          className="self-start rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
         >
           {loading ? "Saving…" : "Save changes"}
         </button>
       </form>
-    </main>
+    </DashboardShell>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default function NewFreelanceListingPage() {
   const router = useRouter();
@@ -57,93 +58,97 @@ export default function NewFreelanceListingPage() {
   }
 
   return (
-    <main className="mx-auto max-w-[900px] px-4 py-16">
-      <h1 className="mb-2 text-2xl font-semibold">Post your freelance services</h1>
-      <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
-        Listed under your name — visible to everyone browsing /freelance as soon as you post.
-      </p>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <DashboardShell
+      narrow
+      title="Post your freelance services"
+      backHref="/dashboard/freelance"
+      backLabel="My listings"
+      description={<>Listed under your name — visible to everyone browsing /freelance as soon as you post.</>}
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800"
+      >
         <div>
-          <label className="mb-1 block text-sm font-medium">Title</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Title</label>
           <input
             type="text"
             required
             placeholder="e.g. I design clean, modern logos"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Category</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Category</label>
           <input
             type="text"
             required
             placeholder="e.g. Graphic Design, Web Development, Tutoring"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Description</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Description</label>
           <textarea
             required
             rows={5}
             placeholder="What you offer, your experience, and what makes you a good fit..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
-            Skills <span className="font-normal text-gray-400 dark:text-slate-500">(optional, comma-separated)</span>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Skills <span className="font-normal text-slate-400 dark:text-slate-500">(optional, comma-separated)</span>
           </label>
           <input
             type="text"
             placeholder="Figma, Illustrator, Branding"
             value={skills}
             onChange={(e) => setSkills(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
-            Rate <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Rate <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
           </label>
           <input
             type="text"
             placeholder="e.g. ₹500/hr or ₹5,000 per project"
             value={rate}
             onChange={(e) => setRate(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
-            Portfolio link <span className="font-normal text-gray-400 dark:text-slate-500">(optional)</span>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Portfolio link <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
           </label>
           <input
             type="url"
             placeholder="https://..."
             value={portfolioUrl}
             onChange={(e) => setPortfolioUrl(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Contact email</label>
+          <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Contact email</label>
           <input
             type="email"
             required
             placeholder="you@example.com"
             value={contactEmail}
             onChange={(e) => setContactEmail(e.target.value)}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Shown to anyone who clicks &ldquo;Contact&rdquo; on your listing.
           </p>
         </div>
@@ -153,11 +158,11 @@ export default function NewFreelanceListingPage() {
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
+          className="self-start rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
         >
           {loading ? "Posting…" : "Post listing"}
         </button>
       </form>
-    </main>
+    </DashboardShell>
   );
 }

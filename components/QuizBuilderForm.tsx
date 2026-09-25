@@ -66,17 +66,17 @@ export function QuizBuilderForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
-        <label className="mb-1 block text-sm font-medium">Quiz title</label>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Quiz title</label>
         <input
           type="text"
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">Passing score (%)</label>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Passing score (%)</label>
         <input
           type="number"
           min="1"
@@ -84,7 +84,7 @@ export function QuizBuilderForm({
           required
           value={passingPercent}
           onChange={(e) => setPassingPercent(e.target.value)}
-          className="w-full max-w-[8rem] rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white !max-w-[8rem]"
         />
       </div>
 
@@ -96,7 +96,7 @@ export function QuizBuilderForm({
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50"
+          className="self-start rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
         >
           {loading ? "Saving…" : "Save quiz"}
         </button>
@@ -105,7 +105,7 @@ export function QuizBuilderForm({
             type="button"
             onClick={handleDelete}
             disabled={loading}
-            className="rounded border border-red-300 px-4 py-2 text-sm text-red-700 disabled:opacity-50 dark:border-red-700 dark:text-red-400"
+            className="rounded-lg border border-red-300 px-4 py-2 text-sm text-red-700 disabled:opacity-50 dark:border-red-700 dark:text-red-400"
           >
             Delete quiz
           </button>
