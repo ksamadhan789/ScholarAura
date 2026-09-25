@@ -2,6 +2,15 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-25 (design polish)
+
+### Changed
+- Course pages: a cleaner "Course content" list (play/lock/completed icons, a Preview tag, total length), a "Your instructor" card (role, organisation and bio only when their profile is public), and larger, easier-to-read descriptions and section headings.
+- Course, event and competition pages: on phones the price and enroll/register card now sits right under the title instead of below every review; paid items show "Secure payment by Razorpay" and, for courses and events, their refund rule with a link to the refund policy.
+- "Log in to enroll/register/enter" now brings you back to the same page after signing in.
+- Share buttons restyled as calm outline chips (they were louder than the page's own buy button).
+- Remaining emoji icons (info cards, prize medals, featured carousel placeholders, wishlist) replaced with the site's line icons.
+
 ## 2026-09-25 (security follow-ups)
 
 ### Security

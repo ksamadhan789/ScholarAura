@@ -271,7 +271,7 @@ export function CourseQASection({
 
   return (
     <div className="mt-10">
-      <h2 className="mb-3 text-lg font-medium">Questions &amp; answers</h2>
+      <h2 className="mb-3 text-xl font-bold text-slate-900 dark:text-white">Questions &amp; answers</h2>
 
       {isEnrolled && (
         <form

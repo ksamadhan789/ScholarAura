@@ -1,10 +1,10 @@
+import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Thumbnail } from "@/components/Thumbnail";
-import { COURSE_CATEGORY_ICONS } from "@/lib/courseCategories";
 import { WishlistButton } from "@/components/courses/WishlistButton";
 import { SaveButton } from "@/components/SaveButton";
 import { formatDateRange } from "@/lib/eventLabels";
@@ -73,7 +73,7 @@ export default async function WishlistPage() {
                         <Thumbnail
                           url={course.thumbnailUrl}
                           alt={course.title}
-                          icon={COURSE_CATEGORY_ICONS[course.category] ?? "📘"}
+                          icon={<BookOpen className="h-10 w-10" strokeWidth={1.5} />}
                         />
                       </div>
                     </Link>

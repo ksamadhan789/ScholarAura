@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { BookOpen, CalendarDays, Pause, Play, Trophy } from "lucide-react";
 import { Thumbnail } from "@/components/Thumbnail";
 
 export type BannerItem = {
@@ -12,8 +13,12 @@ export type BannerItem = {
   subtitle: string;
   priceLabel: string;
   thumbnailUrl: string | null;
-  icon: string;
+  kind: "course" | "event" | "competition";
 };
+
+// Placeholder art for items without a thumbnail (a string key, since icon
+// components can't be passed from the server page to this client component).
+const KIND_ICONS = { course: BookOpen, event: CalendarDays, competition: Trophy } as const;
 
 export function HomeBannerCarousel({ items }: { items: BannerItem[] }) {
   const [userPaused, setUserPaused] = useState(false);
@@ -45,7 +50,14 @@ export function HomeBannerCarousel({ items }: { items: BannerItem[] }) {
                 href={item.href}
                 className="group relative block w-64 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-transform hover:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-800 sm:w-72"
               >
-                <Thumbnail url={item.thumbnailUrl} alt={item.title} icon={item.icon} />
+                <Thumbnail
+                  url={item.thumbnailUrl}
+                  alt={item.title}
+                  icon={(() => {
+                    const Icon = KIND_ICONS[item.kind];
+                    return <Icon className="h-10 w-10" strokeWidth={1.5} />;
+                  })()}
+                />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3">
                   <span className="inline-block rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur">
                     {item.badge}
@@ -68,7 +80,7 @@ export function HomeBannerCarousel({ items }: { items: BannerItem[] }) {
             aria-label={userPaused ? "Play featured carousel" : "Pause featured carousel"}
             className="absolute bottom-2 left-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80"
           >
-            <span aria-hidden>{userPaused ? "▶" : "⏸"}</span>
+            {userPaused ? <Play aria-hidden className="h-4 w-4" /> : <Pause aria-hidden className="h-4 w-4" />}
           </button>
         </div>
       </div>

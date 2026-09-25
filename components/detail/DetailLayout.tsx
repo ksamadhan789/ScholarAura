@@ -9,7 +9,9 @@ export function DetailColumns({ aside, children }: { aside: ReactNode; children:
   return (
     <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
       <div className="min-w-0 [&>*:first-child]:mt-0">{children}</div>
-      <aside className="min-w-0 lg:sticky lg:top-32 lg:self-start">{aside}</aside>
+      {/* On phones the price + buy/register card comes first, right under the
+          hero — not after every review, where hardly anyone scrolled to it. */}
+      <aside className="order-first min-w-0 lg:order-none lg:sticky lg:top-32 lg:self-start">{aside}</aside>
     </div>
   );
 }
