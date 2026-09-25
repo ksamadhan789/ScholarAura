@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Clock, RotateCcw } from "lucide-react";
 
 export function RequestRefundButton({
   kind,
@@ -20,7 +21,8 @@ export function RequestRefundButton({
 
   if (isPending) {
     return (
-      <span className="rounded bg-amber-100 dark:bg-amber-900/40 px-3 py-1.5 text-xs text-amber-800 dark:text-amber-300">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+        <Clock aria-hidden className="h-3.5 w-3.5" />
         Refund requested — pending review
       </span>
     );
@@ -63,14 +65,14 @@ export function RequestRefundButton({
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           placeholder="Why are you requesting a refund?"
-          className="w-full rounded border border-gray-300 dark:border-slate-600 px-2 py-1.5 text-xs dark:bg-slate-800 dark:text-white"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
         />
         {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
         <div className="flex gap-3">
           <button
             type="submit"
             disabled={loading}
-            className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-3 py-1 text-xs text-white disabled:opacity-50"
+            className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
           >
             {loading ? "Submitting…" : "Submit request"}
           </button>
@@ -89,8 +91,10 @@ export function RequestRefundButton({
   return (
     <button
       onClick={() => setOpen(true)}
-      className="rounded border border-gray-300 dark:border-slate-600 px-3 py-1.5 text-xs"
+      type="button"
+      className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
     >
+      <RotateCcw aria-hidden className="h-4 w-4" />
       Request refund
     </button>
   );

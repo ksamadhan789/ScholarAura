@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { firstNameOf, istGreeting, pickContinueLearning, summarizeCourseProgress } from "@/lib/dashboardSummary";
+import {
+  firstNameOf,
+  formatLength,
+  istGreeting,
+  pickContinueLearning,
+  summarizeCourseProgress,
+} from "@/lib/dashboardSummary";
 
 describe("istGreeting", () => {
   it("uses the hour in India, not UTC", () => {
@@ -81,5 +87,14 @@ describe("pickContinueLearning", () => {
   it("respects the limit", () => {
     const many = ["a", "b", "c", "d"].map((id) => course(id, 1, 5));
     expect(pickContinueLearning(many, 2).map((c) => c.id)).toEqual(["a", "b"]);
+  });
+});
+
+describe("formatLength", () => {
+  it("formats minutes and hours", () => {
+    expect(formatLength(4380)).toBe("1h 13m");
+    expect(formatLength(900)).toBe("15 min");
+    expect(formatLength(20)).toBe("1 min");
+    expect(formatLength(7200)).toBe("2h 0m");
   });
 });
