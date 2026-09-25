@@ -4,9 +4,8 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getConnectedGoogleEmail } from "@/lib/google/delegatedAuth";
-import { DisconnectDriveButton } from "@/components/certificates/DisconnectDriveButton";
+import { DriveStatusCard } from "@/components/certificates/DriveStatusCard";
 import {
-  AlertTriangle,
   Award,
   BarChart3,
   BookOpen,
@@ -16,7 +15,6 @@ import {
   Coins,
   Flag,
   GraduationCap,
-  HardDrive,
   IndianRupee,
   LifeBuoy,
   Megaphone,
@@ -201,60 +199,16 @@ export default async function AdminHomePage({
           }
         />
 
-        {/* Google Drive connection — everything file-based depends on it */}
-        <div
-          className={`mt-6 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
-            connectedEmail
-              ? "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
-              : "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20"
-          }`}
-        >
-          <p className="flex items-start gap-3 text-sm">
-            <span
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                connectedEmail
-                  ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
-                  : "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-              }`}
-            >
-              <HardDrive aria-hidden className="h-5 w-5" />
-            </span>
-            {connectedEmail ? (
-              <span className="text-slate-600 dark:text-slate-300">
-                <span className="font-semibold text-slate-900 dark:text-white">Google Drive connected</span> as{" "}
-                <span className="font-medium">{connectedEmail}</span> — used to store certificates, resumes and profile
-                photos.
-              </span>
-            ) : (
-              <span className="text-amber-800 dark:text-amber-300">
-                <span className="font-semibold">No Google Drive account connected</span> — certificate generation,
-                resume uploads and profile photo uploads will all fail until one is connected.
-              </span>
-            )}
-          </p>
-          {connectedEmail ? (
-            <DisconnectDriveButton />
-          ) : (
-            <a
-              href={`/api/admin/google-drive/connect?returnTo=${encodeURIComponent("/dashboard/admin")}`}
-              className="shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
-            >
-              Connect Google Drive
-            </a>
-          )}
+        <div className="mt-6">
+          <DriveStatusCard
+            connectedEmail={connectedEmail}
+            returnTo="/dashboard/admin"
+            purpose="used to store certificates, resumes and profile photos."
+            missingWarning="certificate generation, resume uploads and profile photo uploads will all fail until one is connected."
+            driveConnected={searchParams.driveConnected}
+            driveError={searchParams.driveError}
+          />
         </div>
-        {searchParams.driveConnected && (
-          <p className="mt-3 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400">
-            <CheckCircle2 aria-hidden className="h-4 w-4" />
-            Google Drive connected successfully.
-          </p>
-        )}
-        {searchParams.driveError && (
-          <p className="mt-3 flex items-center gap-2 text-sm text-red-700 dark:text-red-400">
-            <AlertTriangle aria-hidden className="h-4 w-4" />
-            Google Drive connection failed ({searchParams.driveError}). Please try again.
-          </p>
-        )}
 
         <section className="mt-8">
           <div className="mb-4 flex items-baseline justify-between gap-3">

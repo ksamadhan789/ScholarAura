@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 type Entry = { id: string; label: string; rank: number | null };
 
 const RANKS = [
-  { rank: 1, medal: "🥇", label: "1st place" },
-  { rank: 2, medal: "🥈", label: "2nd place" },
-  { rank: 3, medal: "🥉", label: "3rd place" },
+  { rank: 1, medal: "bg-amber-400 text-amber-950", label: "1st place" },
+  { rank: 2, medal: "bg-slate-300 text-slate-800", label: "2nd place" },
+  { rank: 3, medal: "bg-orange-300 text-orange-950", label: "3rd place" },
 ] as const;
 
 export function WinnerPicker({ slug, entries }: { slug: string; entries: Entry[] }) {
@@ -45,16 +45,22 @@ export function WinnerPicker({ slug, entries }: { slug: string; entries: Entry[]
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 dark:border-slate-700 dark:bg-slate-800">
       {RANKS.map((r) => (
         <div key={r.rank}>
-          <label className="mb-1 block text-sm font-medium">
-            {r.medal} {r.label}
+          <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            <span
+              aria-hidden
+              className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${r.medal}`}
+            >
+              {r.rank}
+            </span>
+            {r.label}
           </label>
           <select
             value={selection[r.rank]}
             onChange={(e) => setSelection((s) => ({ ...s, [r.rank]: e.target.value }))}
-            className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 dark:bg-slate-800 dark:text-white"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           >
             <option value="">— none —</option>
             {entries.map((entry) => (
@@ -71,7 +77,7 @@ export function WinnerPicker({ slug, entries }: { slug: string; entries: Entry[]
       <button
         onClick={handleSave}
         disabled={saving}
-        className="rounded bg-brand-600 transition-colors hover:bg-brand-700 px-4 py-2 text-white disabled:opacity-50 self-start"
+        className="self-start rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:opacity-50"
       >
         {saving ? "Saving…" : "Save winners"}
       </button>

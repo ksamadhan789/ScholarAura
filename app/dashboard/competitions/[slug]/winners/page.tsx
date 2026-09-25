@@ -1,15 +1,12 @@
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { WinnerPicker } from "./WinnerPicker";
+import { DashboardEmptyState, DashboardShell } from "@/components/dashboard/DashboardShell";
+import { Trophy } from "lucide-react";
 
-export default async function CompetitionWinnersPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function CompetitionWinnersPage({ params }: { params: { slug: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) {
     redirect("/login");
@@ -30,23 +27,19 @@ export default async function CompetitionWinnersPage({
   });
 
   return (
-    <main className="mx-auto max-w-[1050px] px-4 py-16">
-      <Link
-        href="/dashboard/competitions"
-        className="text-sm text-gray-500 hover:underline dark:text-slate-400"
-      >
-        ← Manage competitions
-      </Link>
-      <h1 className="mt-2 mb-2 text-2xl font-semibold">{competition.title} — Winners</h1>
-      <p className="mb-6 text-sm text-gray-500 dark:text-slate-400">
-        Pick the 1st, 2nd, and 3rd place entries. This publishes immediately on the public
-        competition page.
-      </p>
-
+    <DashboardShell
+      narrow
+      title="Winners"
+      description={`${competition.title} — pick the 1st, 2nd and 3rd place entries. This publishes immediately on the public competition page.`}
+      backHref="/dashboard/competitions"
+      backLabel="Competitions"
+    >
       {entries.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-slate-400">
-          No paid/confirmed entries yet — nothing to award.
-        </p>
+        <DashboardEmptyState
+          icon={Trophy}
+          title="No confirmed entries yet"
+          text="Nothing to award until someone has entered."
+        />
       ) : (
         <WinnerPicker
           slug={competition.slug}
@@ -57,6 +50,6 @@ export default async function CompetitionWinnersPage({
           }))}
         />
       )}
-    </main>
+    </DashboardShell>
   );
 }

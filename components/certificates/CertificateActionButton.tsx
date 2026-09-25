@@ -37,7 +37,7 @@ export function CertificateActionButton({
       <button
         onClick={run}
         disabled={loading}
-        className="rounded border border-gray-300 dark:border-slate-600 px-2.5 py-1 text-xs disabled:opacity-50"
+        className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
       >
         {loading ? "…" : label}
       </button>
