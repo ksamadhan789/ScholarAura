@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { verifyRazorpaySignature } from "@/lib/razorpay";
 import { settleCompetitionEntry, PaymentNotHonoredError, paymentNotHonoredMessage } from "@/lib/paymentSettlement";
-import { buildGoogleFormUrl } from "@/lib/competitionEnrollment";
 
 const verifySchema = z.object({
   razorpay_order_id: z.string(),
@@ -62,13 +61,5 @@ export async function POST(
     }
     throw err;
   }
-  const googleFormUrl =
-    updated && updated.enrollmentNumber
-      ? buildGoogleFormUrl(competition, {
-          name: updated.certificateName ?? session.user.name ?? "",
-          email: session.user.email ?? "",
-          enrollmentNumber: updated.enrollmentNumber,
-        })
-      : null;
-  return NextResponse.json({ ...updated, googleFormUrl });
+  return NextResponse.json(updated);
 }

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PeopleEditor } from "@/components/PeopleEditor";
 import type { EventPerson } from "@/lib/eventPeople";
-import { RegenerateWebhookSecretButton } from "@/components/RegenerateWebhookSecretButton";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 type FormState = {
@@ -30,10 +29,6 @@ type FormState = {
   resultDate: string;
   people: EventPerson[];
   organizer: string;
-  googleFormUrl: string;
-  googleFormNameEntryId: string;
-  googleFormEmailEntryId: string;
-  googleFormEnrollmentEntryId: string;
   googleSheetId: string;
   attendanceRequired: boolean;
   minAttendancePercent: string;
@@ -46,15 +41,7 @@ type FormState = {
 
 const CERTIFICATE_TYPES = ["PARTICIPATION", "COMPLETION", "APPRECIATION", "CUSTOM"];
 
-export function EditCompetitionForm({
-  slug,
-  webhookSecret,
-  initial,
-}: {
-  slug: string;
-  webhookSecret: string;
-  initial: FormState;
-}) {
+export function EditCompetitionForm({ slug, initial }: { slug: string; initial: FormState }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(initial);
   const [error, setError] = useState<string | null>(null);
@@ -350,9 +337,7 @@ export function EditCompetitionForm({
         <PeopleEditor people={form.people} onChange={(people) => set("people", people)} />
 
         <div className="border-t border-slate-100 pt-5 dark:border-slate-700">
-          <h2 className="mb-3 text-base font-semibold text-slate-900 dark:text-white">
-            Registration &amp; Google Form
-          </h2>
+          <h2 className="mb-3 text-base font-semibold text-slate-900 dark:text-white">Organizer &amp; attendance</h2>
           <div className="flex flex-col gap-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
@@ -367,69 +352,11 @@ export function EditCompetitionForm({
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                Google Form URL (optional)
-              </label>
-              <input
-                type="url"
-                placeholder="https://docs.google.com/forms/d/e/.../viewform"
-                value={form.googleFormUrl}
-                onChange={(e) => set("googleFormUrl", e.target.value)}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-              />
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Entrants are sent here after entering on our site.
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
-                  Name field entry ID (optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="entry.123456"
-                  value={form.googleFormNameEntryId}
-                  onChange={(e) => set("googleFormNameEntryId", e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
-                  Email field entry ID (optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="entry.234567"
-                  value={form.googleFormEmailEntryId}
-                  onChange={(e) => set("googleFormEmailEntryId", e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-300">
-                  Enrollment ID field entry ID (optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="entry.345678"
-                  value={form.googleFormEnrollmentEntryId}
-                  onChange={(e) => set("googleFormEnrollmentEntryId", e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
-                />
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Entry IDs let us prefill the form with the entrant&apos;s name/email/enrollment number — open the form,
-              add each field, then use Google Forms&apos; &ldquo;Get pre-filled link&rdquo; tool to find the{" "}
-              <code>entry.NNNNNN</code> ID for each one. Leave blank to link to the form without prefilling.
-            </p>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
                 Google Sheet ID (optional)
               </label>
               <input
                 type="text"
-                placeholder="The long ID in the response sheet's URL"
+                placeholder="The long ID in the attendance sheet's URL"
                 value={form.googleSheetId}
                 onChange={(e) => set("googleSheetId", e.target.value)}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
@@ -437,24 +364,6 @@ export function EditCompetitionForm({
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 Share this sheet with our service account's email (view access) so attendance can be synced from it.
                 Expected columns: <code>email</code>, <code>attendance</code> (0-100).
-              </p>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                Webhook secret
-              </label>
-              <input
-                type="text"
-                readOnly
-                value={webhookSecret}
-                onClick={(e) => e.currentTarget.select()}
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white font-mono !text-xs"
-              />
-              <RegenerateWebhookSecretButton endpoint={`/api/competitions/${slug}/webhook-secret`} />
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Unique to this competition — paste it as the <code>WEBHOOK_SECRET</code> script property in the Apps
-                Script bound to this competition&rsquo;s response sheet. Each competition has its own, so access to one
-                competition&rsquo;s script can&rsquo;t be used to submit data for another.
               </p>
             </div>
           </div>

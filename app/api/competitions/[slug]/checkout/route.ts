@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getRazorpayClient } from "@/lib/razorpay";
 import { computeCreditApplication, settleReferralCredit, InsufficientCreditError } from "@/lib/referral";
 import { getExchangeRate, convertFromInr } from "@/lib/currency";
-import { withEnrollmentNumber, buildGoogleFormUrl } from "@/lib/competitionEnrollment";
+import { withEnrollmentNumber } from "@/lib/competitionEnrollment";
 import { findValidCoupon, hasUserRedeemedCoupon, computeDiscount, claimCouponRedemption, CouponError } from "@/lib/coupon";
 import { sendCompetitionEntryConfirmationEmail } from "@/lib/email";
 import { hasCompletedOnboarding } from "@/lib/onboarding";
@@ -206,12 +206,6 @@ export async function POST(
         })
       );
 
-      const googleFormUrl = buildGoogleFormUrl(competition, {
-        name: certificateName ?? session.user.name ?? "",
-        email: session.user.email ?? "",
-        enrollmentNumber: entry.enrollmentNumber!,
-      });
-
       if (isFreshSettlement) {
         await sendCompetitionEntryConfirmationEmail(
           session.user.email!,
@@ -226,7 +220,6 @@ export async function POST(
         paidWithCredit: true,
         competitionName: competition.title,
         entry,
-        googleFormUrl,
       });
     }
 

@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth";
+import { CertificateNameEditor } from "@/components/detail/CertificateNameEditor";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -151,7 +152,7 @@ export default async function CompetitionCertificatesPage({
                 <th className={DASHBOARD_TH_CLASS}>Name</th>
                 <th className={DASHBOARD_TH_CLASS}>Email</th>
                 <th className={DASHBOARD_TH_CLASS}>College</th>
-                <th className={DASHBOARD_TH_CLASS}>Form</th>
+                <th className={DASHBOARD_TH_CLASS}>Name on certificate</th>
                 <th className={DASHBOARD_TH_CLASS}>Attendance</th>
                 <th className={DASHBOARD_TH_CLASS}>Eligible</th>
                 <th className={DASHBOARD_TH_CLASS}>Certificate</th>
@@ -177,7 +178,12 @@ export default async function CompetitionCertificatesPage({
                     <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{e.user.email}</td>
                     <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{e.user.organization ?? "—"}</td>
                     <td className="px-4 py-3">
-                      <YesNo value={e.formSubmitted} />
+                      <CertificateNameEditor
+                        compact
+                        endpoint={`/api/competitions/${competition.slug}/certificate-name`}
+                        userId={e.userId}
+                        name={e.certificateName || e.user.name}
+                      />
                     </td>
                     <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                       {e.attendancePercent != null ? `${e.attendancePercent}%` : "—"}

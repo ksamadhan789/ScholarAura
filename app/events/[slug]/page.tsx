@@ -18,6 +18,8 @@ import {
   getDeadlineUrgency,
 } from "@/lib/eventLabels";
 import { FormNextStep } from "@/components/detail/FormNextStep";
+import { CertificateNameEditor } from "@/components/detail/CertificateNameEditor";
+import { isCertificateNameLocked } from "@/lib/certificateName";
 import { buildGoogleFormUrl } from "@/lib/enrollment";
 import { RegisterButton } from "./RegisterButton";
 import { PeopleList } from "@/components/PeopleList";
@@ -92,6 +94,13 @@ export default async function EventDetailPage({
 
   const isAdmin = session?.user.role === "ADMIN";
   const isRegistered = registration?.status === "CONFIRMED";
+  const certificate =
+    session && isRegistered
+      ? await prisma.certificate.findUnique({
+          where: { userId_eventId: { userId: session.user.id, eventId: event.id } },
+          select: { status: true },
+        })
+      : null;
   const pendingFormUrl =
     session && isRegistered && !registration.formSubmitted && registration.enrollmentNumber
       ? buildGoogleFormUrl(event, {
@@ -237,6 +246,11 @@ export default async function EventDetailPage({
               <>
                 <ActionStatus tone="success">You&apos;re registered for this event!</ActionStatus>
                 {pendingFormUrl && <FormNextStep url={pendingFormUrl} />}
+                <CertificateNameEditor
+                  endpoint={`/api/events/${event.slug}/certificate-name`}
+                  name={registration?.certificateName || session.user.name || ""}
+                  locked={isCertificateNameLocked(certificate?.status)}
+                />
                 {Number(event.fee) === 0 && event.startDate > new Date() && (
                   <CancelRegistrationButton slug={event.slug} />
                 )}
