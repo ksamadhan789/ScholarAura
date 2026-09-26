@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { toPublicListing } from "@/lib/publicListing";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { fromIstInput } from "@/lib/istDate";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
@@ -21,7 +22,7 @@ const eventFormats = ["ONLINE", "OFFLINE", "HYBRID"] as const;
 const eventAudiences = ["STUDENT", "PROFESSIONAL", "EVERYONE"] as const;
 
 const optionalDate = z.preprocess(
-  (val) => (val === "" || val == null ? undefined : val),
+  (val) => (val === "" || val == null ? undefined : fromIstInput(val)),
   z.coerce.date().optional()
 );
 
@@ -30,8 +31,8 @@ const createEventSchema = z
     title: z.string().min(3, "Title must be at least 3 characters"),
     description: z.string().min(10, "Description must be at least 10 characters"),
     type: z.enum(eventTypes),
-    startDate: z.coerce.date(),
-    endDate: z.coerce.date(),
+    startDate: z.preprocess(fromIstInput, z.coerce.date()),
+    endDate: z.preprocess(fromIstInput, z.coerce.date()),
     fee: z.coerce.number().min(0, "Fee can't be negative"),
     seatsTotal: z.coerce.number().int().min(1, "Must allow at least 1 seat"),
     venueOrLink: z.string().min(1, "Venue or link is required"),

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { toPublicListing } from "@/lib/publicListing";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { fromIstInput } from "@/lib/istDate";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
@@ -9,7 +10,7 @@ import { eventPeopleSchema } from "@/lib/eventPeople";
 import { httpUrl } from "@/lib/safeUrl";
 
 const optionalDate = z.preprocess(
-  (val) => (val === "" || val == null ? undefined : val),
+  (val) => (val === "" || val == null ? undefined : fromIstInput(val)),
   z.coerce.date().optional()
 );
 
@@ -17,9 +18,9 @@ const createCompetitionSchema = z
   .object({
     title: z.string().min(3, "Title must be at least 3 characters"),
     description: z.string().min(10, "Description must be at least 10 characters"),
-    startDate: z.coerce.date(),
-    endDate: z.coerce.date(),
-    submissionDeadline: z.coerce.date(),
+    startDate: z.preprocess(fromIstInput, z.coerce.date()),
+    endDate: z.preprocess(fromIstInput, z.coerce.date()),
+    submissionDeadline: z.preprocess(fromIstInput, z.coerce.date()),
     fee: z.coerce.number().min(0, "Fee can't be negative"),
     prizeDescription: z.string().optional(),
     prizeFirst: z.string().trim().optional().or(z.literal("")),

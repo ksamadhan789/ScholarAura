@@ -1,16 +1,10 @@
 import { getServerSession } from "next-auth";
+import { toIstInput } from "@/lib/istDate";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EditCompetitionForm } from "./EditCompetitionForm";
 import type { EventPerson } from "@/lib/eventPeople";
-
-function toLocalInput(date: Date | null): string {
-  if (!date) return "";
-  const d = new Date(date);
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 16);
-}
 
 export default async function EditCompetitionPage({ params }: { params: { slug: string } }) {
   const session = await getServerSession(authOptions);
@@ -27,9 +21,9 @@ export default async function EditCompetitionPage({ params }: { params: { slug: 
         title: competition.title,
         description: competition.description,
         shortDescription: competition.shortDescription ?? "",
-        startDate: toLocalInput(competition.startDate),
-        endDate: toLocalInput(competition.endDate),
-        submissionDeadline: toLocalInput(competition.submissionDeadline),
+        startDate: toIstInput(competition.startDate),
+        endDate: toIstInput(competition.endDate),
+        submissionDeadline: toIstInput(competition.submissionDeadline),
         fee: competition.fee.toString(),
         prizeDescription: competition.prizeDescription ?? "",
         prizeFirst: competition.prizeFirst ?? "",
@@ -41,9 +35,9 @@ export default async function EditCompetitionPage({ params }: { params: { slug: 
         certificateLogoUrl: competition.certificateLogoUrl ?? "",
         eligibility: competition.eligibility ?? "",
         city: competition.city ?? "",
-        registrationStartDate: toLocalInput(competition.registrationStartDate),
-        registrationDeadline: toLocalInput(competition.registrationDeadline),
-        resultDate: toLocalInput(competition.resultDate),
+        registrationStartDate: toIstInput(competition.registrationStartDate),
+        registrationDeadline: toIstInput(competition.registrationDeadline),
+        resultDate: toIstInput(competition.resultDate),
         people: (competition.people as unknown as EventPerson[] | null) ?? [],
         organizer: competition.organizer ?? "",
         googleSheetId: competition.googleSheetId ?? "",

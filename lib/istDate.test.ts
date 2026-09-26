@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getIstYear, getIstMonthKey } from "@/lib/istDate";
+import { fromIstInput, getIstMonthKey, getIstYear, toIstInput } from "@/lib/istDate";
 
 describe("getIstYear", () => {
   it("returns the UTC year when it's already midday IST", () => {
@@ -26,5 +26,24 @@ describe("getIstMonthKey", () => {
 
   it("buckets a mid-month instant into the same month regardless of timezone", () => {
     expect(getIstMonthKey(new Date("2026-06-15T12:00:00Z"))).toBe("2026-06");
+  });
+});
+
+describe("datetime-local values are India time", () => {
+  it("reads a bare value as IST", () => {
+    expect((fromIstInput("2026-09-30T17:00") as Date).toISOString()).toBe("2026-09-30T11:30:00.000Z");
+    expect((fromIstInput("2026-09-30T23:59:30") as Date).toISOString()).toBe("2026-09-30T18:29:30.000Z");
+  });
+
+  it("leaves values that already carry a zone alone", () => {
+    expect(fromIstInput("2026-09-30T11:30:00.000Z")).toBe("2026-09-30T11:30:00.000Z");
+    expect(fromIstInput("")).toBe("");
+    expect(fromIstInput(null)).toBe(null);
+  });
+
+  it("round-trips through the edit form", () => {
+    const stored = fromIstInput("2026-09-30T17:00") as Date;
+    expect(toIstInput(stored)).toBe("2026-09-30T17:00");
+    expect(toIstInput(null)).toBe("");
   });
 });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { fromIstInput } from "@/lib/istDate";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAdminAction } from "@/lib/auditLog";
@@ -24,7 +25,7 @@ const createCouponSchema = z
       (val) => (val === "" || val == null ? null : val),
       z.coerce.number().nonnegative().nullable()
     ),
-    expiresAt: z.preprocess((val) => (val === "" || val == null ? null : val), z.coerce.date().nullable()),
+    expiresAt: z.preprocess((val) => (val === "" || val == null ? null : fromIstInput(val)), z.coerce.date().nullable()),
   })
   .refine((data) => data.discountType !== "PERCENT" || data.discountValue <= 100, {
     message: "A percentage discount can't exceed 100",
