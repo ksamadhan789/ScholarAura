@@ -147,7 +147,7 @@ export default function OnboardingPage() {
           collegeType:
             userType === "COLLEGE_STUDENT" && addingNewCollege ? resolvedCollegeType : undefined,
           jobRole: userType === "PROFESSIONAL" ? resolvedJobRole : undefined,
-          expertise: expertise || undefined,
+          expertise: showExpertise ? expertise || undefined : undefined,
         }),
       });
 
@@ -166,7 +166,8 @@ export default function OnboardingPage() {
     }
   }
 
-  const showExpertise = userType === "COLLEGE_STUDENT" || userType === "PROFESSIONAL";
+  // "Expert in" is for professionals — not asked of students.
+  const showExpertise = userType === "PROFESSIONAL";
 
   return (
     <main className="mx-auto flex flex-1 w-full max-w-[720px] flex-col justify-center px-4 py-16">

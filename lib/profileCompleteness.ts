@@ -40,8 +40,15 @@ export function profileChecklist(p: ProfileFields): ProfileCheck[] {
   } else if (p.userType === "PROFESSIONAL") {
     checks.push({ key: "jobRole", label: "Pick your job role", done: filled(p.jobRole), anchor: "academic" });
   }
+  if (p.userType !== "COLLEGE_STUDENT") {
+    checks.push({
+      key: "expertise",
+      label: "Say what you're expert in",
+      done: filled(p.expertise),
+      anchor: "academic",
+    });
+  }
   checks.push(
-    { key: "expertise", label: "Say what you're expert in", done: filled(p.expertise), anchor: "academic" },
     { key: "linkedin", label: "Link your LinkedIn", done: filled(p.linkedinUrl), anchor: "career" },
     { key: "bio", label: "Write a short bio", done: filled(p.bio), anchor: "career" },
     { key: "resume", label: "Upload your resume", done: p.hasResume, anchor: "resume" },

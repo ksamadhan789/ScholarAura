@@ -2,6 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-26 (students: no "Expert in")
+
+### Changed
+- College students are no longer asked "Expert in" — removed from their sign-up details form, their profile editor and their profile checklist. Professionals still see it.
+
 ## 2026-09-26 (Google Form after entering)
 
 ### Fixed
