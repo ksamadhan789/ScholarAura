@@ -2,10 +2,11 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
-## 2026-09-26 (students: no "Expert in")
+## 2026-09-26 (students: no "Expert in" or "College type")
 
 ### Changed
 - College students are no longer asked "Expert in" — removed from their sign-up details form, their profile editor and their profile checklist. Professionals still see it.
+- "College type" is no longer asked when a student adds a college that isn't in the list (city, state and university/board are still asked). Colleges already added keep their saved type.
 
 ## 2026-09-26 (Google Form after entering)
 
