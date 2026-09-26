@@ -5,7 +5,7 @@ Short entries for meaningful changes. Newest first. No source code here.
 ## 2026-09-26 (admin times are India time)
 
 ### Fixed
-- Dates and times typed on the admin event, competition and coupon forms are now saved as India time. Before, the server (which runs on UTC) saved them 5 h 30 min late — a deadline typed as 5:00 pm showed and closed at 10:30 pm. Times saved before this fix keep their old (late) value until re-saved.
+- Dates and times typed on the admin event, competition and coupon forms are now saved as India time. Before, the server (which runs on UTC) saved them 5 h 30 min late — a deadline typed as 5:00 pm showed and closed at 10:30 pm. Times already saved (all events, competitions and coupon expiries) are moved back 5 h 30 min by a one-off migration, so they match what was typed.
 
 ## 2026-09-26 (competitions without Google Form; edit certificate name)
 
