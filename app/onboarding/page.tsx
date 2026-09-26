@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS, COLLEGE_TYPE_OPTIONS } from "@/lib/onboardingOptions";
+import { FIELD_OF_STUDY_OPTIONS, JOB_ROLE_OPTIONS } from "@/lib/onboardingOptions";
 import { COUNTRY_CODES, flagEmoji } from "@/lib/countryCodes";
 
 type CollegeSuggestion = { name: string; city: string | null; state: string | null };
@@ -30,8 +30,6 @@ export default function OnboardingPage() {
   const [collegeCity, setCollegeCity] = useState("");
   const [collegeState, setCollegeState] = useState("");
   const [collegeUniversity, setCollegeUniversity] = useState("");
-  const [collegeType, setCollegeType] = useState("");
-  const [collegeTypeOther, setCollegeTypeOther] = useState("");
   const [jobRole, setJobRole] = useState("");
   const [jobRoleOther, setJobRoleOther] = useState("");
   const [expertise, setExpertise] = useState("");
@@ -95,12 +93,8 @@ export default function OnboardingPage() {
       return;
     }
     if (userType === "COLLEGE_STUDENT" && addingNewCollege) {
-      if (!collegeCity.trim() || !collegeState.trim() || !collegeUniversity.trim() || !collegeType) {
+      if (!collegeCity.trim() || !collegeState.trim() || !collegeUniversity.trim()) {
         setError("Please fill in your college's city, state, and university/board.");
-        return;
-      }
-      if (collegeType === "Other" && !collegeTypeOther.trim()) {
-        setError("Please tell us your college type.");
         return;
       }
     }
@@ -116,8 +110,6 @@ export default function OnboardingPage() {
     const resolvedFieldOfStudy =
       fieldOfStudy === "Other" ? fieldOfStudyOther.trim() : fieldOfStudy;
     const resolvedJobRole = jobRole === "Other" ? jobRoleOther.trim() : jobRole;
-    const resolvedCollegeType =
-      collegeType === "Other" ? collegeTypeOther.trim() : collegeType;
 
     setLoading(true);
     try {
@@ -144,10 +136,8 @@ export default function OnboardingPage() {
             userType === "COLLEGE_STUDENT" && addingNewCollege
               ? collegeUniversity.trim()
               : undefined,
-          collegeType:
-            userType === "COLLEGE_STUDENT" && addingNewCollege ? resolvedCollegeType : undefined,
           jobRole: userType === "PROFESSIONAL" ? resolvedJobRole : undefined,
-          expertise: expertise || undefined,
+          expertise: showExpertise ? expertise || undefined : undefined,
         }),
       });
 
@@ -166,7 +156,8 @@ export default function OnboardingPage() {
     }
   }
 
-  const showExpertise = userType === "COLLEGE_STUDENT" || userType === "PROFESSIONAL";
+  // "Expert in" is for professionals — not asked of students.
+  const showExpertise = userType === "PROFESSIONAL";
 
   return (
     <main className="mx-auto flex flex-1 w-full max-w-[720px] flex-col justify-center px-4 py-16">
@@ -365,27 +356,6 @@ export default function OnboardingPage() {
                   onChange={(e) => setCollegeUniversity(e.target.value)}
                   className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
                 />
-                <select
-                  value={collegeType}
-                  onChange={(e) => setCollegeType(e.target.value)}
-                  className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-                >
-                  <option value="">College type</option>
-                  {COLLEGE_TYPE_OPTIONS.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-                {collegeType === "Other" && (
-                  <input
-                    type="text"
-                    placeholder="Tell us your college type"
-                    value={collegeTypeOther}
-                    onChange={(e) => setCollegeTypeOther(e.target.value)}
-                    className="w-full rounded border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm dark:bg-slate-800 dark:text-white"
-                  />
-                )}
               </div>
             )}
           </div>

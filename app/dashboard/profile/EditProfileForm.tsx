@@ -377,6 +377,7 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
 
   const showFieldOfStudy = initial.userType === "COLLEGE_STUDENT";
   const showJobRole = initial.userType === "PROFESSIONAL";
+  const showExpertise = initial.userType !== "COLLEGE_STUDENT";
   const photoSrc = hasPhoto ? `/api/account/photo?v=${photoVersion}` : null;
 
   return (
@@ -500,15 +501,17 @@ export function EditProfileForm({ initial }: { initial: Initial }) {
               </select>
             </Field>
           )}
-          <Field label="Expert in" optional>
-            <input
-              type="text"
-              placeholder="e.g. Pharmaceutical Chemistry, Machine Learning..."
-              value={expertise}
-              onChange={(e) => setExpertise(e.target.value)}
-              className={inputClass}
-            />
-          </Field>
+          {showExpertise && (
+            <Field label="Expert in" optional>
+              <input
+                type="text"
+                placeholder="e.g. Pharmaceutical Chemistry, Machine Learning..."
+                value={expertise}
+                onChange={(e) => setExpertise(e.target.value)}
+                className={inputClass}
+              />
+            </Field>
+          )}
         </Section>
 
         <Section

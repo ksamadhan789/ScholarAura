@@ -32,6 +32,15 @@ describe("profileChecklist", () => {
   });
 });
 
+describe("expertise item", () => {
+  it("isn't asked of college students", () => {
+    const student = profileChecklist({ ...empty, userType: "COLLEGE_STUDENT" });
+    expect(student.some((c) => c.key === "expertise")).toBe(false);
+    const pro = profileChecklist({ ...empty, userType: "PROFESSIONAL" });
+    expect(pro.some((c) => c.key === "expertise")).toBe(true);
+  });
+});
+
 describe("profileCompletionPercent", () => {
   it("rounds the share of finished items", () => {
     expect(profileCompletionPercent(profileChecklist(empty))).toBe(0);
