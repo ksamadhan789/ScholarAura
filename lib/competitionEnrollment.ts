@@ -53,28 +53,3 @@ export async function generateEnrollmentNumber(): Promise<string> {
 
   throw new Error("Could not generate a unique enrollment number");
 }
-
-export function buildGoogleFormUrl(
-  competition: {
-    googleFormUrl: string | null;
-    googleFormNameEntryId: string | null;
-    googleFormEmailEntryId: string | null;
-    googleFormEnrollmentEntryId: string | null;
-  },
-  participant: { name: string; email: string; enrollmentNumber: string }
-): string | null {
-  if (!competition.googleFormUrl) return null;
-
-  const url = new URL(competition.googleFormUrl);
-  url.searchParams.set("usp", "pp_url");
-  if (competition.googleFormNameEntryId) {
-    url.searchParams.set(competition.googleFormNameEntryId, participant.name);
-  }
-  if (competition.googleFormEmailEntryId) {
-    url.searchParams.set(competition.googleFormEmailEntryId, participant.email);
-  }
-  if (competition.googleFormEnrollmentEntryId) {
-    url.searchParams.set(competition.googleFormEnrollmentEntryId, participant.enrollmentNumber);
-  }
-  return url.toString();
-}

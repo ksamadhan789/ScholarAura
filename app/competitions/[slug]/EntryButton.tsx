@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { loadRazorpayScript } from "@/lib/loadRazorpayScript";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { ActionStatus } from "@/components/detail/DetailLayout";
-import { FormNextStep } from "@/components/detail/FormNextStep";
 
 type Rate = { currencyCode: string; symbol: string; rateFromInr: string };
 
@@ -34,15 +33,13 @@ export function EntryButton({
   const [couponCode, setCouponCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formUrl, setFormUrl] = useState<string | null>(null);
+  const [entered, setEntered] = useState(false);
 
-  // Entered. The organiser's Google Form (if any) is shown as a link to
-  // click rather than opened automatically: after a payment there's no
-  // click left to open a tab from, so browsers block it, and a tab opened
-  // up front would cover the payment window.
-  function onEntered(googleFormUrl: string | null | undefined) {
+  // Entered: the page re-renders with the submission section (ID card,
+  // entry file) — everything else is collected there, no outside form.
+  function onEntered() {
     setLoading(false);
-    if (googleFormUrl) setFormUrl(googleFormUrl);
+    setEntered(true);
     router.refresh();
   }
 
@@ -77,7 +74,7 @@ export function EntryButton({
       // Covers both free entries and credit-covered ones — the checkout
       // route settles those immediately without a Razorpay order.
       if (order.paidWithCredit) {
-        onEntered(order.googleFormUrl);
+        onEntered();
         return;
       }
 
@@ -110,8 +107,7 @@ export function EntryButton({
               setLoading(false);
               return;
             }
-            const verifyData = await verifyRes.json().catch(() => null);
-            onEntered(verifyData?.googleFormUrl);
+            onEntered();
           } catch {
             // The webhook still settles the payment; refreshing shows it once it has.
             setError("Payment received — we couldn't confirm it just now. Refresh the page in a minute.");
@@ -132,13 +128,8 @@ export function EntryButton({
     }
   }
 
-  if (formUrl) {
-    return (
-      <div className="flex flex-col gap-3">
-        <ActionStatus tone="success">You&apos;re entered in this competition!</ActionStatus>
-        <FormNextStep url={formUrl} />
-      </div>
-    );
+  if (entered) {
+    return <ActionStatus tone="success">You&apos;re entered in this competition!</ActionStatus>;
   }
 
   return (

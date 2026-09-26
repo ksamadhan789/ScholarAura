@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth";
+import { CertificateNameEditor } from "@/components/detail/CertificateNameEditor";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -152,6 +153,7 @@ export default async function EventCertificatesPage({
                 <th className={DASHBOARD_TH_CLASS}>Name</th>
                 <th className={DASHBOARD_TH_CLASS}>Email</th>
                 <th className={DASHBOARD_TH_CLASS}>College</th>
+                <th className={DASHBOARD_TH_CLASS}>Name on certificate</th>
                 <th className={DASHBOARD_TH_CLASS}>Form</th>
                 <th className={DASHBOARD_TH_CLASS}>Attendance</th>
                 <th className={DASHBOARD_TH_CLASS}>Eligible</th>
@@ -177,6 +179,14 @@ export default async function EventCertificatesPage({
                     </td>
                     <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{r.user.email}</td>
                     <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{r.user.organization ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      <CertificateNameEditor
+                        compact
+                        endpoint={`/api/events/${event.slug}/certificate-name`}
+                        userId={r.userId}
+                        name={r.certificateName || r.user.name}
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <YesNo value={r.formSubmitted} />
                     </td>

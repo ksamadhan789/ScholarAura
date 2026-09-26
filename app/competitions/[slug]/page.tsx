@@ -20,8 +20,8 @@ import { formatDateTime, getDeadlineUrgency } from "@/lib/eventLabels";
 import { parseThemeTopic } from "@/lib/competitionCopy";
 import type { EventPerson } from "@/lib/eventPeople";
 import { CheckoutAssurance } from "@/components/detail/CheckoutAssurance";
-import { FormNextStep } from "@/components/detail/FormNextStep";
-import { buildGoogleFormUrl } from "@/lib/competitionEnrollment";
+import { CertificateNameEditor } from "@/components/detail/CertificateNameEditor";
+import { isCertificateNameLocked } from "@/lib/certificateName";
 
 export async function generateMetadata({
   params,
@@ -104,12 +104,11 @@ export default async function CompetitionDetailPage({
   }));
 
   const isEntered = entry?.status === "SUCCESS";
-  const pendingFormUrl =
-    session && isEntered && !entry.formSubmitted && entry.enrollmentNumber
-      ? buildGoogleFormUrl(competition, {
-          name: entry.certificateName ?? session.user.name ?? "",
-          email: session.user.email ?? "",
-          enrollmentNumber: entry.enrollmentNumber,
+  const certificate =
+    session && isEntered
+      ? await prisma.certificate.findUnique({
+          where: { userId_competitionId: { userId: session.user.id, competitionId: competition.id } },
+          select: { status: true },
         })
       : null;
   const deadlinePassed = new Date() > competition.submissionDeadline;
@@ -238,7 +237,11 @@ export default async function CompetitionDetailPage({
                   You&apos;re entered in this competition!
                   {entry?.rank ? ` Result: #${entry.rank}` : ""}
                 </ActionStatus>
-                {pendingFormUrl && <FormNextStep url={pendingFormUrl} />}
+                <CertificateNameEditor
+                  endpoint={`/api/competitions/${competition.slug}/certificate-name`}
+                  name={entry?.certificateName || session.user.name || ""}
+                  locked={isCertificateNameLocked(certificate?.status)}
+                />
                 <a
                   href="#submission"
                   className="text-center text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"

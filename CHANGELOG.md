@@ -2,6 +2,14 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-26 (competitions without Google Form; edit certificate name)
+
+### Changed
+- Competitions no longer use a Google Form. Everything it collected is already on the competition page: the student ID card, the entry (file, link, notes) and the name for the certificate. After entering, students just see "You're entered" and the "Your submission" section — no "One step left" box, no second form. The Google Form fields and webhook secret are gone from the competition edit page. Events keep their Google Form (used for attendance).
+
+### Added
+- "Name on certificate" with an Edit button on the competition and event pages, so students can fix the name themselves until their certificate is issued. Admins can change anyone's certificate name from the Certificates page (recorded in the audit log), then Regenerate the certificate if it was already made.
+
 ## 2026-09-26 (students: no "Expert in" or "College type")
 
 ### Changed

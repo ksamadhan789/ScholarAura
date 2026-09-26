@@ -4,10 +4,9 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { issueCompetitionCertificateIfEligible } from "@/lib/certificate";
-import { buildGoogleFormUrl } from "@/lib/competitionEnrollment";
 import { Badge } from "@/components/Badge";
 import { RequestRefundButton } from "@/components/RequestRefundButton";
-import { Award, ClipboardList, Clock, Receipt, Trophy, Upload } from "lucide-react";
+import { Award, Clock, Receipt, Trophy, Upload } from "lucide-react";
 import {
   DASHBOARD_CARD_CLASS,
   DASHBOARD_PRIMARY_BUTTON_CLASS,
@@ -120,14 +119,6 @@ export default async function MyCompetitionsPage({ searchParams }: { searchParam
             <ul className="space-y-4">
               {visible.map((e) => {
                 const { competition } = e;
-                const googleFormUrl =
-                  !e.formSubmitted && e.enrollmentNumber
-                    ? buildGoogleFormUrl(competition, {
-                        name: e.certificateName ?? session.user.name ?? "",
-                        email: session.user.email ?? "",
-                        enrollmentNumber: e.enrollmentNumber,
-                      })
-                    : null;
                 const cert = certByCompetitionId.get(competition.id);
                 const certReady = cert && (cert.status === "AVAILABLE" || cert.status === "GENERATED");
                 const submissionsOpen = competition.submissionDeadline >= now;
@@ -149,7 +140,6 @@ export default async function MyCompetitionsPage({ searchParams }: { searchParam
                               {submissionsOpen ? "Submissions open" : "Submissions closed"}
                             </Badge>
                           )}
-                          {e.formSubmitted && <Badge variant="success">Form submitted</Badge>}
                         </div>
                         <Link
                           href={`/competitions/${competition.slug}`}
@@ -175,23 +165,6 @@ export default async function MyCompetitionsPage({ searchParams }: { searchParam
                         )}
                       </div>
                     </div>
-
-                    {googleFormUrl && (
-                      <div className="mt-4 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm sm:flex-row sm:items-center sm:justify-between dark:border-amber-800 dark:bg-amber-900/20">
-                        <p className="flex items-center gap-2 text-amber-900 dark:text-amber-200">
-                          <ClipboardList aria-hidden className="h-4 w-4 shrink-0" />
-                          One step left: complete the organiser&rsquo;s registration form.
-                        </p>
-                        <a
-                          href={googleFormUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`${DASHBOARD_PRIMARY_BUTTON_CLASS} shrink-0 py-1.5`}
-                        >
-                          Complete form
-                        </a>
-                      </div>
-                    )}
 
                     <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4 dark:border-slate-700">
                       {submissionsOpen && (
