@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loadRazorpayScript } from "@/lib/loadRazorpayScript";
 import { CurrencySelector } from "@/components/CurrencySelector";
+import { ActionStatus } from "@/components/detail/DetailLayout";
+import { FormNextStep } from "@/components/detail/FormNextStep";
 
 type Rate = { currencyCode: string; symbol: string; rateFromInr: string };
 
@@ -32,32 +34,21 @@ export function EntryButton({
   const [couponCode, setCouponCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [blockedFormUrl, setBlockedFormUrl] = useState<string | null>(null);
-  const formWindowRef = useRef<Window | null>(null);
+  const [formUrl, setFormUrl] = useState<string | null>(null);
 
-  // Navigates the tab opened synchronously in handleClick (before the
-  // checkout call) to the Google Form. Opening a blank tab right on the
-  // click keeps it within the browser's "user activation" window; opening
-  // it only once the URL is known (after an awaited fetch) is what most
-  // popup blockers silently swallow, since that breaks the direct-click
-  // gesture chain they require. Falls back to a manual link if even the
-  // blank tab was blocked.
-  function openGoogleForm(url: string): boolean {
-    const win = formWindowRef.current;
-    if (win && !win.closed) {
-      win.opener = null;
-      win.location.href = url;
-      return true;
-    }
-    setBlockedFormUrl(url);
+  // Entered. The organiser's Google Form (if any) is shown as a link to
+  // click rather than opened automatically: after a payment there's no
+  // click left to open a tab from, so browsers block it, and a tab opened
+  // up front would cover the payment window.
+  function onEntered(googleFormUrl: string | null | undefined) {
     setLoading(false);
-    return false;
+    if (googleFormUrl) setFormUrl(googleFormUrl);
+    router.refresh();
   }
 
   async function handleClick() {
     setLoading(true);
     setError(null);
-    formWindowRef.current = window.open("", "_blank");
 
     try {
       const checkoutRes = await fetch(`/api/competitions/${slug}/checkout`, {
@@ -72,13 +63,13 @@ export function EntryButton({
         }),
       });
       if (!checkoutRes.ok) {
-        formWindowRef.current?.close();
         const data = await checkoutRes.json().catch(() => null);
         if (data?.code === "ONBOARDING_REQUIRED") {
           router.push("/onboarding");
           return;
         }
         setError(data?.error ?? "Couldn't start checkout. Please try again.");
+        setLoading(false);
         return;
       }
       const order = await checkoutRes.json();
@@ -86,20 +77,14 @@ export function EntryButton({
       // Covers both free entries and credit-covered ones — the checkout
       // route settles those immediately without a Razorpay order.
       if (order.paidWithCredit) {
-        if (order.googleFormUrl) {
-          if (!openGoogleForm(order.googleFormUrl)) return;
-        } else {
-          formWindowRef.current?.close();
-        }
-        router.push(`/competitions/${slug}`);
-        router.refresh();
+        onEntered(order.googleFormUrl);
         return;
       }
 
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
-        formWindowRef.current?.close();
         setError("Couldn't load the payment form. Check your connection and try again.");
+        setLoading(false);
         return;
       }
 
@@ -113,29 +98,28 @@ export function EntryButton({
         prefill: { name: userName ?? undefined, email: userEmail ?? undefined },
         theme: { color: "#000000" },
         handler: async (response) => {
-          const verifyRes = await fetch(`/api/competitions/${slug}/verify-payment`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(response),
-          });
-          if (!verifyRes.ok) {
-            formWindowRef.current?.close();
-            const data = await verifyRes.json().catch(() => null);
-            setError(data?.error ?? "Payment succeeded but we couldn't confirm it. Contact support.");
-            return;
+          try {
+            const verifyRes = await fetch(`/api/competitions/${slug}/verify-payment`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(response),
+            });
+            if (!verifyRes.ok) {
+              const data = await verifyRes.json().catch(() => null);
+              setError(data?.error ?? "Payment succeeded but we couldn't confirm it. Contact support.");
+              setLoading(false);
+              return;
+            }
+            const verifyData = await verifyRes.json().catch(() => null);
+            onEntered(verifyData?.googleFormUrl);
+          } catch {
+            // The webhook still settles the payment; refreshing shows it once it has.
+            setError("Payment received — we couldn't confirm it just now. Refresh the page in a minute.");
+            setLoading(false);
           }
-          const verifyData = await verifyRes.json().catch(() => null);
-          if (verifyData?.googleFormUrl) {
-            if (!openGoogleForm(verifyData.googleFormUrl)) return;
-          } else {
-            formWindowRef.current?.close();
-          }
-          router.push(`/competitions/${slug}`);
-          router.refresh();
         },
         modal: {
           ondismiss: () => {
-            formWindowRef.current?.close();
             setLoading(false);
           },
         },
@@ -143,10 +127,18 @@ export function EntryButton({
 
       razorpay.open();
     } catch {
-      formWindowRef.current?.close();
       setError("Couldn't reach the server. Please try again.");
       setLoading(false);
     }
+  }
+
+  if (formUrl) {
+    return (
+      <div className="flex flex-col gap-3">
+        <ActionStatus tone="success">You&apos;re entered in this competition!</ActionStatus>
+        <FormNextStep url={formUrl} />
+      </div>
+    );
   }
 
   return (
@@ -204,31 +196,6 @@ export function EntryButton({
         {loading ? "Please wait…" : isPaid ? "Enter & Pay" : "Enter competition"}
       </button>
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-      {blockedFormUrl && (
-        <div className="rounded border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30 p-3 text-sm">
-          <p className="mb-2">
-            🎉 You&apos;re entered! Your browser blocked the Google Form from opening automatically.
-          </p>
-          <a
-            href={blockedFormUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mr-3 underline"
-          >
-            Open the Google Form →
-          </a>
-          <button
-            type="button"
-            onClick={() => {
-              router.push(`/competitions/${slug}`);
-              router.refresh();
-            }}
-            className="underline"
-          >
-            Continue
-          </button>
-        </div>
-      )}
     </div>
   );
 }
