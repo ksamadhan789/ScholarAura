@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { toPublicListing } from "@/lib/publicListing";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
+import { fromIstInput } from "@/lib/istDate";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -10,7 +11,7 @@ import { notifyInterestedStudents } from "@/lib/interestNotify";
 import { httpUrl } from "@/lib/safeUrl";
 
 const optionalDate = z.preprocess(
-  (val) => (val === "" || val == null ? undefined : val),
+  (val) => (val === "" || val == null ? undefined : fromIstInput(val)),
   z.coerce.date().optional()
 );
 
@@ -20,9 +21,9 @@ const updateCompetitionSchema = z
     isArchived: z.boolean().optional(),
     title: z.string().min(3).optional(),
     description: z.string().min(10).optional(),
-    startDate: z.coerce.date().optional(),
-    endDate: z.coerce.date().optional(),
-    submissionDeadline: z.coerce.date().optional(),
+    startDate: z.preprocess(fromIstInput, z.coerce.date()).optional(),
+    endDate: z.preprocess(fromIstInput, z.coerce.date()).optional(),
+    submissionDeadline: z.preprocess(fromIstInput, z.coerce.date()).optional(),
     fee: z.coerce.number().min(0).optional(),
     prizeDescription: z.string().trim().nullable().optional(),
     prizeFirst: z.string().trim().nullable().optional(),

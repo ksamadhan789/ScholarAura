@@ -1,16 +1,10 @@
 import { getServerSession } from "next-auth";
+import { toIstInput } from "@/lib/istDate";
 import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EditEventForm } from "./EditEventForm";
 import type { EventPerson } from "@/lib/eventPeople";
-
-function toLocalInput(date: Date | null): string {
-  if (!date) return "";
-  const d = new Date(date);
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 16);
-}
 
 export default async function EditEventPage({ params }: { params: { slug: string } }) {
   const session = await getServerSession(authOptions);
@@ -29,8 +23,8 @@ export default async function EditEventPage({ params }: { params: { slug: string
         description: event.description,
         shortDescription: event.shortDescription ?? "",
         type: event.type,
-        startDate: toLocalInput(event.startDate),
-        endDate: toLocalInput(event.endDate),
+        startDate: toIstInput(event.startDate),
+        endDate: toIstInput(event.endDate),
         fee: event.fee.toString(),
         seatsTotal: event.seatsTotal.toString(),
         venueOrLink: event.venueOrLink,
@@ -40,9 +34,9 @@ export default async function EditEventPage({ params }: { params: { slug: string
         thumbnailUrl: event.thumbnailUrl ?? "",
         brochureUrl: event.brochureUrl ?? "",
         eligibility: event.eligibility ?? "",
-        registrationStartDate: toLocalInput(event.registrationStartDate),
-        registrationDeadline: toLocalInput(event.registrationDeadline),
-        resultDate: toLocalInput(event.resultDate),
+        registrationStartDate: toIstInput(event.registrationStartDate),
+        registrationDeadline: toIstInput(event.registrationDeadline),
+        resultDate: toIstInput(event.resultDate),
         prizeDescription: event.prizeDescription ?? "",
         prizeFirst: event.prizeFirst ?? "",
         prizeSecond: event.prizeSecond ?? "",
