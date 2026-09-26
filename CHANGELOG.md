@@ -2,6 +2,13 @@
 
 Short entries for meaningful changes. Newest first. No source code here.
 
+## 2026-09-26 (Google Form after entering)
+
+### Fixed
+- Paying for a competition entry or event registration no longer opens a blank tab on top of the payment window. Once entered, the person now sees "You're entered" / "You're registered" with an "Open the Google Form" button (name, email and enrolment number prefilled) instead of the site trying to pop the form open, which browsers often block after a payment.
+- The competition and event pages now keep showing that Google Form button until the organiser's form reply is recorded, so someone who closed the form can get back to it (previously it was only on My competitions / My events).
+- The Enter / Register button no longer stays stuck on "Please wait…" after an error such as an invalid coupon.
+
 ## 2026-09-25 (recruiter plans)
 
 ### Added

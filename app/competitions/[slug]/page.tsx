@@ -20,6 +20,8 @@ import { formatDateTime, getDeadlineUrgency } from "@/lib/eventLabels";
 import { parseThemeTopic } from "@/lib/competitionCopy";
 import type { EventPerson } from "@/lib/eventPeople";
 import { CheckoutAssurance } from "@/components/detail/CheckoutAssurance";
+import { FormNextStep } from "@/components/detail/FormNextStep";
+import { buildGoogleFormUrl } from "@/lib/competitionEnrollment";
 
 export async function generateMetadata({
   params,
@@ -102,6 +104,14 @@ export default async function CompetitionDetailPage({
   }));
 
   const isEntered = entry?.status === "SUCCESS";
+  const pendingFormUrl =
+    session && isEntered && !entry.formSubmitted && entry.enrollmentNumber
+      ? buildGoogleFormUrl(competition, {
+          name: entry.certificateName ?? session.user.name ?? "",
+          email: session.user.email ?? "",
+          enrollmentNumber: entry.enrollmentNumber,
+        })
+      : null;
   const deadlinePassed = new Date() > competition.submissionDeadline;
   const urgency = getDeadlineUrgency(competition.submissionDeadline);
   const feeLabel = Number(competition.fee) === 0 ? "Free" : `₹${competition.fee}`;
@@ -228,6 +238,7 @@ export default async function CompetitionDetailPage({
                   You&apos;re entered in this competition!
                   {entry?.rank ? ` Result: #${entry.rank}` : ""}
                 </ActionStatus>
+                {pendingFormUrl && <FormNextStep url={pendingFormUrl} />}
                 <a
                   href="#submission"
                   className="text-center text-sm font-semibold text-brand-600 hover:underline dark:text-brand-400"

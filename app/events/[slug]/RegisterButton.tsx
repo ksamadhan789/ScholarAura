@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loadRazorpayScript } from "@/lib/loadRazorpayScript";
 import { CurrencySelector } from "@/components/CurrencySelector";
+import { ActionStatus } from "@/components/detail/DetailLayout";
+import { FormNextStep } from "@/components/detail/FormNextStep";
 
 type Rate = { currencyCode: string; symbol: string; rateFromInr: string };
 
@@ -28,26 +30,26 @@ export function RegisterButton({
   const [couponCode, setCouponCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [blockedFormUrl, setBlockedFormUrl] = useState<string | null>(null);
-  const formWindowRef = useRef<Window | null>(null);
+  const [formUrl, setFormUrl] = useState<string | null>(null);
 
-  // Navigates the tab opened synchronously in handleClick (before the
-  // register/checkout call) to the Google Form. Opening a blank tab right
-  // on the click keeps it within the browser's "user activation" window;
-  // opening it only once the URL is known (after an awaited fetch) is what
-  // most popup blockers silently swallow, since that breaks the
-  // direct-click gesture chain they require. Falls back to a manual link
-  // if even the blank tab was blocked.
-  function openGoogleForm(url: string): boolean {
-    const win = formWindowRef.current;
-    if (win && !win.closed) {
-      win.opener = null;
-      win.location.href = url;
-      return true;
-    }
-    setBlockedFormUrl(url);
+  // Registered. The organiser's Google Form (if any) is shown as a link to
+  // click rather than opened automatically: after a payment there's no
+  // click left to open a tab from, so browsers block it, and a tab opened
+  // up front would cover the payment window.
+  function onRegistered(googleFormUrl: string | null | undefined) {
     setLoading(false);
-    return false;
+    if (googleFormUrl) {
+      setFormUrl(googleFormUrl);
+      router.refresh();
+      return;
+    }
+    router.push("/dashboard/registrations");
+    router.refresh();
+  }
+
+  function fail(message: string) {
+    setError(message);
+    setLoading(false);
   }
 
   // Returns true if this response was handled (redirecting to onboarding),
@@ -64,21 +66,13 @@ export function RegisterButton({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ certificateName }),
     });
+    const data = await res.json().catch(() => null);
     if (!res.ok) {
-      formWindowRef.current?.close();
-      const data = await res.json().catch(() => null);
       if (redirectIfOnboardingRequired(data)) return;
-      setError(data?.error ?? "Couldn't register. Please try again.");
+      fail(data?.error ?? "Couldn't register. Please try again.");
       return;
     }
-    const data = await res.json().catch(() => null);
-    if (data?.googleFormUrl) {
-      if (!openGoogleForm(data.googleFormUrl)) return;
-    } else {
-      formWindowRef.current?.close();
-    }
-    router.push("/dashboard/registrations");
-    router.refresh();
+    onRegistered(data?.googleFormUrl);
   }
 
   async function handlePaidRegister() {
@@ -88,29 +82,21 @@ export function RegisterButton({
       body: JSON.stringify({ currency, certificateName, couponCode: couponCode || undefined }),
     });
     if (!checkoutRes.ok) {
-      formWindowRef.current?.close();
       const data = await checkoutRes.json().catch(() => null);
       if (redirectIfOnboardingRequired(data)) return;
-      setError(data?.error ?? "Couldn't start checkout. Please try again.");
+      fail(data?.error ?? "Couldn't start checkout. Please try again.");
       return;
     }
     const order = await checkoutRes.json();
 
     if (order.paidWithCredit) {
-      if (order.googleFormUrl) {
-        if (!openGoogleForm(order.googleFormUrl)) return;
-      } else {
-        formWindowRef.current?.close();
-      }
-      router.push("/dashboard/registrations");
-      router.refresh();
+      onRegistered(order.googleFormUrl);
       return;
     }
 
     const scriptLoaded = await loadRazorpayScript();
     if (!scriptLoaded) {
-      formWindowRef.current?.close();
-      setError("Couldn't load the payment form. Check your connection and try again.");
+      fail("Couldn't load the payment form. Check your connection and try again.");
       return;
     }
 
@@ -124,31 +110,25 @@ export function RegisterButton({
       prefill: { name: userName ?? undefined, email: userEmail ?? undefined },
       theme: { color: "#000000" },
       handler: async (response) => {
-        const verifyRes = await fetch(`/api/events/${slug}/verify-payment`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(response),
-        });
-        if (!verifyRes.ok) {
-          formWindowRef.current?.close();
+        try {
+          const verifyRes = await fetch(`/api/events/${slug}/verify-payment`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(response),
+          });
           const data = await verifyRes.json().catch(() => null);
-          setError(data?.error ?? "Payment succeeded but we couldn't confirm it. Contact support.");
-          return;
+          if (!verifyRes.ok) {
+            fail(data?.error ?? "Payment succeeded but we couldn't confirm it. Contact support.");
+            return;
+          }
+          onRegistered(data?.googleFormUrl);
+        } catch {
+          // The webhook still settles the payment; refreshing shows it once it has.
+          fail("Payment received — we couldn't confirm it just now. Refresh the page in a minute.");
         }
-        const verifyData = await verifyRes.json().catch(() => null);
-        if (verifyData?.googleFormUrl) {
-          if (!openGoogleForm(verifyData.googleFormUrl)) return;
-        } else {
-          formWindowRef.current?.close();
-        }
-        router.push("/dashboard/registrations");
-        router.refresh();
       },
       modal: {
-        ondismiss: () => {
-          formWindowRef.current?.close();
-          setLoading(false);
-        },
+        ondismiss: () => setLoading(false),
       },
     });
 
@@ -158,8 +138,6 @@ export function RegisterButton({
   async function handleClick() {
     setLoading(true);
     setError(null);
-    formWindowRef.current = window.open("", "_blank");
-
     try {
       if (isPaid) {
         await handlePaidRegister();
@@ -167,18 +145,22 @@ export function RegisterButton({
         await handleFreeRegister();
       }
     } catch {
-      formWindowRef.current?.close();
-      setError("Couldn't reach the server. Please try again.");
-    } finally {
-      if (!isPaid) setLoading(false);
+      fail("Couldn't reach the server. Please try again.");
     }
+  }
+
+  if (formUrl) {
+    return (
+      <div className="flex flex-col gap-3">
+        <ActionStatus tone="success">You&apos;re registered for this event!</ActionStatus>
+        <FormNextStep url={formUrl} />
+      </div>
+    );
   }
 
   return (
     <div>
-      <label className="mb-1 block text-sm text-gray-600 dark:text-slate-400">
-        Name to print on certificate
-      </label>
+      <label className="mb-1 block text-sm text-gray-600 dark:text-slate-400">Name to print on certificate</label>
       <input
         type="text"
         value={certificateName}
@@ -188,12 +170,7 @@ export function RegisterButton({
       />
       {isPaid && (
         <>
-          <CurrencySelector
-            priceInInr={price}
-            rates={rates}
-            value={currency}
-            onChange={setCurrency}
-          />
+          <CurrencySelector priceInInr={price} rates={rates} value={currency} onChange={setCurrency} />
           <input
             type="text"
             placeholder="Coupon code (optional)"
@@ -211,31 +188,6 @@ export function RegisterButton({
         {loading ? "Please wait…" : isPaid ? "Register & Pay" : "Register"}
       </button>
       {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
-      {blockedFormUrl && (
-        <div className="mt-3 rounded border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30 p-3 text-sm">
-          <p className="mb-2">
-            🎉 You&apos;re registered! Your browser blocked the Google Form from opening automatically.
-          </p>
-          <a
-            href={blockedFormUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mr-3 underline"
-          >
-            Open the Google Form →
-          </a>
-          <button
-            type="button"
-            onClick={() => {
-              router.push("/dashboard/registrations");
-              router.refresh();
-            }}
-            className="underline"
-          >
-            Continue to My Events
-          </button>
-        </div>
-      )}
     </div>
   );
 }

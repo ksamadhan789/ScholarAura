@@ -17,6 +17,8 @@ import {
   formatDateTime,
   getDeadlineUrgency,
 } from "@/lib/eventLabels";
+import { FormNextStep } from "@/components/detail/FormNextStep";
+import { buildGoogleFormUrl } from "@/lib/enrollment";
 import { RegisterButton } from "./RegisterButton";
 import { PeopleList } from "@/components/PeopleList";
 import { WaitlistButton } from "@/components/events/WaitlistButton";
@@ -90,6 +92,14 @@ export default async function EventDetailPage({
 
   const isAdmin = session?.user.role === "ADMIN";
   const isRegistered = registration?.status === "CONFIRMED";
+  const pendingFormUrl =
+    session && isRegistered && !registration.formSubmitted && registration.enrollmentNumber
+      ? buildGoogleFormUrl(event, {
+          name: registration.certificateName ?? session.user.name ?? "",
+          email: session.user.email ?? "",
+          enrollmentNumber: registration.enrollmentNumber,
+        })
+      : null;
   const seatsLeft = event.seatsTotal - event.seatsFilled;
   const canSeeVenue = isRegistered || isAdmin;
   const feeLabel = Number(event.fee) === 0 ? "Free" : `₹${event.fee}`;
@@ -226,6 +236,7 @@ export default async function EventDetailPage({
             ) : isRegistered ? (
               <>
                 <ActionStatus tone="success">You&apos;re registered for this event!</ActionStatus>
+                {pendingFormUrl && <FormNextStep url={pendingFormUrl} />}
                 {Number(event.fee) === 0 && event.startDate > new Date() && (
                   <CancelRegistrationButton slug={event.slug} />
                 )}
